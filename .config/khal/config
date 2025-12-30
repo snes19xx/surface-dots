@@ -1,0 +1,11 @@
+[calendars]
+[[calendars]]
+path = ~/.local/share/vdirsyncer/calendars/*
+type = discover
+
+[locale]
+timeformat = %I:%M %p
+dateformat = %Y-%m-%d
+longdateformat = %a %b %d %Y
+datetimeformat = %Y-%m-%d %I:%M %p
+longdatetimeformat = %a %b %d %Y %I:%M %p

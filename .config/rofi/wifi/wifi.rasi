@@ -1,0 +1,132 @@
+/*****----- Configuration -----*****/
+
+configuration {
+    font: "JetBrains Mono Nerd Font 10";
+    show-icons: false;
+}
+
+/*****----- Global Properties -----*****/
+* {
+    background:     #1E2326;
+    background-alt: #272E33;
+    foreground:     #D3C6AA;
+    selected:       #A7C080;
+    active:         #2E3F34;
+    urgent:         #D08261;
+    
+    background-color: transparent;
+    text-color:       @foreground;
+}
+
+/*****----- Main Window -----*****/
+window {
+    transparency: "real";
+    location:northeast;
+    anchor:northeast;
+    
+    fullscreen: false;
+    width: 400px;
+    x-offset: -10px;
+    y-offset:  10px;
+
+    enabled: true;
+    border-radius: 12px;
+
+    border: 1px;
+    border-color: @selected;
+    
+    background-color: @background;
+    cursor: "default";
+}
+
+/*****----- Layout -----*****/
+mainbox {
+    enabled: true;
+    spacing: 10px;
+    padding: 20px;
+    orientation: vertical;
+    children: [ "inputbar", "listview" ];
+    background-color: transparent;
+}
+
+/*****----- Input Bar -----*****/
+inputbar {
+    enabled: true;
+    spacing: 10px;
+    padding: 0px;
+    border: 0px;
+    background-color: transparent;
+    text-color: @foreground;
+    children: [ "textbox-icon", "entry" ];
+}
+
+textbox-icon {
+    enabled: true;
+    expand: false;
+    str: "󰤨 ";
+    padding: 10px 14px;
+    border-radius: 10px;
+    background-color: @active;
+    text-color: @foreground;
+}
+
+entry {
+    enabled: true;
+    expand: true;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background-color: @background-alt;
+    text-color: inherit;
+    cursor: text;
+    placeholder: "Search Networks...";
+}
+
+/*****----- List -----*****/
+listview {
+    enabled: true;
+    columns: 1;
+    lines: 6;
+    cycle: true;
+    dynamic: true;
+    scrollbar: false;
+    layout: vertical;
+    reverse: false;
+    fixed-height: false;
+    fixed-columns: true;
+    
+    spacing: 5px;
+    margin: 5px 0px 0px 0px;
+    background-color: transparent;
+    text-color: @foreground;
+    cursor: "default";
+}
+
+/*****----- Elements -----*****/
+element {
+    enabled: true;
+    spacing: 10px;
+    padding: 8px;
+    border-radius: 8px;
+    background-color: transparent;
+    text-color: @foreground;
+    cursor: pointer;
+}
+
+element normal.normal {
+    background-color: inherit;
+    text-color: inherit;
+}
+
+element selected.normal {
+    background-color: @selected;
+    text-color: #1E2326; 
+}
+
+element-text {
+    background-color: transparent;
+    text-color: inherit;
+    highlight: inherit;
+    cursor: inherit;
+    vertical-align: 0.5;
+    horizontal-align: 0.0;
+}

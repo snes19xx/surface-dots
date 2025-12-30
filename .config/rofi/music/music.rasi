@@ -1,0 +1,102 @@
+configuration {
+    show-icons: false;
+}
+/* --- GLOBAL RESET --- */
+* {
+    /* Everforest Palette */
+    background: #1E2326;
+    background-alt: #272E33;
+    foreground: #D3C6AA;
+    selected: #A7C080;
+    
+    background-color: transparent;
+    text-color: @foreground;
+    
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+    spacing: 0px;
+}
+window {
+    transparency: "real";
+    location: Northwest;
+    anchor: Northwest;
+    x-offset: 10px;
+    y-offset: 10px;
+    fullscreen: false;
+    
+    /* Fixed Card Width */
+    width: 250px;
+    
+    border-radius: 20px;
+    border: 2px;
+    border-color: @selected;
+    
+    background-color: @background-alt;
+    children: [ mainbox ];
+}
+mainbox {
+    orientation: vertical;
+    children: [ inputbar, message, listview ];
+    background-color: @background;
+}
+/* --- 1. ALBUM ART (TOP) --- */
+inputbar {
+    enabled: true;
+    background-image: url("/tmp/cover.png", height);
+    border-radius: 18px 18px 0px 0px;
+    background-color: @background;
+    
+    children: [ dummy ];
+}
+dummy {
+    background-color: transparent;
+    padding: 125px 0px;
+}
+/* --- 2. TEXT INFO (MIDDLE) --- */
+message {
+    padding: 20px 15px;
+    background-color: @background;
+}
+textbox {
+    background-color: transparent;
+    text-color: @foreground;
+    vertical-align: 0.5;
+    horizontal-align: 0.5;
+    markup: true;
+}
+/* --- 3. BUTTONS --- */
+listview {
+    fixed-height: true;
+    height: 45px;
+    
+    columns: 3;
+    lines: 1;
+    cycle: true;
+    dynamic: false;
+    
+    /* Center the buttons */
+    margin: 0px 30px 15px 30px;
+    spacing: 10px;
+    
+    background-color: @background;
+    cursor: "pointer";
+}
+element {
+    background-color: @background-alt;
+    border-radius: 100%; 
+    padding: 3px 0px;    
+    cursor: pointer;
+}
+element selected {
+    background-color: @selected;
+    text-color: @background;
+}
+element-text {
+    font: "JetBrains Mono Nerd Font 16";
+    horizontal-align: 0.5;
+    vertical-align: 0.5;
+    background-color: transparent;
+    text-color: inherit;
+    cursor: pointer;
+}

@@ -1,0 +1,593 @@
+/* xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   SNES' FIREFOX USERCHROME
+   xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx */
+
+/* -----------------------
+   1. ADAPTIVE TAB BAR COLOUR (ATBC) INTEGRATION
+   (https://addons.mozilla.org/en-CA/firefox/addon/adaptive-tab-bar-colour/)
+   ----------------------- */
+#main-window, body, :root {
+  background-color: var(--lwt-accent-color, hsl(206, 14%, 20%)) !important;
+}
+
+#navigator-toolbox {
+  background-color: var(--lwt-accent-color, #2b3339) !important;
+  background-image: none !important;
+  transition: background-color 0.2s ease !important;
+}
+
+#titlebar, #TabsToolbar, #nav-bar, #PersonalToolbar {
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+#navigator-toolbox::after { display: none !important; }
+
+#navigator-toolbox, .tabbrowser-tab, .toolbarbutton-1, #urlbar-input {
+  color: var(--lwt-text-color, inherit) !important;
+}
+
+#urlbar-background {
+  background-color: rgba(43, 51, 57, 0.4) !important; 
+}
+
+
+/* -----------------------
+   2. VARIABLES & ANIMATION PALETTE
+   ----------------------- */
+:root {
+  --anim-instant: 0s;
+  --anim-fast: 180ms;
+  --anim-medium: 380ms;
+  --anim-long: 620ms;
+
+  --ease-soft: cubic-bezier(.2,.9,.3,1);
+  --ease-spring: cubic-bezier(.20,1.18,.28,1.02);
+  --ease-overshoot: cubic-bezier(.16,.98,.28,1.36);
+
+  --tab-min-height: 24px !important;
+  --tab-grow-scale: 1.04;
+
+  --bookmark-scale-hover: 1.10;
+  --bookmark-dim: 0.44;
+
+  --addtab-spin-duration: 2.2s;
+  --addtab-spin-fast-duration: 0.9s;
+  --addtab-spin-ease: linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --anim-fast: 0ms; --anim-medium: 0ms; --anim-long: 0ms; --addtab-spin-duration: 0s; --addtab-spin-fast-duration: 0s; }
+  * { transition-duration: 0ms !important; animation-duration: 0ms !important; animation-iteration-count: 1 !important; animation-name: none !important; }
+}
+
+
+/* -----------------------
+   3. FIREFOX LOGO (Top Left)
+   ----------------------- */
+#TabsToolbar::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23e66000' viewBox='0 0 16 16'%3E%3Cpath d='M13.384 3.408c.535.276 1.22 1.152 1.556 1.963a8 8 0 0 1 .503 3.897l-.009.077-.026.224A7.758 7.758 0 0 1 .006 8.257v-.04q.025-.545.114-1.082c.01-.074.075-.42.09-.489l.01-.051a6.6 6.6 0 0 1 1.041-2.35q.327-.465.725-.87q.35-.358.758-.65a1.5 1.5 0 0 1 .26-.137c-.018.268-.04 1.553.268 1.943h.003a5.7 5.7 0 0 1 1.868-1.443 3.6 3.6 0 0 0 .021 1.896q.105.07.2.152c.107.09.226.207.454.433l.068.066.009.009a2 2 0 0 0 .213.18c.383.287.943.563 1.306.741.201.1.342.168.359.193l.004.008c-.012.193-.695.858-.933.858-2.206 0-2.564 1.335-2.564 1.335.087.997.714 1.839 1.517 2.357a4 4 0 0 0 .439.241q.114.05.228.094c.325.115.665.18 1.01.194 3.043.143 4.155-2.804 3.129-4.745v-.001a3 3 0 0 0-.731-.9 3 3 0 0 0-.571-.37l-.003-.002a2.68 2.68 0 0 1 1.87.454 3.92 3.92 0 0 0-3.396-1.983q-.116.001-.23.01l-.042.003V4.31h-.002a4 4 0 0 0-.8.14 7 7 0 0 0-.333-.314 2 2 0 0 0-.2-.152 4 4 0 0 1-.088-.383 5 5 0 0 1 1.352-.289l.05-.003c.052-.004.125-.01.205-.012C7.996 2.212 8.733.843 10.17.002l-.003.005.003-.001.002-.002h.002l.002-.002h.015a.02.02 0 0 1 .012.007 2.4 2.4 0 0 0 .206.48q.09.153.183.297c.49.774 1.023 1.379 1.543 1.968.771.874 1.512 1.715 2.036 3.02l-.001-.013a8 8 0 0 0-.786-2.353'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 100;
+  pointer-events: none; 
+  cursor: default; 
+  
+  /* Focus Mode: Dim logo when idle */
+  opacity: 0.4;
+  filter: brightness(0.8) hue-rotate(0deg) saturate(0.9);
+  
+  transition: 
+    opacity var(--anim-medium) var(--ease-soft),
+    filter var(--anim-medium) var(--ease-soft), 
+    background-image 0.2s;
+}
+
+#TabsToolbar:hover::before {
+  opacity: 1; /* Restore opacity on hover */
+  filter: brightness(1) hue-rotate(0deg) saturate(1.1);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23e69875' viewBox='0 0 16 16'%3E%3Cpath d='M13.384 3.408c.535.276 1.22 1.152 1.556 1.963a8 8 0 0 1 .503 3.897l-.009.077-.026.224A7.758 7.758 0 0 1 .006 8.257v-.04q.025-.545.114-1.082c.01-.074.075-.42.09-.489l.01-.051a6.6 6.6 0 0 1 1.041-2.35q.327-.465.725-.87q.35-.358.758-.65a1.5 1.5 0 0 1 .26-.137c-.018.268-.04 1.553.268 1.943h.003a5.7 5.7 0 0 1 1.868-1.443 3.6 3.6 0 0 0 .021 1.896q.105.07.2.152c.107.09.226.207.454.433l.068.066.009.009a2 2 0 0 0 .213.18c.383.287.943.563 1.306.741.201.1.342.168.359.193l.004.008c-.012.193-.695.858-.933.858-2.206 0-2.564 1.335-2.564 1.335.087.997.714 1.839 1.517 2.357a4 4 0 0 0 .439.241q.114.05.228.094c.325.115.665.18 1.01.194 3.043.143 4.155-2.804 3.129-4.745v-.001a3 3 0 0 0-.731-.9 3 3 0 0 0-.571-.37l-.003-.002a2.68 2.68 0 0 1 1.87.454 3.92 3.92 0 0 0-3.396-1.983q-.116.001-.23.01l-.042.003V4.31h-.002a4 4 0 0 0-.8.14 7 7 0 0 0-.333-.314 2 2 0 0 0-.2-.152 4 4 0 0 1-.088-.383 5 5 0 0 1 1.352-.289l.05-.003c.052-.004.125-.01.205-.012C7.996 2.212 8.733.843 10.17.002l-.003.005.003-.001.002-.002h.002l.002-.002h.015a.02.02 0 0 1 .012.007 2.4 2.4 0 0 0 .206.48q.09.153.183.297c.49.774 1.023 1.379 1.543 1.968.771.874 1.512 1.715 2.036 3.02l-.001-.013a8 8 0 0 0-.786-2.353'/%3E%3C/svg%3E");
+}
+
+#TabsToolbar { padding-left: 36px !important; position: relative; }
+
+
+/* -----------------------
+   4. FONTS & UI CLEANUP
+   ----------------------- */
+:root { --toolbarbutton-inner-padding: 4px !important; }
+
+#navigator-toolbox, #TabsToolbar, .tabbrowser-tab, #nav-bar, #urlbar, #PersonalToolbar {
+  font-family: "JetBrains Mono", monospace !important;
+}
+
+#titlebar-buttonbox, #titlebar-buttonbox-container {
+  font-family: "JetBrains Mono", monospace !important;
+  position: static !important;
+  z-index: auto !important;
+  pointer-events: auto !important;
+}
+#titlebar { position: relative !important; z-index: auto !important; pointer-events: auto !important; }
+#identity-box { display: none !important; }
+
+@media (-moz-platform: windows) {
+  :root[tabsintitlebar] #nav-bar { padding-right: clamp(48px, 2.6rem, 72px) !important; }
+  :root[tabsintitlebar][sizemode="maximized"] #nav-bar { padding-right: clamp(48px, 3.0rem, 84px) !important; }
+}
+
+
+/* -----------------------
+   5. SELECTION & HELPER UTILITIES
+   ----------------------- */
+:root ::selection, #urlbar ::selection, .autocomplete-richlistbox ::selection {
+  background: #a7c080 !important;
+  color: #2b3339 !important; 
+}
+
+.ux-will-change { will-change: transform, opacity; }
+.ux-anim-fast { transition: all var(--anim-fast) var(--ease-soft) !important; }
+.ux-anim-medium { transition: all var(--anim-medium) var(--ease-soft) !important; }
+.ux-anim-long { transition: all var(--anim-long) var(--ease-spring) !important; }
+
+@media (-moz-bool-pref: "animatedFox.hideSingleTab") {
+  .tabbrowser-tab:only-of-type { visibility: hidden !important; position: absolute !important; pointer-events: none !important; }
+  :has(.tabbrowser-tab:only-of-type) #nav-bar { top: -3rem !important; }
+  :has(.tabbrowser-tab:only-of-type) #navigator-toolbox:is(:hover, :focus-within, :has([open])) #nav-bar { top: 1rem !important; }
+  .tabbrowser-tab:only-of-type::after { content: ''; position: fixed !important; right: 0; left: 0; top: 0; height: 1rem; }
+}
+
+
+/* -----------------------
+   6. TAB ANIMATIONS
+   ----------------------- */
+#tabs-newtab-button {
+  display: inline-block !important;
+  opacity: 0;
+  transform: translateY(-8px) scale(.96);
+  transition: opacity var(--anim-medium) var(--ease-overshoot), transform var(--anim-medium) var(--ease-overshoot) !important;
+  will-change: transform, opacity;
+  transform-origin: center;
+}
+
+.tabbrowser-tab {
+  transition:
+    min-width var(--anim-medium) var(--ease-overshoot),
+    max-width var(--anim-medium) var(--ease-overshoot),
+    height var(--anim-fast) var(--ease-soft),
+    transform var(--anim-medium) var(--ease-overshoot),
+    box-shadow var(--anim-medium) var(--ease-soft),
+    opacity var(--anim-fast) var(--ease-soft) !important;
+  will-change: transform, width, box-shadow, opacity;
+  backface-visibility: hidden;
+}
+
+@keyframes tab-open-strong {
+  0%   { opacity: 0; transform: translateX(10px) scale(.97); }
+  55%  { opacity: 1; transform: translateX(-4px) scale(1.08); }
+  85%  { transform: translateX(2px) scale(.99); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+/* Tab closing animation */
+@keyframes tab-close-strong {
+  0%   { opacity: 1; transform: translateX(0) scale(1); max-width: 100%; }
+  60%  { opacity: 0.3; transform: translateX(8px) scale(.96); max-width: 50%; }
+  100% { opacity: 0; transform: translateX(12px) scale(.92); max-width: 0; }
+}
+
+.tabbrowser-tab[fadein]:not([pinned]) {
+  max-width: 175px !important;
+  animation: tab-open-strong var(--anim-long) var(--ease-spring) both !important;
+}
+
+.tabbrowser-tab[closing] { 
+  animation: tab-close-strong calc(var(--anim-medium) * 1.2) var(--ease-soft) both !important;
+  min-width: 0 !important;
+}
+
+.tabbrowser-tab[selected]:not([pinned]) {
+  min-width: 250px !important;
+  max-width: 250px !important;
+  transform: scale(var(--tab-grow-scale));
+  box-shadow: 0 10px 28px rgba(0,0,0,0.20);
+}
+
+.tabbrowser-tab:hover { transform: translateY(-4px) scale(1.02); }
+.tabbrowser-tab:hover::before {
+  content: '';
+  position: absolute; inset: 0; border-radius: 8px;
+  box-shadow: 0 6px 22px rgba(0,0,0,0.08);
+  opacity: 1; pointer-events: none; transition: opacity var(--anim-medium) var(--ease-soft);
+}
+
+
+/* -----------------------
+   7. ICONS 
+   ----------------------- */
+.tabbrowser-tab .tab-icon-image {
+  filter: grayscale(100%) brightness(0.7) contrast(110%) !important;
+  transition: filter var(--anim-fast) var(--ease-soft), transform var(--anim-fast) var(--ease-soft);
+  will-change: filter, transform;
+}
+.tabbrowser-tab:hover .tab-icon-image {
+  filter: grayscale(100%) brightness(0.95) contrast(120%) !important;
+  transform: scale(1.05);
+}
+.tabbrowser-tab[selected] .tab-icon-image {
+  filter: grayscale(100%) brightness(0.85) contrast(115%) !important;
+}
+
+.tab-close-button {
+  opacity: 0;
+  transform: scale(0.84) rotate(-10deg);
+  transition: opacity var(--anim-fast) var(--ease-soft), transform var(--anim-medium) var(--ease-overshoot) !important;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.tabbrowser-tab:not([pinned]):hover .tab-close-button {
+  opacity: 1;
+  transform: scale(1.02) rotate(0);
+  pointer-events: auto;
+}
+.tab-close-button:active { 
+  transform: scale(.94) rotate(-8deg) !important; 
+  transition-duration: calc(var(--anim-fast) * 0.6) !important; 
+}
+
+
+/* -----------------------
+   8. BOOKMARKS TOOLBAR (with JIGGLE)
+   ----------------------- */
+#PersonalToolbar {
+  transition: transform var(--anim-long) var(--ease-spring), opacity var(--anim-medium) var(--ease-soft) !important;
+  will-change: transform, opacity;
+  position: relative !important; 
+  z-index: 5 !important;         
+}
+#PersonalToolbar[autohide="true"][inactive] { transform: translateY(-100%) !important; opacity: 0 !important; }
+#navigator-toolbox:hover #PersonalToolbar[autohide="true"],
+#navigator-toolbox:focus-within #PersonalToolbar[autohide="true"] { transform: translateY(0) !important; opacity: 1 !important; }
+#PersonalToolbar:not([autohide="true"]),
+#PersonalToolbar[autohide="true"]:not([inactive]) { transform: translateY(0) !important; opacity: 1 !important; }
+#navigator-toolbox:not(:hover):not(:focus-within)
+  #PersonalToolbar:is(:not([autohide="true"]), [autohide="true"]:not([inactive])) { opacity: var(--bookmark-dim) !important; }
+
+#PersonalToolbar toolbarbutton {
+  transition: transform var(--anim-fast) var(--ease-overshoot), background-color var(--anim-fast) var(--ease-soft), box-shadow var(--anim-fast) var(--ease-soft) !important;
+  border-radius: 6px !important;
+  will-change: transform, background-color;
+}
+#PersonalToolbar toolbarbutton:hover {
+  background-color: rgba(211, 198, 170, 0.12) !important;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+}
+
+#PersonalToolbar .bookmark-item .toolbarbutton-icon {
+  filter: grayscale(100%) brightness(0.9) !important;
+  transition: filter calc(var(--anim-medium) * 0.9) var(--ease-soft) !important;
+}
+#PersonalToolbar .bookmark-item:hover .toolbarbutton-icon { filter: none !important; }
+
+
+/* -----------------------
+   9. URL BAR
+   ----------------------- */
+#urlbar {
+  opacity: 1; 
+  transform: scale(0.99);
+  transition: opacity var(--anim-fast) var(--ease-soft), transform var(--anim-fast) var(--ease-soft), box-shadow var(--anim-fast) var(--ease-soft) !important;
+  will-change: transform, opacity, box-shadow;
+  border-radius: 8px;
+}
+#urlbar:hover, #urlbar[focused="true"] {
+  opacity: 1;
+  transform: scale(1.02);
+  box-shadow: 0 6px 22px rgba(167,192,128,0.06), inset 0 0 0 1px rgba(167,192,128,0.06);
+  outline: 0 none;
+}
+#urlbar[focused="true"] {
+  box-shadow: 0 10px 36px rgba(167, 192, 128, 0.35), inset 0 0 0 1px #a7c080 !important;
+}
+
+
+/* -----------------------
+   10. TITLEBAR SPACERS & PINWHEEL
+
+#navigator-toolbox { position: relative !important; z-index: 10 !important; }
+#nav-bar           { position: relative !important; z-index: 11 !important; }
+#titlebar          { position: relative !important; z-index: 0 !important; }
+#titlebar-content { pointer-events: none !important; }
+
+UPDATE: FIREFOX update broke my pinwheel animation AGAIN*/
+
+#titlebar-buttonbox-container,
+#titlebar-buttonbox,
+#window-controls {
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 999 !important;
+  flex-shrink: 0 !important;
+}
+
+.titlebar-spacer[type="post-tabs"], 
+.titlebar-spacer[type="pre-tabs"] { 
+  width: 0 !important; 
+  max-width: 0 !important; 
+  min-width: 0 !important;
+  flex: 0 0 0 !important; 
+  display: none !important;
+}
+
+#TabsToolbar { 
+  margin-right: 0 !important; 
+  padding-right: 0 !important;
+}
+
+/* BROKEN: Pinwheel animations:  
+@keyframes pinwheel-spin {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.04); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+@keyframes pinwheel-spin-fast {
+  0%   { transform: rotate(0deg) scale(1.04); }
+  100% { transform: rotate(720deg) scale(1.12); }
+}
+*/
+
+#TabsToolbar:hover #tabs-newtab-button,
+#TabsToolbar:focus-within #tabs-newtab-button {
+  opacity: 1 !important;
+  transform: translateY(0) scale(1) !important;
+  animation: pinwheel-spin var(--addtab-spin-duration) var(--addtab-spin-ease) infinite !important;
+  transform-origin: center !important;
+  will-change: transform, opacity;
+}
+
+#tabs-newtab-button:hover {
+  animation: pinwheel-spin-fast var(--addtab-spin-fast-duration) var(--addtab-spin-ease) 1 both !important;
+  transform: translateY(0) scale(1.12) !important;
+  transition: transform var(--anim-fast) var(--ease-overshoot) !important;
+}
+
+#tabs-newtab-button:active {
+  transform: translateY(2px) scale(0.98) !important;
+  transition-duration: var(--anim-fast) !important;
+}
+
+#tabs-newtab-button[disabled] { 
+  animation-name: none !important; 
+  transform: none !important; 
+}
+
+
+/* -----------------------
+   11. TOOLBAR BUTTONS (RIGHT SIDE)
+   ----------------------- */
+.toolbarbutton-1:not([disabled]):active, toolbarbutton:active {
+  transform: translateY(1px) scale(.993);
+  transition-duration: var(--anim-fast);
+}
+
+#titlebar-buttonbox-container toolbarbutton,
+#nav-bar .toolbarbutton-1,
+#PanelUI-button,
+#unified-extensions-button,
+#downloads-button,
+#private-browsing-button,
+#private-window-button,
+#screenshot-button,
+#save-page-button {
+  filter: grayscale(100%) contrast(100%) brightness(0.95) !important;
+  color: #d3c6aa !important; 
+  opacity: 0.98;
+  border-radius: 10px;
+  transition: transform var(--anim-fast) var(--ease-overshoot), filter var(--anim-fast) var(--ease-soft), box-shadow var(--anim-fast) var(--ease-soft), opacity var(--anim-fast) var(--ease-soft) !important;
+  will-change: transform, filter, box-shadow, opacity;
+  -moz-appearance: none !important;
+}
+
+#titlebar-buttonbox-container toolbarbutton .toolbarbutton-icon,
+#nav-bar .toolbarbutton-1 .toolbarbutton-icon {
+  filter: grayscale(100%) contrast(120%) brightness(0.95) !important;
+  transition: filter var(--anim-fast) var(--ease-soft), transform var(--anim-fast) var(--ease-overshoot) !important;
+  will-change: filter, transform;
+}
+
+#titlebar-buttonbox-container:hover, #titlebar-buttonbox:hover { --rb-bounce-scale: 1.09; }
+#titlebar-buttonbox-container:hover toolbarbutton,
+#titlebar-buttonbox:hover toolbarbutton {
+  animation: right-area-bounce 720ms var(--ease-spring) both !important;
+  transform-origin: center;
+}
+#titlebar-buttonbox-container toolbarbutton:nth-child(1){ animation-delay: 0ms !important; }
+#titlebar-buttonbox-container toolbarbutton:nth-child(2){ animation-delay: 40ms !important; }
+#titlebar-buttonbox-container toolbarbutton:nth-child(3){ animation-delay: 90ms !important; }
+#titlebar-buttonbox-container toolbarbutton:nth-child(4){ animation-delay: 140ms !important; }
+
+@keyframes right-area-bounce {
+  0%   { transform: translateY(0) scale(1); }
+  40%  { transform: translateY(-6px) scale(var(--rb-bounce-scale)); }
+  70%  { transform: translateY(-2px) scale(calc(var(--rb-bounce-scale) - 0.02)); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+#titlebar-buttonbox-container toolbarbutton:hover,
+#nav-bar .toolbarbutton-1:hover,
+#PanelUI-button:hover,
+#downloads-button:hover,
+#unified-extensions-button:hover,
+#screenshot-button:hover,
+#save-page-button:hover {
+  filter: none !important;
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.24);
+  z-index: 5;
+}
+#titlebar-buttonbox-container toolbarbutton:hover .toolbarbutton-icon,
+#nav-bar .toolbarbutton-1:hover .toolbarbutton-icon {
+  transform: translateY(-2px) scale(1.04);
+}
+
+@keyframes toolbar-click-pop {
+  0%   { transform: translateY(0) scale(1) rotate(0deg); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+  50%  { transform: translateY(2px) scale(.96) rotate(-8deg); box-shadow: 0 4px 12px rgba(0,0,0,0.10); }
+  100% { transform: translateY(0) scale(1) rotate(0deg); box-shadow: 0 10px 28px rgba(0,0,0,0.20); }
+}
+#titlebar-buttonbox-container toolbarbutton:active,
+#nav-bar .toolbarbutton-1:active,
+#PanelUI-button:active,
+#downloads-button:active,
+#unified-extensions-button:active,
+#screenshot-button:active,
+#save-page-button:active {
+  animation: toolbar-click-pop calc(var(--anim-fast) * 1.2) var(--ease-overshoot) both !important;
+  transition: none !important;
+  transform-origin: center;
+}
+#titlebar-buttonbox-container toolbarbutton:active .toolbarbutton-icon,
+#nav-bar .toolbarbutton-1:active .toolbarbutton-icon {
+  transform: scale(.92) rotate(-6deg);
+  transition-duration: calc(var(--anim-fast) * 0.6);
+}
+
+
+/* ========================================================================
+   12. FOCUS MODE — GLOBAL DIMMING
+   Only the Active Tab is bright. Everything else dims when idle.
+   ======================================================================== */
+
+/* 12.1 Dim the Navigation Bar (Urlbar, Buttons) when idle */
+#nav-bar:not([customizing]) {
+  opacity: 0.4 !important;
+  transition: opacity var(--anim-medium) var(--ease-soft) !important;
+}
+/* 12.2 Light up Nav-Bar on Hover OR when Urlbar is Focused */
+#navigator-toolbox:hover #nav-bar,
+#nav-bar:focus-within {
+  opacity: 1 !important;
+}
+
+/* 12.3 Dim Tabs that are NOT selected and NOT hovered */
+.tabbrowser-tab:not([selected="true"]):not([multiselected]):not(:hover) {
+  opacity: 0.5 !important;
+  transition: opacity var(--anim-medium) var(--ease-soft) !important;
+}
+/* 12.4 Selected Tab is always bright */
+.tabbrowser-tab[selected="true"] {
+  opacity: 1 !important;
+}
+
+/* 12.5 Dim Window Controls (Minimize/Close) */
+#titlebar-buttonbox, 
+.titlebar-buttonbox-container {
+  opacity: 0.3 !important;
+  transition: opacity var(--anim-fast) var(--ease-soft) !important;
+}
+#titlebar-buttonbox:hover,
+.titlebar-buttonbox-container:hover {
+  opacity: 1 !important;
+}
+
+
+#reload-button[loading="true"],
+.urlbar-icon-wrapper[loading="true"] #reload-button {
+  animation: reload-spin 1s linear infinite !important;
+}
+
+@keyframes reload-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes url-pump {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.03); }
+  100% { transform: scale(1.02); }
+}
+#urlbar[focused="true"] {
+  animation: url-pump 300ms var(--ease-spring) forwards !important;
+}
+
+/* --- JELLY BOOKMARKS (WIGGLE) --- */
+@keyframes bookmark-wiggle {
+  0%   { transform: scale(var(--bookmark-scale-hover)) rotate(0deg); }
+  25%  { transform: scale(var(--bookmark-scale-hover)) rotate(-3deg); }
+  50%  { transform: scale(var(--bookmark-scale-hover)) rotate(3deg); }
+  75%  { transform: scale(var(--bookmark-scale-hover)) rotate(-1deg); }
+  100% { transform: scale(var(--bookmark-scale-hover)) rotate(0deg); }
+}
+
+#PersonalToolbar .bookmark-item:hover:not(:active),
+#PersonalToolbar toolbarbutton:hover:not(:active) {
+  animation: bookmark-wiggle 400ms linear forwards !important; 
+  transform-origin: center !important;
+}
+
+/* --- ORIGAMI MENUS (Unfold) --- */
+menupopup, panel {
+  transition: opacity var(--anim-fast) var(--ease-soft), transform var(--anim-fast) var(--ease-overshoot) !important;
+  transform-origin: top left !important;
+}
+
+menupopup[animate="open"], 
+panel[animate="open"],
+menupopup:not([animate="false"]),
+panel:not([animate="false"]) {
+  animation: menu-unfold 480ms var(--ease-overshoot) forwards !important;
+}
+
+@keyframes menu-unfold {
+  0%   { opacity: 0; transform: scaleY(0.7) translateY(-16px) rotateX(12deg); }
+  60%  { opacity: 0.8; transform: scaleY(1.02) translateY(2px) rotateX(0deg); }
+  100% { opacity: 1; transform: scaleY(1) translateY(0) rotateX(0deg); }
+}
+
+/* --- LOADING PULSE LINE (Bottom of Tab) --- */
+.tabbrowser-tab[busy] .tab-content::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  width: 80%;
+  height: 2px;
+  background: #a7c080; 
+  border-radius: 2px;
+  opacity: 0.7;
+  animation: tab-load-pulse 1s ease-in-out infinite !important;
+  z-index: 10;
+}
+
+@keyframes tab-load-pulse {
+  0%   { transform: scaleX(0.5); opacity: 0.4; }
+  50%  { transform: scaleX(1); opacity: 0.9; }
+  100% { transform: scaleX(0.5); opacity: 0.4; }
+}
+
+/* Remove the default throbber/loading spinner in tabs */
+.tab-throbber,
+.tab-icon-pending,
+.tab-throbber-fallback {
+  display: none !important;
+}
+
+/* Keep favicon visible when not loading */
+.tabbrowser-tab:not([busy]) .tab-icon-image {
+  display: inline-block !important;
+}
+
+/* Hide favicon when busy */
+.tabbrowser-tab[busy] .tab-icon-image {
+  opacity: 0.3 !important;
+}
+

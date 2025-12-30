@@ -1,0 +1,246 @@
+/**
+ * Rofi - LIGHT
+ * https://github.com/snes19xx
+ **/
+
+/*****----- Configuration -----*****/
+configuration {
+    modi:                       "drun,filebrowser,window,google:~/.config/rofi/google.sh";
+    show-icons:                 true;
+    display-drun:               "󰀻";
+    display-run:                "";
+    display-filebrowser:        "";
+    display-window:             "";
+    display-google:             "";
+    drun-display-format:        "{name}";
+    window-format:              "{c}";
+    
+    icon-theme:                 "Papirus"; 
+
+    disable-history:            false;
+    sort:                       true;
+    sorting-method:             "fzf";
+    matching:                   "fuzzy";
+
+    kb-row-tab:                 "";
+    kb-accept-alt:              "";
+    kb-accept-custom:           "Shift+Return";
+    kb-accept-entry:            "Return";
+    kb-move-char-back:          "";
+    kb-move-char-forward:       "";
+    kb-mode-next:               "Right";
+    kb-mode-previous:           "Left";
+    kb-row-first:               "";
+    kb-move-front:              "Home";
+    kb-remove-to-sol:           "Control+a";
+    click-to-exit:              true;
+}
+
+/*****----- Global Properties -----*****/
+* {
+    font:                        "JetBrains Mono Nerd Font 9";
+    
+    /* --- LIGHT MODE PALETTE --- */
+    background:                  #c5c6b0; 
+    background-alt:              #f2efdfb3;
+    foreground:                  #1e2326;
+    selected:                    #63955dff;
+    active:                      #323e2fff;
+    urgent:                      #e67e80;
+}
+
+/*****----- Main Window -----*****/
+window {
+        transparency:            "real";
+    location:                    southwest;
+    anchor:                      southwest;
+    fullscreen:                  false;
+    
+    width:                       260px;
+    x-offset:                    5px;
+    y-offset:                    -5px;
+    
+    enabled:                     true;
+    border-radius:               10px;
+    cursor:                      "default";
+    background-color:            transparent;
+    border:                      0px;
+}
+
+/*****----- Main Box -----*****/
+mainbox {
+    enabled:                     true;
+    spacing:                     0px;
+    background-color:            @background;
+    orientation:                 vertical;
+    children:                    [ "inputbar", "mode-switcher", "listbox" ];
+    
+    border:                      1px;
+    border-radius:               10px;
+    border-color:                #dcdcdc; 
+}
+
+listbox {
+    spacing:                     9px;
+    padding:                     9px 18px 18px 18px;
+    background-color:            transparent;
+    orientation:                 vertical;
+    children:                    [ "message", "listview" ];
+}
+
+inputbar {
+    enabled: true;
+    spacing: 0px; 
+    padding: 56px 18px;
+    background-color: transparent;
+    background-image: url("moths.jpg", width);
+    text-color: @foreground;
+    orientation: horizontal;
+    children: [ "textbox-prompt-colon", "entry" ];
+}
+
+textbox-prompt-colon {
+    enabled: true;
+    expand: false;
+    str: "";
+    background-color: #ede5d5a1;
+    text-color: @foreground;
+
+    /* the left side of the pill (not a circle) */
+    border-radius: 999px 0px 0px 999px;
+    padding: 7px 11px;
+}
+
+entry {
+    enabled: true;
+    expand: true;
+
+    background-color: #ede5d5a1;
+    text-color: @foreground;
+
+    /* right side of the pill */
+    border-radius: 0px 999px 999px 0px;
+    padding: 7px 13px;
+
+    placeholder: "Search";
+    placeholder-color: #4c4f52aa;
+}
+
+/*****----- Mode Switcher -----*****/
+mode-switcher{
+    enabled:                     true;
+    spacing:                     13px;
+    background-color:            transparent;
+    text-color:                  @foreground;
+    padding:                     9px 18px; 
+    justify-content:             center;
+}
+
+button {
+    width:                       40px;
+    padding:                     9px;
+    border-radius:               100%;
+    background-color:            @background-alt;
+    text-color:                  inherit;
+    cursor:                      pointer;
+}
+
+button selected {
+    background-image:            linear-gradient(to right, #87c080, #697a4dff);
+    text-color:                  #ffffff; 
+    border:                      0px;
+}
+
+/*****----- Listview -----*****/
+listview {
+    enabled:                     true;
+    columns:                     1;
+    lines:                       7;
+    cycle:                       true;
+    dynamic:                     true;
+    scrollbar:                   false;
+    layout:                      vertical;
+    reverse:                     false;
+    fixed-height:                false;
+    fixed-columns:               true;
+    spacing:                     3px;
+    background-color:            transparent;
+    text-color:                  @foreground;
+    cursor:                      "default";
+}
+
+/*****----- Elements -----*****/
+element {
+    enabled:                     true;
+    spacing:                     9px;
+    padding:                     7px;
+    border-radius:               15px;
+    background-color:            transparent;
+    text-color:                  @foreground;
+    cursor:                      pointer;
+}
+
+/* --- Normal --- */
+element normal.normal {
+    background-color:            inherit;
+    text-color:                  inherit;
+}
+element normal.active {
+    background-color:            inherit;
+    text-color:                  inherit;
+}
+element normal.urgent {
+    background-color:            @urgent;
+    text-color:                  #ffffff;
+}
+
+/* --- Selected --- */
+element selected.normal {
+    background-image:            linear-gradient(to right,  #88c080d8, #697a4dd1);
+    border:                      1px;
+    border-color:                #87c080;
+    text-color:                  #1e2326;
+}
+element selected.active {
+    background-image:            linear-gradient(to right, #e0f5da, #d0eec8);
+    border:                      1px;
+    border-color:                #87c080;
+    text-color:                  #1e2326;
+}
+element selected.urgent {
+    background-color:            @urgent;
+    text-color:                  #ffffff;
+}
+
+element-icon {
+    background-color:            transparent;
+    text-color:                  inherit;
+    size:                        28px;
+    cursor:                      inherit;
+}
+element-text {
+    background-color:            transparent;
+    text-color:                  inherit;
+    cursor:                      inherit;
+    vertical-align:              0.5;
+    horizontal-align:            0.0;
+}
+
+/*****----- Message -----*****/
+message {
+    background-color:            transparent;
+}
+textbox {
+    padding:                     10px;
+    border-radius:               100%;
+    background-color:            @background-alt;
+    text-color:                  @foreground;
+    vertical-align:              0.5;
+    horizontal-align:            0.0;
+}
+error-message {
+    padding:                     10px;
+    border-radius:               20px;
+    background-color:            @background;
+    text-color:                  @foreground;
+}

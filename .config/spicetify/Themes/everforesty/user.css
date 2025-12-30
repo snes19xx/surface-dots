@@ -1,0 +1,147 @@
+/* --- 1. TYPOGRAPHY & VARIABLES --- */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap');
+
+:root {
+    --corner-radius: 16px;
+    --main-gap: 12px;
+    --font-family: 'Manrope', sans-serif;
+    --spice-main: #141719;
+    --spice-card: #1e2326;
+    --spice-button: #83c092; /* Aqua Green */
+    --transition-spring: 0.3s cubic-bezier(0.3, 1.4, 0.3, 1);
+}
+
+* {
+    font-family: var(--font-family) !important;
+    letter-spacing: normal !important;
+}
+
+/* --- 2. HOME SCREEN CLEANUP --- */
+section[aria-label*="New music"],
+section[aria-label*="New releases"],
+section[aria-label*="Trending"],
+section[aria-label*="Editors"],
+section[aria-label*="Shows to try"],
+section[aria-label*="Episodes"],
+section[aria-label*="Best of"],
+section[aria-label*="Popular"],
+section[aria-label*="Fresh finds"],
+section[aria-label*="Featured"],
+section[aria-label="Spotify Playlists"] {
+    display: none !important;
+}
+
+.main-card-imageContainer,
+.main-image-imageWrapper,
+.x-entityImage-imageContainer,
+.main-yourLibraryX-rowCover,
+div[class*="imageContainer"],
+div[class*="imageWrapper"] {
+    background-color: transparent !important;
+    background: none !important;
+    box-shadow: none !important;
+}
+
+
+img.main-image-image,
+.main-yourLibraryX-rowCover img,
+img[class*="cover"] {
+    border-radius: 12px !important;
+    clip-path: inset(0 round 12px); 
+}
+
+.main-yourLibraryX-listRow .main-playButton-PlayButton,
+.main-yourLibraryX-button,
+.main-trackList-rowPlayPauseButton,
+.main-card-PlayButtonContainer {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    background-color: var(--spice-button) !important;
+    color: #141719 !important;
+    border-radius: 12px !important;
+    transform: scale(0.9);
+    transition: all 0.2s ease;
+}
+
+.main-yourLibraryX-listRow:hover .main-playButton-PlayButton,
+.main-yourLibraryX-listRow:hover .main-yourLibraryX-button,
+.main-trackList-trackListRow:hover .main-trackList-rowPlayPauseButton,
+.main-card-card:hover .main-card-PlayButtonContainer {
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: scale(1);
+}
+
+
+button[class*="PlayButton"] svg,
+button[class*="playButton"] svg {
+    fill: #141719 !important;
+    color: #141719 !important;
+}
+
+
+/* --- 3. AESTHETICS (CARDS & BARS) --- */
+.progress-bar {
+    --fg-color: var(--spice-button);
+    --bg-color: rgba(255, 255, 255, 0.08);
+}
+.x-progressBar-fillColor {
+    background-color: var(--spice-button) !important;
+    border-radius: 10px;
+    height: 6px !important;
+}
+.progress-bar__slider {
+    width: 14px !important;
+    height: 14px !important;
+    border-radius: 50% !important;
+    background-color: #d3c6aa !important;
+    box-shadow: 0 0 0 4px rgba(0,0,0,0.2);
+}
+
+/* 3.1 Cards */
+.main-card-card {
+    background-color: var(--spice-card) !important;
+    border-radius: var(--corner-radius) !important;
+    transition: background-color 0.2s ease, transform var(--transition-spring);
+    overflow: hidden !important;
+}
+.main-card-card:hover {
+    background-color: var(--spice-selected-row) !important;
+    transform: translateY(-4px);
+}
+
+/* 3.2 Sidebar Pills */
+.main-navBar-mainNav li {
+    margin: 2px 8px;
+    border-radius: 8px !important;
+}
+.main-navBar-mainNav li:hover {
+    background-color: var(--spice-selected-row) !important;
+}
+
+/* 3.3 Active Tab */
+.main-navBar-mainNav li:has(> .active) {
+    background-color: transparent !important;
+}
+.main-navBar-mainNav li:has(> .active) .link-subtle {
+    color: var(--spice-button) !important;
+    font-weight: 800;
+}
+
+/* 3.4 Layout Cleanup */
+.Root__main-view {
+    background-color: var(--spice-main) !important;
+    border-radius: var(--corner-radius) !important;
+    margin-top: var(--main-gap);
+    margin-right: var(--main-gap);
+}
+.LayoutResizer__input, .LayoutResizer__resize-bar { display: none !important; }
+.main-topBar-background, .main-topBar-overlay { background-color: transparent !important; }
+
+/* 3.5 Floating Now Playing Bar */
+.main-nowPlayingBar-container {
+    background-color: var(--spice-card) !important;
+    border-radius: 16px !important;
+    margin: 0 12px 12px 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
