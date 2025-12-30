@@ -92,6 +92,7 @@ This setup depends on (at least):
 - hyprland-plugins
 - [EverCal](https://github.com/snes19xx/EverCal)
 - sddm
+- waypaper
 
 
 ---
