@@ -25,7 +25,7 @@ PanelWindow {
     property bool isDarkMode: true
 
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.exclusiveZone: 40
+    WlrLayershell.exclusiveZone: 33
     WlrLayershell.namespace: "shell-bar"
 
     function sh(cmd) { return ["bash", "-c", cmd] }
@@ -118,6 +118,7 @@ PanelWindow {
         id: updates
         interval: 1800000
         command: win.sh("checkupdates 2>/dev/null | wc -l")
+        // command: win.sh("cat /tmp/qs_test 2>/dev/null || echo 0") //TEST
         parse: function(o) { return String(o).trim() }
     }
     
@@ -487,8 +488,26 @@ Item {
                 icon: "󰚰"; text: updates.value
                 bgColor: updatesBg; textColor: updatesFg; iconColor: updatesFg
                 borderWidth: 0; borderColor: "transparent"; hoverColor: palette.hoverSpotlight
-                onClicked: win.det("kitty -e sudo pacman -Syu")
+
+            Process {
+                    id: updateProc
+                    // This runs the update in kitty. The process stays 'running' as long as the window is open.
+                    command: ["kitty", "-e", "bash", "-c", "sudo pacman -Syu"]
+                    
+                    // When running changes to false (window closed),
+                    onRunningChanged: {
+                        if (!running) {
+                            updates.update() 
+                        }
+                    }
+                }
+
+                onClicked: {
+                    updateProc.running = true
+                }
+
             }
+            
 
             // 5. TRAY
             Rectangle {
