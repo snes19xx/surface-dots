@@ -1,5 +1,5 @@
 name: media_player_widget
-description: Material 3 Expressive Media Player Widget for Hyprland
+description: Material 3 Expressive Media Player Widget for Linux
 version: 1.0.0
 
 environment:
