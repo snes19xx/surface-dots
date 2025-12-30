@@ -1,0 +1,17 @@
+name: media_player_widget
+description: Material 3 Expressive Media Player Widget for Hyprland
+version: 1.0.0
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  palette_generator: ^0.3.3+4
+  window_manager: ^0.4.0
+  dbus: ^0.7.11
+
+flutter:
+  uses-material-design: true
