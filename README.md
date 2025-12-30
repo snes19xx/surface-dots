@@ -26,6 +26,22 @@ Personal dotfiles + UI setup for my **Surface Laptop 4 (AMD)** running **Hyprlan
 I originally started the Hub in AGS, but eventually switched over to Quickshell. The AGS config is still included as an early prototype, it’s lighter and works, just not as feature-complete. As for the widgets, I built my own Flutter calendar simply because none of the existing ones looked quite right to me.
 
 ---
+<div align="center">
+  <img src="media/screenshots/ss1.png" width="45%" />
+  <img src="media/screenshots/ss2.png" width="45%" />
+  <p><i>SDDM: Lock Screen & Login Screen</i></p>
+  
+  <br/>
+
+  <img src="media/screenshots/ss4.png" width="45%" />
+  <img src="media/screenshots/ss6.png" width="45%" />
+  <p><i>Dark Mode & Light Mode (Hub + Rofi)</i></p>
+
+  <br/>
+
+  <img src="media/screenshots/ss8.png" width="60%" />
+  <p><i>Firefox Custom Start Page</i></p>
+</div>
 
 ## What’s in this repo
 This is the structure I’m aiming for (some parts are “supporting configs”):
