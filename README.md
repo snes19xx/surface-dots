@@ -248,6 +248,7 @@ sudo surface profile set <mode>
 ## Credits & acknowledgements
 - Everforest-GTK-Theme by Fausto-Korpsvart
 - Rofi themes loosely based on https://github.com/adi1090x/rofi
+- `Pixeldots.qml` in sddm theme based on @mahaveergurjar's [Pixeldots](https://github.com/mahaveergurjar/sddm/tree/pixel) pice
 - Colors: https://github.com/sainnhe/everforest
 - linux-surface project: https://github.com/linux-surface/linux-surface
 - Thorium: https://thorium.rocks/
