@@ -259,7 +259,7 @@ sudo surface profile set <mode>
 - Swap in your own governor/performance scripts.
 
 ## Credits & acknowledgements
-- Everforest-GTK-Theme by Fausto-Korpsvart
+- [Everforest-GTK-Theme](https://github.com/Fausto-Korpsvart/Everforest-GTK-Theme) by Fausto-Korpsvart
 - Rofi themes loosely based on https://github.com/adi1090x/rofi
 - `Pixeldots.qml` in sddm theme based on @mahaveergurjar's [Pixeldots](https://github.com/mahaveergurjar/sddm/tree/pixel) pice
 - Colors: https://github.com/sainnhe/everforest
