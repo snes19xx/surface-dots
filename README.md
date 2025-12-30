@@ -34,8 +34,8 @@ I originally started the Hub in AGS, but eventually switched over to Quickshell.
   <br/>
 
   <img src="media/screenshots/ss4.png" width="45%" />
-  <img src="media/screenshots/ss6.png" width="45%" />
-  <p><i>Dark Mode & Light Mode (Hub + Rofi)</i></p>
+  <img src="media/screenshots/ss5.png" width="45%" />
+  <p><i>Dark Mode & Light Mode (Hub + Rofi + Now-playing)</i></p>
 
   <br/>
 
