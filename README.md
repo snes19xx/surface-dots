@@ -241,6 +241,7 @@ khal list now 7d
 ## Firefox custom new-tab
 
 - Custom Firefox start page: https://github.com/snes19xx/custom-firefox-start
+- usercss (Also in this repo): https://github.com/snes19xx/firefox-customizations
 
 Firefox doesn't really want you to use local html as a new tab page so 
 - Move autoconfig.js to Firefox defaults/pref/ (e.g. /usr/lib/firefox/defaults/pref/)
