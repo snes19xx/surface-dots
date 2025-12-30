@@ -107,7 +107,6 @@ Main config: `~/.config/hypr/hyprland.conf`
 - `SUPER + E` → file manager (`thunar`)
 - `SUPER + R` → rofi launcher script
 - `SUPER + B` → firefox
-- `SUPER + H` → rofi bluetooth menu script
 
 #### Window actions
 - `SUPER + X` → kill active window
