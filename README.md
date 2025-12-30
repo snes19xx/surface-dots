@@ -56,6 +56,8 @@ This is the structure I’m aiming for (some parts are “supporting configs”)
 - `media/` — wallpapers and screenshots.
 
 ---
+## Dependencies
+
 <table>
 <tr>
 <td valign="top">
