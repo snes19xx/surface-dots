@@ -38,7 +38,7 @@ ss7
 
   <img src="media/screenshots/ss8.png" width="45%" />
   <img src="media/screenshots/ss9.png" width="45%" />
-  <p><i>Firefox Custom Start Page + EverCal Light mode</i></p>
+  <p><i>Firefox Custom Start Page + EverCal Dark mode</i></p>
 </div>
 
 ## What’s in this repo
