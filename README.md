@@ -9,22 +9,19 @@ Personal dotfiles + UI setup for my **Surface Laptop 4 (AMD)** running **Hyprlan
 - [What’s in this repo](#whats-in-this-repo)
 - [Dependencies](#dependencies)
 - [Hyprland](#hyprland)
+- [Quickshell Bar](#quickshell-bar) 
 - [Quickshell Hub (`snes-hub`)](#quickshell-hub-snes-hub)
-- [Hub window interactions](#hub-window-interactions)
-- [Media card (MPRIS)](#media-card-mpris)
-- [Now Playing (Flutter)](#now-playing-flutter)
 - [Google Calendar sync (vdirsyncer + khal)](#google-calendar-sync-vdirsyncer--khal)
 - [Firefox custom new-tab](#firefox-custom-new-tab)
 - [Surface-only features](#surface-only-features)
 - [Credits & acknowledgements](#credits--acknowledgements)
 - [Media sources](#media-sources)
 
-
 ---
 
 ## Background
 I originally started the Hub in AGS, but eventually switched over to Quickshell. The AGS config is still included as an early prototype, it’s lighter and works, just not as feature-complete. Also, I built my own Flutter calendar (full app) and now playing (widget) simply because none of the existing ones looked quite right to me.
-
+ss7
 ---
 <div align="center">
   <img src="media/screenshots/ss1.png" width="45%" />
@@ -39,8 +36,9 @@ I originally started the Hub in AGS, but eventually switched over to Quickshell.
 
   <br/>
 
-  <img src="media/screenshots/ss8.png" width="60%" />
-  <p><i>Firefox Custom Start Page</i></p>
+  <img src="media/screenshots/ss8.png" width="45%" />
+  <img src="media/screenshots/ss7.png" width="45%" />
+  <p><i>Firefox Custom Start Page + EverCal Light mode</i></p>
 </div>
 
 ## What’s in this repo
@@ -109,12 +107,10 @@ This is the structure I’m aiming for (some parts are “supporting configs”)
 ---
 
 ## Hyprland
+Main config is for Hyprland v0.53: `~/.config/hypr/hyprland.conf`
+OLd Config at `~/.config/hypr/hyprland_OLD.conf`
 
-Main config: `~/.config/hypr/hyprland.conf`
-uodated config for v0.53: `~/.config/hypr/hyprland_v053.conf`
-
-### Keybindings (for main conf will update for newer one soon)
-
+### Keybindings
 #### Apps
 - `SUPER + Q` → terminal (`kitty`)
 - `SUPER + E` → file manager (`thunar`)
@@ -123,21 +119,32 @@ uodated config for v0.53: `~/.config/hypr/hyprland_v053.conf`
 
 #### Window actions
 - `SUPER + X` → kill active window
-- `SUPER + F` → toggle floating
+- `SUPER + ALT + F` → toggle floating (simple)
+- `SUPER + F` → toggle floating **and** set size `900x600` + center
 - `SUPER + M` → fullscreen
 - `SUPER + P` → pseudotile
-- `SUPER + J` → togglesplit
+- `SUPER + UP` → togglesplit
+- `SUPER + DOWN` → togglesplit
 
 #### Exit
 - `SUPER + ALT + F4` → exit Hyprland
 
+#### Focus (arrow keys)
+- `SUPER + Left/Right` → move focus horizontally
+- `SUPER + UP/Down`  → move focus vertically
+
 #### Workspaces
 - `SUPER + 1..0` → workspace `1..10`
+- `SUPER + SHIFT + 1..0` → move active window to workspace `1..10`
 - `SUPER + mouse wheel` → next/prev workspace
 
 #### Scratchpad (“special workspace”)
 - `SUPER + S` → toggle special workspace `magic`
 - `SUPER + SHIFT + S` → move active window to `special:magic`
+
+#### Mouse (window move/resize)
+- `SUPER + LMB` → move window
+- `SUPER + RMB` → resize window
 
 #### Media / special keys
 - Brightness keys → `brightnesscontrol.sh` (up/down)
@@ -154,19 +161,40 @@ uodated config for v0.53: `~/.config/hypr/hyprland_v053.conf`
 
 There are targeted rules for:
 
-- `kitty` (float + size + rounding + opacity)
-- Portals (`xdg-desktop-portal-gtk|kde`) (float + center + size + rounding)
-- Generic floating dialogs: centered + sized by title (Open File / Save As / Rename / etc.)
-- and layerrules for quickshell and rofi
+- `kitty` (float + size `500x300` + rounding `10` + opacity `0.9`)
+- `blueman-manager` (float + size `500x300` + rounding + opacity)
+- `nm-connection-editor` (float + size `500x600` + rounding + opacity + border color)
+- `com.snes.evercal` (float + size `900x600` + rounding `20`)
+
+- Portals + auth prompts are tagged `portal-ui` (gtk/kde/hyprland portals, polkit agents, pinentry, ssh-askpass)
+  - then enforced as: float + center + rounding `10` + size `1100x750` + dim_around + opacity `0.95`
+
+- `thunar`:
+  - always opacity `0.9`
+  - if floating: size `900x600` + center
+
+- Generic floating dialogs:
+  - modal windows: float + center + rounding `10`
+  - common titles (Open File / Save As / Rename / etc.) forced to float + center
+  - some titles get sizing rules + dim_around rules
+
+- Visual rule for ALL floating windows:
+  - `border_color rgb(87b158)`
+
+- `org.gnome.FileRoller` (float + size `500x350` + rounding + border color)
+- `com.snes.nowplaying` widget (float + pinned + border + animation + fixed position + opacity)
+
+### Layer rules 
+- `rofi` namespace: ignore_alpha `0.9` + slide-left animation + dim_around
+- `quickshell` namespace: slide-top animation + dim_around
 
 ---
 
-## Quickshell Hub (`snes-hub`)
+## Quickshell Bar 
 
-The bar uses an Arch glyph icon as the launcher button.
+The bar uses an Arch glyph icon (top left) as the launcher button:
 
 - Left click: launches rofi, choosing a different launcher script depending on the current theme mode.
-
 - Right click: toggles the bar’s isDarkMode and calls a theme script:
 ```bash
 bash ~/config/quickshell/snes-hub/bar/theme-mode.sh dark|light
@@ -174,12 +202,9 @@ bash ~/config/quickshell/snes-hub/bar/theme-mode.sh dark|light
 
 ### Workspaces
 
-Clicking a workspace pill runs:
-- hyprctl dispatch workspace <id>
-
+Clicking a workspace pill runs: `- hyprctl dispatch workspace <id>`
 
 ### Updates
-
 Updates are polled with:
 ``` bash
 checkupdates 2>/dev/null | wc -l
@@ -189,33 +214,44 @@ and clicking it simnply runs
 kitty -e sudo pacman -Syu
 ```
 
-### Clock
-
+### Date and Clock
 - Pressing the clock triggers a requestHubToggle() signal (used to open/close the hub).
+- Esc closes the hub (or clicking anywhere outside it).
 
-## Hub window interactions
+## Quickshell Hub (`snes-hub`)
+- The hub window is an overlay (wlr-layershell) and is designed to get out of your way quickly:
+- Organized into reusable components under the Quickshell project, making it straightforward to add/remove cards or re-skin pieces without rewriting the whole hub.
+- If you want a lightweight fallback, use the early **AGS** version in `.config/ags/` (works, but fewer features).
 
-The hub window is an overlay (wlr-layershell) and is designed to get out of your way quickly:
+### Components
+#### Header
+- Profile icon,username + RAM/CPU usage chips.
+- Power button that launches the Rofi power menu.
+- Screenshot button (runs the capture script and then closes the hub).
 
-- Esc closes the hub.
+#### Buttons and Sliders
+- Wi‑Fi toggle + SSID readout (right‑click opens the Wi‑Fi Rofi menu).
+- Bluetooth toggle + connected device status.
+- Surface performance profile button (cycle modes via `surface profile`).
+- DND toggle (mako).
+- Volume + brightness sliders (pactl + brightnessctl).
 
-
-## Media card (MPRIS)
+#### Media card (MPRIS)
 - The hub includes an MPRIS-powered media card:
 - Clicking the media card launches the external now-playing widget and then toggles the hub off.
 - It tracks metadata changes and resets its internal timing state when tracks change. It's still finicky with some browser contents like youtube videos
+- Only appears when something is playing
+- Summons Now playing widget on click
 
-## Now Playing (Flutter)
-This is a separate Flutter desktop widget (class rules are handled in Hyprland).
-- Starts at 252x420
-- Hidden title bar
+#### Now Playing (Flutter)
+- This is a separate Flutter desktop widget (class rules are handled in Hyprland).
 - Resizable is disabled (setResizable(false) is used)
 - Esc closes the widget 
-- uses MPRIS and playerctl
 - Generates theme colors from album art using palette_generator
 
-## Google Calendar sync (vdirsyncer + khal)
-### Setup
+#### Calendar, Weather and Events
+##### Google Calendar sync (vdirsyncer + khal)
+###### Setup
 Recommended approach (avoids system Python packaging issues):
 ``` bash
 sudo pacman -S --needed python-pipx
@@ -226,30 +262,34 @@ pipx install "vdirsyncer[google]"
 
 - If you have both a system and pipx vdirsyncer, remove the system one and make sure PATH prefers ~/.local/bin.
 
-### Config
+###### Config
 Create folders:
 ```bash
 mkdir -p ~/.config/vdirsyncer/status ~/.config/vdirsyncer/tokens
 mkdir -p ~/.local/share/vdirsyncer/calendars
 ```
 Example vdirsyncer config uses:
-token_file = "~/.config/vdirsyncer/tokens/google_calendar"
-type = "google_calendar"
-client_id / client_secret from Google Cloud OAuth
+`token_file = "~/.config/vdirsyncer/tokens/google_calendar"`
+`type = "google_calendar"`
+`client_id / client_secret` from Google Cloud OAuth
+`~/.local/share/vdirsyncer/calendars/*` - Khal reads .ics files from here
 
-- Khal reads .ics files from: ~/.local/share/vdirsyncer/calendars/*
-
-### Note:
-- You must enable CalDAV API and CardDAV API in Google Cloud (not only the “Google Calendar API”).
+###### Note:
+- You must enable CalDAV API in Google Cloud (not only the “Google Calendar API”).
 - If OAuth consent is in Testing mode, add yourself as a “Test user”.
 - If you get “token obtained but Not Found”, enable calendars at: https://calendar.google.com/calendar/syncselect
 
-### Run + test
+###### Run + test
 ```bash
 vdirsyncer discover
 vdirsyncer sync
 khal list now 7d
 ```
+#### Notifications
+- Clicking dismisses.
+- Uses **mako** (`makoctl`) as the notification backend.
+- Contracted by default when the media player card is active, but can be expanded via the expand button.
+
 
 ## Firefox custom new-tab
 
