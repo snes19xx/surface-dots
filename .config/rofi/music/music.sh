@@ -34,7 +34,6 @@ else
     convert -size 250x250 xc:#1E2326 "$cover"
 fi
 
-# IMPORTANT: Brief pause to ensure file is saved before Rofi reads it
 sleep 0.1
 
 # 2. PROGRESS BAR - REDUCED TO 15 CHARACTERS
