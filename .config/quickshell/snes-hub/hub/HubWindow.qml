@@ -10,6 +10,16 @@ import "../config.js" as Config
 PanelWindow {
     id: win
     color: "transparent"
+    anchors { top: true; right: true }
+
+    // Remove Hyprland Borders when visible
+    function setBordersHidden(hidden) {
+        Quickshell.execDetached([
+            "hyprctl", "keyword", "general:border_size", hidden ? "0" : "1"
+        ])
+    }
+
+    onVisibleChanged: setBordersHidden(visible)
 
     // Bar height + gap excluded from hub window
     property int barStrip: 2
@@ -69,9 +79,9 @@ PanelWindow {
     property string profileName: Config.PROFILE_NAME
     property string profileImage: Config.PROFILE_IMG
 
-    property int topGap: 1
+    property int topGap: 8
     property int rightGap: 10
-    property int panelW: 340
+    property int panelW: 320
 
     Item {
         id: root
