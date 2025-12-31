@@ -488,8 +488,8 @@ Rectangle {
     // =========================
     RowLayout {
         anchors.fill: parent
-        anchors.margins: 14
-        spacing: 14
+        anchors.margins: 10
+        spacing: 8
 
         Item {
             Layout.preferredWidth: 92
@@ -571,6 +571,11 @@ Rectangle {
 
                 Lib.WavyProgress {
                     Layout.fillWidth: true
+
+                    // Control the width (smaller = wider)
+                    Layout.leftMargin: -10
+                    Layout.rightMargin: -10
+                    
                     Layout.preferredHeight: 10
                     value: (root.lenSec > 0.5) ? (root.displayPos / root.lenSec) : 0
 
@@ -584,7 +589,7 @@ Rectangle {
                     amplitude: 2.5
                     frequency: 0.15
                     lineWidth: 2.5
-                    gap: 8
+                    gap: 6       // Controls gap between the wave(progrss) and the static line (remaining progress)
                 }
 
                 Lib.MediaButton {
