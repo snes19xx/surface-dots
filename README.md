@@ -308,11 +308,11 @@ sudo pacman -S git qt5-graphicaleffects qt5-quickcontrols2 qt5-svg
 - To install:
   - move the contents of sddm folder to `/usr/share/sddm/themes/` (create the dir if it doesn't exist yet)
   - Set "pixel" as the current theme by creating a configuration file in `/etc/sddm.conf.d/`:
-    1. make sure the directory exists:
+    - make sure the directory exists:
   ```bash
   sudo mkdir -p /etc/sddm.conf.d
   ```
-  2. then create the config file:
+    - then create the config file:
   ```bash
   echo -e "[Theme]\nCurrent=pixel" | sudo tee /etc/sddm.conf.d/theme.conf
   ```
