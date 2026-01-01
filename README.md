@@ -307,7 +307,7 @@ khal list now 7d
 sudo pacman -S qt6-5compat qt6-svg qqc2-desktop-style inter-font ttf-nerd-fonts-symbols
 ```
 - To install:
-  - move the contents of sddm folder to `/usr/share/sddm/themes/` (create the dir if it doesn't exist yet)
+  - move the contents of sddm/theme folder to `/usr/share/sddm/themes/` (create the dir if it doesn't exist yet)
   - Set "pixel" as the current theme by creating a configuration file in `/etc/sddm.conf.d/`:
     - make sure the directory exists:
   ```bash
