@@ -67,7 +67,7 @@ PanelWindow {
             }
             wsMap = m
         }
-        
+
         // Collapses burst events into 1 rebuild per frame
         function scheduleRebuild() {
             if (pending) return
@@ -85,12 +85,12 @@ PanelWindow {
     Timer {
         interval: 500
         running: true; repeat: false
-        onTriggered: hyCache.rebuild() 
+        onTriggered: hyCache.rebuild()
     }
-    
+
     // Safety Check at 2s
     Timer {
-        interval: 2000 
+        interval: 2000
         running: true; repeat: false
         onTriggered: hyCache.rebuild()
     }
@@ -100,12 +100,12 @@ PanelWindow {
         target: Hyprland
         function onRawEvent(ev) {
             if (!ev || !ev.name) return
-            
+
             // Check for events
             if (ev.name === "openwindow" || ev.name === "closewindow" ||
                 ev.name === "movewindowv2" || ev.name === "workspacev2" ||
                 ev.name === "activewindowv2" || ev.name === "urgent") {
-                
+
                 // Re-fetch the window list from Hyprland immediately
                 Hyprland.refreshToplevels()
                 hyCache.scheduleRebuild()
@@ -116,39 +116,52 @@ PanelWindow {
     // --- POLLERS ---
     Lib.CommandPoll {
         id: updates
-        interval: 1800000
-        command: win.sh("checkupdates 2>/dev/null | wc -l")
-        // command: win.sh("cat /tmp/qs_test 2>/dev/null || echo 0") //TEST
-        parse: function(o) { return String(o).trim() }
+        // Stop polling while the update terminal is open
+        interval: updateProc.running ? 999999999 : 1800000
+
+        command: win.sh(`
+            # Don't run checkupdates while pacman is locked
+            if [ -e /var/lib/pacman/db.lck ]; then
+                cat /tmp/qs_updates_count 2>/dev/null || echo 0
+                exit 0
+            fi
+
+            n=$(checkupdates 2>/dev/null | wc -l)
+            echo "$n" | tee /tmp/qs_updates_count
+        `)
+
+        parse: function(o) { return String(o ?? "").trim() }
     }
-    
+
     // Boot Retry for Updates
     Timer {
         interval: 15000 // 15s wait for internet
         running: true; repeat: false
-        onTriggered: updates.update()
+        onTriggered: {
+            if (!updateProc.running) updates.update()
+        }
     }
 
     Lib.CommandPoll {
-    id: powerPoll
-    interval: {
-        const s = String(batStatus.value ?? "").trim()
-        const cap = Number(batCap.value ?? 0)
-        if (s === "Discharging" && cap <= 20) return 2000
-        return 6000
+        id: powerPoll
+        interval: {
+            const s = String(batStatus.value ?? "").trim()
+            const cap = Number(batCap.value ?? 0)
+            if (s === "Discharging" && cap <= 20) return 2000
+            return 6000
+        }
+        command: ["bash","-lc", `
+            cap=$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -n1)
+            status=$(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -n1)
+            ac=$(cat /sys/class/power_supply/AC*/online /sys/class/power_supply/ADP*/online 2>/dev/null | head -n1)
+            echo "$cap|$status|$ac"
+        `]
+        parse: function(o) {
+            var s = String(o ?? "").trim()
+            var p = s.split("|")
+            return { cap: Number(p[0]) || 0, status: (p[1] || "").trim(), ac: (p[2] || "").trim() }
+        }
     }
-    command: ["bash","-lc", `
-        cap=$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -n1)
-        status=$(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -n1)
-        ac=$(cat /sys/class/power_supply/AC*/online /sys/class/power_supply/ADP*/online 2>/dev/null | head -n1)
-        echo "$cap|$status|$ac"
-    `]
-    parse: function(o) {
-        var s = String(o ?? "").trim()
-        var p = s.split("|")
-        return { cap: Number(p[0]) || 0, status: (p[1] || "").trim(), ac: (p[2] || "").trim() }
-    }
-}
 
     QtObject { id: batCap; property var value: (powerPoll.value ? powerPoll.value.cap : 0) }
     QtObject { id: batStatus; property var value: (powerPoll.value ? powerPoll.value.status : "") }
@@ -233,13 +246,13 @@ PanelWindow {
                 scale: launchPress.pressed ? 0.94 : 1.0
                 Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
                 HoverHandler { id: hoverLaunch }
-Rectangle {
-    anchors.fill: parent
-    radius: height / 2
-    color: Qt.rgba(launchIcon.color.r, launchIcon.color.g, launchIcon.color.b, 1)
-    opacity: launchPress.pressed ? 0.10 : (hoverLaunch.hovered ? 0.08 : 0.0)
-    Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-}
+                Rectangle {
+                    anchors.fill: parent
+                    radius: height / 2
+                    color: Qt.rgba(launchIcon.color.r, launchIcon.color.g, launchIcon.color.b, 1)
+                    opacity: launchPress.pressed ? 0.10 : (hoverLaunch.hovered ? 0.08 : 0.0)
+                    Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                }
 
                 Text {
                     id: launchIcon
@@ -322,26 +335,26 @@ Rectangle {
                     }
                 }
 
-Item {
-    id: pressPillLayer
-    anchors.fill: parent
-    visible: wsContainer.pressedId > 0
-    opacity: visible ? 1 : 0
-    Behavior on opacity { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
+                Item {
+                    id: pressPillLayer
+                    anchors.fill: parent
+                    visible: wsContainer.pressedId > 0
+                    opacity: visible ? 1 : 0
+                    Behavior on opacity { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
 
-    Rectangle {
-        property var t: wsContainer.pressedItem
-        x: t ? (wsRow.x + t.x) : 0
-        width: t ? t.width : 0
-        height: 25
-        anchors.verticalCenter: parent.verticalCenter
-        radius: 13
-        color: Qt.rgba(palette.textPrimary.r, palette.textPrimary.g, palette.textPrimary.b, 1)
-        opacity: 0.10
-        Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-        Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-    }
-}
+                    Rectangle {
+                        property var t: wsContainer.pressedItem
+                        x: t ? (wsRow.x + t.x) : 0
+                        width: t ? t.width : 0
+                        height: 25
+                        anchors.verticalCenter: parent.verticalCenter
+                        radius: 13
+                        color: Qt.rgba(palette.textPrimary.r, palette.textPrimary.g, palette.textPrimary.b, 1)
+                        opacity: 0.10
+                        Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                        Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                    }
+                }
 
                 Row {
                     id: wsRow
@@ -432,14 +445,14 @@ Item {
                                 }
                             }
                             MouseArea {
-    id: wsPress
-    anchors.fill: parent
-    hoverEnabled: true
-    onPressed: wsContainer.pressedId = wsId
-    onReleased: if (wsContainer.pressedId === wsId) wsContainer.pressedId = 0
-    onCanceled: if (wsContainer.pressedId === wsId) wsContainer.pressedId = 0
-    onClicked: win.det("hyprctl dispatch workspace " + wsId)
-}
+                                id: wsPress
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                onPressed: wsContainer.pressedId = wsId
+                                onReleased: if (wsContainer.pressedId === wsId) wsContainer.pressedId = 0
+                                onCanceled: if (wsContainer.pressedId === wsId) wsContainer.pressedId = 0
+                                onClicked: win.det("hyprctl dispatch workspace " + wsId)
+                            }
                         }
                     }
                 }
@@ -484,20 +497,23 @@ Item {
             BarItem {
                 property color updatesBg: win.isDarkMode ? '#ce829469' : '#be7f9b58'
                 property color updatesFg: win.isDarkMode ? "#2d353b" : "#1e2326"
-                visible: updates.value !== "0" && updates.value !== ""
-                icon: "󰚰"; text: updates.value
+
+                // Keep visible while update process is running
+                visible: updateProc.running || (updates.value !== "0" && updates.value !== "")
+                icon: "󰚰"
+                text: updateProc.running ? "…" : updates.value
                 bgColor: updatesBg; textColor: updatesFg; iconColor: updatesFg
                 borderWidth: 0; borderColor: "transparent"; hoverColor: palette.hoverSpotlight
 
-            Process {
+                Process {
                     id: updateProc
-                    // This runs the update in kitty. The process stays 'running' as long as the window is open.
-                    command: ["kitty", "-e", "bash", "-c", "sudo pacman -Syu"]
-                    
+                    // The process stays 'running' as long as the window is open.
+                    command: ["kitty", "-e", "bash", "-lc", "sudo pacman -Syu"]
+
                     // When running changes to false (window closed),
                     onRunningChanged: {
                         if (!running) {
-                            updates.update() 
+                            updates.update()
                         }
                     }
                 }
@@ -505,9 +521,7 @@ Item {
                 onClicked: {
                     updateProc.running = true
                 }
-
             }
-            
 
             // 5. TRAY
             Rectangle {
@@ -523,21 +537,21 @@ Item {
                     Repeater {
                         model: SystemTray.items
                         Item {
-    width: 20; height: 20
-    scale: trayPress.pressed ? 0.94 : (trayPress.containsMouse ? 1.06 : 1.0)
-    Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
+                            width: 20; height: 20
+                            scale: trayPress.pressed ? 0.94 : (trayPress.containsMouse ? 1.06 : 1.0)
+                            Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
 
-    Rectangle {
-        anchors.fill: parent
-        radius: width / 2
-        color: palette.hoverSpotlight
-        opacity: trayPress.pressed ? 1.0 : (trayPress.containsMouse ? 0.8 : 0.0)
-        Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-    }
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: width / 2
+                                color: palette.hoverSpotlight
+                                opacity: trayPress.pressed ? 1.0 : (trayPress.containsMouse ? 0.8 : 0.0)
+                                Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                            }
 
-    Image { anchors.centerIn: parent; width: 16; height: 16; source: modelData.icon }
-    MouseArea {
-        id: trayPress
+                            Image { anchors.centerIn: parent; width: 16; height: 16; source: modelData.icon }
+                            MouseArea {
+                                id: trayPress
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
