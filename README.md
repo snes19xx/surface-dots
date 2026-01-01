@@ -12,6 +12,7 @@ Personal dotfiles + UI setup for my **Surface Laptop 4 (AMD)** running **Hyprlan
 - [Quickshell Bar](#quickshell-bar) 
 - [Quickshell Hub (`snes-hub`)](#quickshell-hub-snes-hub)
 - [Google Calendar sync (vdirsyncer + khal)](#google-calendar-sync-vdirsyncer--khal)
+- [Pixel sddm theme](#pixel-sddm-theme)
 - [Firefox custom new-tab](#firefox-custom-new-tab)
 - [Surface-only features](#surface-only-features)
 - [Credits & acknowledgements](#credits--acknowledgements)
@@ -298,8 +299,24 @@ khal list now 7d
 - Clicking dismisses.
 - Uses **mako** (`makoctl`) as the notification backend.
 - Contracted by default when the media player card is active, but can be expanded via the expand button.
-
-
+  
+## Pixel sddm theme
+- Required:
+```bash
+sudo pacman -S git qt5-graphicaleffects qt5-quickcontrols2 qt5-svg
+```
+- To install:
+  - move the contents of sddm folder to `/usr/share/sddm/themes/` (create the dir if it doesn't exist yet)
+  - Set "pixel" as the current theme by creating a configuration file in `/etc/sddm.conf.d/`:
+    1. make sure the directory exists:
+  ```bash
+  sudo mkdir -p /etc/sddm.conf.d
+  ```
+  2. then create the config file:
+  ```bash
+  echo -e "[Theme]\nCurrent=pixel" | sudo tee /etc/sddm.conf.d/theme.conf
+  ```
+    
 ## Firefox custom new-tab
 
 - Custom Firefox start page: https://github.com/snes19xx/custom-firefox-start
