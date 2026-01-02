@@ -7,6 +7,7 @@ import "../theme.js" as Theme
 Lib.Card {
   id: root
   signal closeRequested()
+  signal batteryToggleRequested()
   property bool active: true
 
   function sh(cmd) { return ["bash","-lc", cmd] }
@@ -207,6 +208,7 @@ Lib.Card {
         customIconColor: root.getPerfColor()
         hasCustomColor: !root.isPerfActive()
         onClicked: root.cyclePerf()
+        onRightClicked: root.batteryToggleRequested()
         fixX: -2
       }
 

@@ -187,22 +187,35 @@ kitty -e bash -lc "sudo pacman -Syu"
 - Esc closes the hub (or clicking anywhere outside it).
 
 ## Quickshell Hub (`snes-hub`)
+
 - The hub window is an overlay (wlr-layershell) and is designed to get out of your way quickly:
 - Organized into reusable components under the Quickshell project, making it straightforward to add/remove cards or re-skin pieces without rewriting the whole hub.
 - If you want a lightweight fallback, use the early **AGS** version in `.config/ags/` (works, but fewer features).
 
 ### Components
+<img src="media/screenshots/comparison.png" align="right" width="580" alt="Hub comparison" />
+    
 #### Header
 - Profile icon,username + RAM/CPU usage chips.
-- Power button that launches the Rofi power menu.
 - Screenshot button (runs the capture script and then closes the hub).
+- Power button
+
+#### Power menu
+- Compact power grid that expands *inside the header* (no extra window):
+- Keyboard navigation: **Arrow keys / Tab** to move, **Enter** to trigger, **Esc** to close.
 
 #### Buttons and Sliders
 - Wi‑Fi toggle + SSID readout (right‑click opens the Wi‑Fi Rofi menu).
 - Bluetooth toggle + connected device status.
-- Surface performance profile button (cycle modes via `surface profile`).
+- Surface performance profile button (cycle modes via `surface profile` , right click toggles battery health card). 
 - DND toggle (mako).
 - Volume + brightness sliders (pactl + brightnessctl).
+
+#### Battery health
+- Polls: `upower -i /org/freedesktop/UPower/devices/battery_BAT1`
+- Shows: **Health** (capacity %) + **current charge %**, **Charge cycles**, **Energy (full / design)**, **Time remaining** (to full/empty when available), **State** (charging/discharging/fully-charged)
+
+> If your battery isn’t `battery_BAT1`, swap the device path in `BatteryHealthCard.qml` to match your system.
 
 #### Media card (MPRIS)
 - The hub includes an MPRIS-powered media card:
@@ -216,6 +229,8 @@ kitty -e bash -lc "sudo pacman -Syu"
 - Resizable is disabled (setResizable(false) is used)
 - Esc closes the widget 
 - Generates theme colors from album art using palette_generator
+
+<br clear="all" />
 
 #### Calendar, Weather and Events
 ##### Google Calendar sync (vdirsyncer + khal)
