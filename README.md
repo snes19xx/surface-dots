@@ -7,7 +7,6 @@ Personal dotfiles + UI setup for my **Surface Laptop 4 (AMD)** running **Hyprlan
 ## Table of contents
 
 - [Background](#background)
-- [What’s in this repo](#whats-in-this-repo)
 - [Dependencies](#dependencies)
 - [Hyprland](#hyprland)
 - [Quickshell Bar](#quickshell-bar) 
@@ -42,18 +41,6 @@ I originally started the Hub in AGS, but eventually switched over to Quickshell.
   <img src="media/screenshots/ss9.png" width="45%" />
   <p><i>Firefox Custom Start Page + EverCal Dark mode</i></p>
 </div>
-
-## What’s in this repo
-This is the structure I’m aiming for (some parts are “supporting configs”):
-- `.config/`
-- `hypr/` — Hyprland configuration (updated for v 0.53).
-- `quickshell/` — main hub UI + the Bar.
-- `ags/` — early, lighter hub prototype.
-- `rofi/`, `mako/`, `khal/`, `kitty/`, `gtk-3.0/`, `vdirsyncer/` — supporting configs.
-- `firefox/` — custom new-tab setup.
-- `now_playing/` — Flutter project for the now-playing widget.
-- `sddm/` — SDDM theme.
-- `media/` — wallpapers and screenshots.
 
 ---
 ## Dependencies
