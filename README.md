@@ -1,7 +1,8 @@
 # surface-dots
 
 Personal dotfiles + UI setup for my **Surface Laptop 4 (AMD)** running **Hyprland**.
- 
+I originally started the Hub in AGS, but eventually switched over to Quickshell. The AGS config is still included as an early version, it’s lighter and works, just not as feature-complete. Also,check the calebdar app: [Evercal](https://github.com/snes19xx/EverCal)
+
 ---
 
 ## Table of contents
@@ -17,11 +18,6 @@ Personal dotfiles + UI setup for my **Surface Laptop 4 (AMD)** running **Hyprlan
 - [Surface-only features](#surface-only-features)
 - [Credits & acknowledgements](#credits--acknowledgements)
 - [Media sources](#media-sources)
-
----
-
-## Background
-I originally started the Hub in AGS, but eventually switched over to Quickshell. The AGS config is still included as an early prototype, it’s lighter and works, just not as feature-complete. Also, I built my own Flutter calendar (full app) and now playing (widget) simply because none of the existing ones looked quite right to me.
 
 ---
 <div align="center">
