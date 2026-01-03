@@ -12,6 +12,7 @@ PanelWindow {
     color: "transparent"
     anchors { top: true; bottom: true; left: true; right: true }
 
+    // Hides window borders when the hub is open 
     function setBordersHidden(hidden) {
         Quickshell.execDetached(["hyprctl", "keyword", "general:border_size", hidden ? "0" : "1"])
     }
@@ -40,6 +41,7 @@ PanelWindow {
         win.isDarkMode = (m !== "light")
     }
 
+    // Theme toggle watcher
     FileView {
         id: themeModeFile
         path: win._themeModePath
@@ -97,6 +99,15 @@ PanelWindow {
         focus: true
 
         Keys.onEscapePressed: closeAll()
+        Keys.onPressed: (event) => {
+            // Press 'P' to toggle the power menu
+            if (event.key === Qt.Key_P) {
+                if (header) {
+                    header.expanded = !header.expanded
+                    event.accepted = true
+                }
+            }
+        }
 
         // click outside closes
         MouseArea {

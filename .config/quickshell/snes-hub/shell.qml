@@ -1,7 +1,8 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-
+import Quickshell.Io
+import Quickshell.Hyprland
 import "bar" as Bar
 import "hub" as Hub
 
@@ -24,13 +25,25 @@ ShellRoot {
                 screen: v.modelData
             }
 
+            function toggleHub() {
+                hub.visible = !hub.visible
+                if (hub.visible) hub.forceActiveFocus()
+            }
+
             Connections {
                 target: bar
                 function onRequestHubToggle() {
-                    hub.visible = !hub.visible
-                    if (hub.visible) hub.forceActiveFocus()
+                    toggleHub()
                 }
             }
+
+            GlobalShortcut {
+                name: "hubToggle"
+                description: "Toggle hub"
+                onPressed: toggleHub()
+            }
+
+
         }
     }
 }

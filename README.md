@@ -112,6 +112,7 @@ OLd Config at `~/.config/hypr/hyprland_OLD.conf`
 - `SUPER + B` → firefox
 
 #### Window actions
+- `SUPER + SPACE`  → toggle hub on or off
 - `SUPER + X` → kill active window
 - `SUPER + ALT + F` → toggle floating (simple)
 - `SUPER + F` → toggle floating **and** set size `900x600` + center
@@ -187,7 +188,7 @@ kitty -e bash -lc "sudo pacman -Syu"
 - Esc closes the hub (or clicking anywhere outside it).
 
 ## Quickshell Hub (`snes-hub`)
-
+- Toggled by clicking the date/clock module in the bar or SUPER+SPACE keybinding through hyprland
 - The hub window is an overlay (wlr-layershell) and is designed to get out of your way quickly:
 - Organized into reusable components under the Quickshell project, making it straightforward to add/remove cards or re-skin pieces without rewriting the whole hub.
 - If you want a lightweight fallback, use the early **AGS** version in `.config/ags/` (works, but fewer features).
@@ -201,7 +202,7 @@ kitty -e bash -lc "sudo pacman -Syu"
 - Power button
 
 #### Power menu
-- Compact power grid that expands *inside the header* (no extra window):
+- Compact power grid that expands (click the power button or press `p` key) *inside the header* (no extra window):
 - Keyboard navigation: **Arrow keys / Tab** to move, **Enter** to trigger, **Esc** to close.
 
 #### Buttons and Sliders
