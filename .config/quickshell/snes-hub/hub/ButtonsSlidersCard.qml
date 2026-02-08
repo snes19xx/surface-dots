@@ -77,6 +77,7 @@ Lib.Card {
     id: volPoll
     running: root.active && root.visible
     interval: 1200
+    // Get volume number only
     command: sh("pactl get-sink-volume @DEFAULT_SINK@ 2>/dev/null | grep -Po '\\d+(?=%)' | head -n1")
     parse: function(o) {
       var n = parseInt(String(o).trim())
@@ -137,8 +138,8 @@ Lib.Card {
   }
 
   function getPerfIcon() {
-    if (root.autoMode) return "󰚥" // Auto icon
-    return (root.cpuGov === "performance") ? "󰓅" : "󰌪"
+    if (root.autoMode) return "cpu_auto.svg"
+    return (root.cpuGov === "performance") ? "cpu_max.svg" : "cpu_powersave.svg"
   }
 
   function getPerfLabel() {
@@ -149,7 +150,7 @@ Lib.Card {
   function getPerfColor() {
     if (root.autoMode) {
       return (root.theme && root.theme.isDarkMode !== undefined && !root.theme.isDarkMode)
-        ? '#577952' // Hardcoded colors for now
+        ? '#283314' // Hardcoded colors for now
         : (Theme.accent || "#a7c080") // 
     }
     return (root.cpuGov === "performance") ? Theme.accentRed : (root.theme ? root.theme.textPrimary : Theme.fgMain)
@@ -184,21 +185,20 @@ Lib.Card {
 
       Lib.ExpressiveButton {
         theme: root.theme
-        icon: "󰤨"
+        icon: wifiOn.value ? "wifi_connected.svg" : "wifi_off.svg"
         label: String(wifiSSID.value || "WiFi")
         active: Boolean(wifiOn.value)
         onClicked: toggleWifi()
         onRightClicked: {
             root.closeRequested()
-            // det("nm-connection-editor >/dev/null 2>&1 &")
             det("quickshell -p ~/.config/quickshell/snes-hub/lib/WifiMenu.qml")
         }
-        fixX: -10
+        //fixX: -10  (no need for this since I am using svgs as icons)
       }
 
       Lib.ExpressiveButton {
         theme: root.theme
-        icon: "󰂯"
+        icon: !btOn.value ? "bt_off.svg" : (String(btDev.value) !== "On" ? "bt_connected.svg" : "bt_on.svg")
         label: String(btDev.value || "Off")
         active: Boolean(btOn.value)
         onClicked: toggleBt()
@@ -206,7 +206,7 @@ Lib.Card {
             root.closeRequested()
             det("blueman-manager >/dev/null 2>&1 &")
         }
-        fixX: -5
+        //fixX: -5
       }
 
       Lib.ExpressiveButton {
@@ -218,16 +218,16 @@ Lib.Card {
         hasCustomColor: true
         onClicked: root.togglePerf()
         onRightClicked: root.batteryToggleRequested()
-        fixX: -2
+        //fixX: -2
       }
 
       Lib.ExpressiveButton {
         theme: root.theme
-        icon: root.dnd ? "󰂛" : "󰂚"
+        icon: root.dnd ? "silent.svg" : "notify.svg"
         label: root.dnd ? "Silent" : "Notify"
         active: root.dnd
         onClicked: toggleDnd()
-        fixX: -3
+        //fixX: -3
       }
     }
 
@@ -238,7 +238,12 @@ Lib.Card {
       Lib.ExpressiveSlider {
         theme: root.theme
         id: briS
-        icon: "󰃟"
+        // Logic: 0-39 | 40-74 | 75-100
+        icon: {
+             if (value < 40) return "bness_less40.svg"
+             if (value < 75) return "bness_40to75.svg"
+             return "bnessmax.svg"
+        }
         from: 0; to: 100
         value: 50
         Layout.fillWidth: true
@@ -251,7 +256,12 @@ Lib.Card {
       Lib.ExpressiveSlider {
         theme: root.theme
         id: volS
-        icon: "󰕾"
+        // Logic: Muted/0 -> mute | Headphones -> headphones | <50 -> 50m | >50 -> 50p
+        icon: {
+            if (value === 0) return "mute.svg"
+            if (volPoll.value.isHeadphones) return "vol_headphones.svg"
+            return (value > 50) ? "vol_50p.svg" : "vol_50m.svg"
+        }
         from: 0; to: 100
         value: 0
         Layout.fillWidth: true
@@ -261,5 +271,6 @@ Lib.Card {
         onUserChanged: det("pactl set-sink-volume @DEFAULT_SINK@ " + Math.round(value) + "%")
       } 
     }
+    
   }
 }

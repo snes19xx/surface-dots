@@ -8,6 +8,7 @@ Item {
     id: root
     property string icon: ""
     property string text: ""
+    property string iconSource: ""
     property color textColor: "#d5c9b2"
     property color iconColor: root.textColor
     property int borderWidth: 1
@@ -18,26 +19,25 @@ Item {
     property color hoverColor: Qt.rgba(1, 1, 1, 0.14)
     property bool shimmerEnabled: true
 
-property bool toggleable: false
-property bool checked: false
-property string iconOff: root.icon
-property string iconOn: root.icon
-property string textOff: root.text
-property string textOn: root.text
-property color checkedBgColor: root.bgColor
-property color checkedTextColor: root.textColor
-property color checkedIconColor: root.iconColor
-property int selectedRadius: 8
-property int pressedRadius: 10
-readonly property string shownIcon: toggleable ? (checked ? iconOn : iconOff) : icon
-readonly property string shownText: toggleable ? (checked ? textOn : textOff) : text
+    property bool toggleable: false
+    property bool checked: false
+    property string iconOff: root.icon
+    property string iconOn: root.icon
+    property string textOff: root.text
+    property string textOn: root.text
+    property color checkedBgColor: root.bgColor
+    property color checkedTextColor: root.textColor
+    property color checkedIconColor: root.iconColor
+    property int selectedRadius: 8
+    property int pressedRadius: 10
+    readonly property string shownIcon: toggleable ? (checked ? iconOn : iconOff) : icon
+    readonly property string shownText: toggleable ? (checked ? textOn : textOff) : text
     signal clicked(var mouse)
 
     height: 34
     implicitWidth: layout.implicitWidth + 24
-    property real hx: width / 2
-    property real hy: height / 2
 
+    // MASK SOURCE (Hidden)
     Rectangle { 
         id: mask
         anchors.fill: parent
@@ -46,8 +46,8 @@ readonly property string shownText: toggleable ? (checked ? textOn : textOff) : 
         antialiasing: true 
     }
 
+    // BACKGROUND & SHIMMER LAYER
     Item {
-        id: maskedLayer
         anchors.fill: parent
         layer.enabled: true
         layer.smooth: true
@@ -62,36 +62,13 @@ readonly property string shownText: toggleable ? (checked ? textOn : textOff) : 
             Behavior on color { ColorAnimation { duration: 180 } }
         }
 
-Rectangle {
-    anchors.fill: parent
-    radius: height / 2
-    color: Qt.rgba(root.hoverColor.r, root.hoverColor.g, root.hoverColor.b, 1)
-    opacity: press.pressed ? 0.22 : (hover.hovered ? 0.14 : 0.0)
-    antialiasing: true
-    Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-}
-
-        Rectangle { 
-            id: hoverSrc
+        Rectangle {
             anchors.fill: parent
-            radius: mask.radius
-            color: "white"
-            visible: false 
-        }
-
-        RadialGradient {
-            anchors.fill: parent
-            source: hoverSrc
-            horizontalRadius: width * 0.9
-            verticalRadius: height * 1.7
-            horizontalOffset: root.hx - width / 2
-            verticalOffset: root.hy - height / 2
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: root.hoverColor } 
-                GradientStop { position: 0.7; color: "transparent" }
-            }
-            opacity: (hover.hovered || press.pressed) ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: 140 } }
+            radius: height / 2
+            color: root.hoverColor
+            opacity: press.pressed ? 0.22 : (hover.hovered ? 0.14 : 0.0)
+            antialiasing: true
+            Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
         }
 
         Rectangle {
@@ -111,6 +88,7 @@ Rectangle {
         }
     }
 
+    // BORDER 
     Rectangle {
         anchors.fill: parent
         radius: height / 2
@@ -148,6 +126,29 @@ Rectangle {
             color: (toggleable && checked) ? checkedIconColor : root.iconColor
             Layout.alignment: Qt.AlignVCenter 
         }
+        // SVG Support 
+        Item {
+            visible: root.iconSource !== ""
+            Layout.alignment: Qt.AlignVCenter
+            width: 16; height: 16
+            
+            Image { 
+                id: iSrc
+                anchors.fill: parent
+                source: root.iconSource
+                // Rasterize at 2x for sharper edges on HiDPI
+                sourceSize: Qt.size(32, 32) 
+                visible: false
+            }
+
+            ColorOverlay {
+                anchors.fill: parent
+                source: iSrc
+                color: (toggleable && checked) ? checkedIconColor : root.iconColor
+                cached: true
+                antialiasing: true
+            }
+        }
         Text { 
             visible: root.shownText !== ""
             text: root.shownText
@@ -164,7 +165,6 @@ Rectangle {
         hoverEnabled: true
         onClicked: (mouse) => { if (root.toggleable) root.checked = !root.checked; root.clicked(mouse) }
         onEntered: if (root.shimmerEnabled) shimmerAnim.restart()
-        onPositionChanged: (mouse) => { root.hx = mouse.x; root.hy = mouse.y }
     }
     HoverHandler { id: hover }
 }

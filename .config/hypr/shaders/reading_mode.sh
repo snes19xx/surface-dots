@@ -1,39 +1,87 @@
 #!/usr/bin/env bash
 
-# Path to shader
-SHADER="$HOME/.config/hypr/shaders/grayscale.glsl"
-THEME="$HOME/.config/quickshell/snes-hub/bar/theme-mode.sh"
-WALLPAPER="$HOME/Pictures/desktop/WP/6.jpg"
-WALLPAPER_DEF="$HOME/Pictures/desktop/l2.png"
+# PATHS
+home="$HOME"
+shader_path="$home/.config/hypr/shaders/reading_mode.glsl"
+theme_script="$home/.config/quickshell/snes-hub/bar/theme-mode.sh"
+current_theme_file="$home/.cache/quickshell/theme_mode"
+restore_file="$home/.cache/quickshell/reading_mode_restore"
+wallpaper_reading="$home/Pictures/desktop/WP/6.jpg"
 
-# Check active shader
-if hyprshade current | grep -q "grayscale"; then
-    # Deactivate and Reload
-    hyprshade off
+
+# SWITCHER
+# Check if shader is active
+current_shader=$(hyprshade current)
+
+if [[ "$current_shader" == *"reading_mode"* ]]; then
+
+    # [[ DEACTIVATE: TURN OFF READING MODE ]] --
+
+    # Determine which theme to restore
+    if [[ -f "$restore_file" ]]; then
+        prev_theme=$(cat "$restore_file" | tr -d '[:space:]')
+    fi
+    
+    if [[ -z "$prev_theme" ]]; then
+        prev_theme="dark" # Default fallback
+    fi
+
+    # Turn off shader (failsafe: hyprctl reload usually turns it off anyways)
+    # & restore theme
+    hyprshade off &
+    $theme_script "$prev_theme" &
+
+    # Restore Hyprland
     hyprctl reload
-    brightnessctl set 60%
-    swww img "$WALLPAPER_DEF" --transition-type none
-    qs -c snes-hub
-    
-    
+
+    # Cleanup
+    rm -f "$restore_file"
+
+    # Restart Shell
+    qs -c snes-hub &
+
+    # Send Notification
+    notify-send 'Reading Mode' 'off'
+
 
 else
-    # ACTIVATES
-    hyprshade on "$SHADER"
-    pkill qs
-    "$THEME" light
-    swww img "$WALLPAPER" --transition-type none
-    brightnessctl set 37% 
-    # Force E-ink visuals: No animations, no shadows, thin black borders
-    hyprctl keyword animations:enabled 0
-    hyprctl keyword decoration:drop_shadow 0
-    # hyprctl keyword decoration:blur:enabled 0
-    hyprctl keyword decoration:rounding 0
-    hyprctl keyword general:gaps_in 0
-    hyprctl keyword general:gaps_out 0
-    hyprctl keyword general:border_size 2
-    hyprctl keyword general:col.active_border "rgba(000000ff)"
-    hyprctl keyword general:col.inactive_border "rgba(000000ff)"
-    hyprctl keyword decoration:dim_inactive 0
+    # [[ ACTIVATE: TURN ON READING MODE ]] --
+
+    # Save current theme state
+    if [[ -f "$current_theme_file" ]]; then
+        current_theme=$(cat "$current_theme_file" | tr -d '[:space:]')
+    fi
     
+    if [[ -z "$current_theme" ]]; then 
+        current_theme="dark" 
+    fi
+    
+    echo "$current_theme" > "$restore_file"
+
+    # Enable Shader & Switch to Light Theme
+    hyprshade on "$shader_path"
+    pkill qs
+    $theme_script light
+
+    # Set Wallpaper & Brightness (Async)
+    swww img "$wallpaper_reading" --transition-type none &
+    brightnessctl set 37% &
+
+    # Apply E-ink Overrides
+    # Constructing the batch string directly
+    overrides="keyword animations:enabled 0;\
+    keyword decoration:shadow:enabled 0;\
+    keyword decoration:blur:enabled 0;\
+    keyword decoration:rounding 0;\
+    keyword general:gaps_in 0;\
+    keyword general:gaps_out 0;\
+    keyword general:border_size 2;\
+    keyword general:col.active_border rgba(000000ff);\
+    keyword general:col.inactive_border rgba(000000ff);\
+    keyword decoration:dim_inactive 0"
+    
+    hyprctl --batch "$overrides"
+
+    # Send Notification
+    notify-send 'Reading Mode' 'Activated'
 fi

@@ -1,5 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
+import Qt5Compat.GraphicalEffects
+import Quickshell.Services.Pipewire
 import "../theme.js" as Theme
 
 Item {
@@ -51,25 +53,37 @@ Item {
             anchors.centerIn: parent
             spacing: 0
             
-            Text {
-                text: root.icon
-                font.family: Theme.iconFont
-                font.pixelSize: 25
-                
-                color: root.active 
-                       ? (root.theme ? root.theme.textOnAccent : Theme.fgOnAccent) 
-                       : (root.hasCustomColor ? root.customIconColor : (root.theme ? root.theme.textPrimary : Theme.fgMain))
-                
-                topPadding: 2 
-                leftPadding: root.fixX > 0 ? root.fixX : 0
-                rightPadding: root.fixX < 0 ? -root.fixX : 0
+            Item {
                 Layout.alignment: Qt.AlignHCenter
-                horizontalAlignment: Text.AlignHCenter
+                width: 24
+                height: 24
 
-                // --- 2.ICON POP EFFECT ---
-                transformOrigin: Item.Center
-                scale: mouse.containsMouse ? 1.20 : 1.0
-                Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
+                Image {
+                    id: iconImg
+                    source: root.icon
+                    sourceSize: Qt.size(width, height)
+                    anchors.fill: parent
+                    visible: false
+                }
+
+                ColorOverlay {
+                    anchors.fill: iconImg
+                    source: iconImg
+                    color: root.active 
+                        ? (root.theme ? root.theme.textOnAccent : Theme.fgOnAccent) 
+                        : (root.hasCustomColor ? root.customIconColor : (root.theme ? root.theme.textPrimary : Theme.fgMain))
+                    
+                    // ICON POP EFFECT
+                    transformOrigin: Item.Center
+                    scale: mouse.containsMouse ? 1.20 : 1.0
+                    Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
+                }
+
+                    // Padding adjustments done via Layout margins if needed, 
+                    // or applied to the Item wrappers here:
+                    Layout.topMargin: 2
+                    Layout.leftMargin: root.fixX > 0 ? root.fixX : 0
+                    Layout.rightMargin: root.fixX < 0 ? -root.fixX : 0
             }
             
             Text {

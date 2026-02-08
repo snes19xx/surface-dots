@@ -32,7 +32,7 @@ Also, please check my calendar app: [Evercal](https://github.com/snes19xx/EverCa
 
   <img src="media/screenshots/ss4.png" width="45%" />
   <img src="media/screenshots/ss6.png" width="45%" />
-  <p><i>Dark Mode & Light Mode (Hub + Rofi + Now-playing)</i></p>
+  <p><i>Dark Mode & Light Mode (Hub + Rofi)</i></p>
 
   <br/>
 
@@ -62,7 +62,6 @@ Also, please check my calendar app: [Evercal](https://github.com/snes19xx/EverCa
 - sddm
 - networkmanager
 - bluez, blueman
-- lua
 
 </td>
 <td valign="top">
@@ -111,7 +110,7 @@ Also, please check my calendar app: [Evercal](https://github.com/snes19xx/EverCa
 ---
 
 > [!CAUTION]
-> Layout geometry is hardcoded for a 3:2 high-resolution display. Deviation in aspect ratio or pixel density will result in misalignment or things looking too big. Please reconfigure values if you do not have a 3:2 high res display.
+> Layout geometry is hardcoded for 3:2 high-resolution display. Deviation in aspect ratio or pixel density will result in misalignment or things looking too big. Please reconfigure values accordingly.
 
 ## Hyprland
 
@@ -187,13 +186,13 @@ Old Config at `~/.config/hypr/hyprland_OLD.conf`
 
 A shader-based reading mode to mimic an e-ink reader.
 
-- Toggle with `SUPER + D`
+- Toggle with `SUPER + D` or `~/.config/hypr/shaders/reading_mode.sh`
 - Automatically disables animations, shadows, and blur
 - Custom GLSL shader with e-ink-like color reproduction
 - Warm cream paper tone
 - Soft charcoal blacks for reduced contrast
 - Fine paper grain -like texture
-- Shader located at `~/.config/hypr/shaders/grayscale.glsl`
+- Shader located at `~/.config/hypr/shaders/reading_mode.glsl`
 - Uses [hyprshade](https://github.com/loqusion/hyprshade)
 
 ## Quickshell Bar
@@ -239,7 +238,7 @@ kitty -e bash -lc "sudo pacman -Syu"
 
 - Toggled by clicking the date/clock module in the bar or SUPER+SPACE keybinding through hyprland
 - The hub window is an overlay (wlr-layershell) and is designed to get out of your way quickly:
-- Organized into reusable components under the Quickshell project, making it straightforward to add/remove cards or re-skin pieces without rewriting the whole hub.
+- Organized into reusable components, making it straightforward to add/remove cards or re-skin pieces without rewriting the whole hub.
 - If you want a lightweight fallback, use the early **AGS** version in `.config/ags/` (works, but fewer features).
 
 ### Components
@@ -260,7 +259,7 @@ kitty -e bash -lc "sudo pacman -Syu"
 
 - Wi‑Fi toggle + SSID readout (right‑click opens the Wi‑Fi Rofi menu).
 - Bluetooth toggle + connected device status.
-- Surface performance profile button (cycle modes via `surface profile` , right click toggles battery health card).
+- Performance profile button (cycle modes via `auto-cpufreq`, right click toggles battery health card).
 - DND toggle (mako).
 - Volume + brightness sliders (pactl + brightnessctl).
 
@@ -269,6 +268,7 @@ kitty -e bash -lc "sudo pacman -Syu"
 - Polls: `upower -i /org/freedesktop/UPower/devices/battery_BAT1`
 - Shows: **Health** (capacity %) + **current charge %**, **Charge cycles**, **Energy (full / design)**, **Time remaining** (to full/empty when available), **State** (charging/discharging/fully-charged)
 
+> [!NOTE]
 > If your battery isn’t `battery_BAT1`, swap the device path in `BatteryHealthCard.qml` to match your system.
 
 #### Media card (MPRIS)
@@ -286,13 +286,12 @@ kitty -e bash -lc "sudo pacman -Syu"
 - Esc closes the widget
 - Generates theme colors from album art using palette_generator
 
-<br clear="all" />
-
 #### Calendar, Weather and Events
 
-##### Google Calendar sync (vdirsyncer + khal)
+A simple calendar with weather (json based script and events from my google calendar using khal+ vdirsyncer.
 
-###### Setup
+<details>
+<summary><strong>Google Calendar sync (vdirsyncer + khal)</strong></summary>
 
 Recommended approach (avoids system Python packaging issues):
 
@@ -335,6 +334,8 @@ vdirsyncer sync
 khal list now 7d
 ```
 
+</details>
+
 #### Notifications
 
 - Clicking dismisses.
@@ -370,7 +371,8 @@ Standalone network manager applet located at lib/WifiMenu.qml. With both (light/
 - Trigger: Right-click the Wi-Fi button in the Hub.
 - or run: `quickshell -p ~/.config/quickshell/snes-hub/lib/Wifimenu.qml`
 
-> Note: you cannot connect to enterprise access points yet, I haven't had the time to fix it yet
+> [!WARNING]
+> You cannot connect to enterprise access points yet, I haven't had the time to fix it yet
 
 ## Pixel sddm theme
 
@@ -413,12 +415,12 @@ Firefox doesn't really want you to use local html as a new tab page so
 - Rofi themes loosely based on @adi1090x's [type 7](https://github.com/adi1090x/rofi/blob/master/previews/launchers/type-7/5.png)
 - `Pixeldots.qml` in sddm theme based on @mahaveergurjar's [Pixeldots](https://github.com/mahaveergurjar/sddm/tree/pixel)
 - Colors: https://github.com/sainnhe/everforest
+- SVG icons: https://www.svgrepo.com/
 - linux-surface project: https://github.com/linux-surface/linux-surface
 - Thorium: https://thorium.rocks/
 
 ## Media sources
 
-- Piplup gif: animation by [coal_owl](https://www.instagram.com/coal_owl/?hl=en) [full video](https://www.youtube.com/watch?v=bm0nLJuRNbw&list=RDbm0nLJuRNbw)
 - 14.jpg: Photo by fffunction studio on [Unsplash](https://unsplash.com/photos/green-trees-near-mountains-during-daytime-IrWgzQ_Y_zg)
 - 15.jpg: Photo by Brian McGowan on [Unsplash](https://unsplash.com/photos/astronaut-in-white-suit-in-grayscale-photography-I0fDR8xtApA)
 - luci_light.jpg: https://www.amazon.ca/Art-Fire-Emblem-Awakening-ebook/dp/B01J1XIC2O

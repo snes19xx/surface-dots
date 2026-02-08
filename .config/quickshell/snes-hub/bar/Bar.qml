@@ -19,7 +19,7 @@ PanelWindow {
     height: 40
     color: "transparent"
 
-    // --- 1. GLOBAL STATE ---
+    // 1. GLOBAL STATE 
     // Theme mode: default is always dark, false will activate light mode
     property bool isDarkMode: true
     readonly property string _themeModePath: Quickshell.env("HOME") + "/.cache/quickshell/theme_mode"
@@ -47,10 +47,10 @@ PanelWindow {
     function sh(cmd) { return ["bash", "-c", cmd] }
     function det(cmd) { Quickshell.execDetached(sh(cmd)) }
 
-    // --- get active workspace ID ---
+    // get active workspace ID 
     property int activeWsId: Hyprland.focusedMonitor?.activeWorkspace?.id ?? 1
 
-    // --- 2. THEME ---
+    // 2. THEME
     QtObject {
         id: palette
         property color bg: win.isDarkMode ? Qt.rgba(0.23, 0.25, 0.22, 0.25) : '#edc5c6b0'
@@ -66,7 +66,7 @@ PanelWindow {
         property color hoverPillG2: win.isDarkMode ? Qt.rgba(167/255, 192/255, 128/255, 0.15) : Qt.rgba(39/255, 48/255, 24/255, 0.14)
     }
 
-    // --- 3. HYPRLAND CACHE ---
+    // 3. HYPRLAND CACHE
     QtObject {
         id: hyCache
         property var wsMap: ({}) // wsId
@@ -97,7 +97,7 @@ PanelWindow {
         Component.onCompleted: rebuild()
     }
 
-    // ---HYPR POLLERS ---
+    // 4. HYPR POLLERS
     Timer {
         interval: 500
         running: true; repeat: false
@@ -119,8 +119,7 @@ PanelWindow {
 
             // Check for events
             if (ev.name === "openwindow" || ev.name === "closewindow" ||
-                ev.name === "movewindowv2" || ev.name === "workspacev2" ||
-                ev.name === "activewindowv2" || ev.name === "urgent") {
+                ev.name === "movewindowv2" || ev.name === "urgent") {
 
                 // Re-fetch the window list from Hyprland immediately
                 Hyprland.refreshToplevels()
@@ -129,7 +128,7 @@ PanelWindow {
         }
     }
 
-    // --- 6. POLLERS ---
+    // POLLERS
     // 6.1 UPDATE POLLER
     Lib.CommandPoll {
         id: updates
@@ -180,8 +179,38 @@ PanelWindow {
         }
     }
 
-    QtObject { id: batCap; property var value: (powerPoll.value ? powerPoll.value.cap : 0) }
-    QtObject { id: batStatus; property var value: (powerPoll.value ? powerPoll.value.status : "") }
+    // 6.2.1 Battery Notifications
+    QtObject {
+        id: batLogic
+        property bool f20: false
+        property bool f10: false
+
+        function check(cap, status) {
+            if (status !== "Discharging") {
+                f20 = false; f10 = false; return
+            }
+            if (cap === 0) return
+            // Critical 10%
+            if (cap <= 10 && !f10) {
+                win.det("notify-send -u critical 'Battery Critically Low' 'Please Plug in your Charger'")
+                f10 = true; f20 = true
+            // Warning 20%
+            } else if (cap <= 20 && cap > 10 && !f20) {
+                win.det("notify-send 'Battery Low' 'Please Plug in your Charger'")
+                f20 = true
+            }
+        }
+    }
+    QtObject {
+        id: batCap
+        property var value: (powerPoll.value ? powerPoll.value.cap : 0)
+        onValueChanged: batLogic.check(value, batStatus.value)
+    }
+    QtObject {
+        id: batStatus
+        property var value: (powerPoll.value ? powerPoll.value.status : "")
+        onValueChanged: batLogic.check(batCap.value, value)
+    }
     QtObject { id: acOnline; property var value: (powerPoll.value ? powerPoll.value.ac : "") }
 
     // --- ICON MAP ---
@@ -244,6 +273,7 @@ PanelWindow {
         if (c.includes ("xdm")) return ""
         if (c.includes ("zathura")) return ""
         if (c.includes ("focuswriter")) return "󱞁"
+        if (c.includes ("lollypop")) return "󰎆"
 
         return ""
     }
@@ -268,6 +298,7 @@ PanelWindow {
                 scale: launchPress.pressed ? 0.94 : 1.0
                 Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
                 HoverHandler { id: hoverLaunch }
+                
                 Rectangle {
                     anchors.fill: parent
                     radius: height / 2
@@ -276,14 +307,31 @@ PanelWindow {
                     Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
                 }
 
-                Text {
+                Item {
                     id: launchIcon
                     anchors.centerIn: parent
-                    text: ""
-                    font.family: Theme.iconFont; font.pixelSize: 22
-                    color: {
+                    width: 22; height: 22
+                    property color color: {
                         if (hoverLaunch.hovered) return win.isDarkMode ? "#89b4fa" : "#1e66f5"
                         return win.isDarkMode ? "#89b4fa" : "#1e66f5"
+                    }
+
+                    Image { 
+                        id: lImg
+                        source: "../lib/arch.svg"
+                        visible: false
+                        anchors.fill: parent
+                        fillMode: Image.PreserveAspectFit
+                        // Rasterize at 2x (44px) relative to container (22px)
+                        sourceSize: Qt.size(44, 44)
+                        smooth: false
+                    }
+                    ColorOverlay {
+                        anchors.fill: parent
+                        source: lImg
+                        color: parent.color
+                        cached: true
+                        antialiasing: true
                     }
                     rotation: hoverLaunch.hovered ? -14 : 0
                     scale: hoverLaunch.hovered ? 1.20 : 1.0
@@ -456,6 +504,9 @@ PanelWindow {
                                             font.family: Theme.iconFont; font.pixelSize: 18; lineHeight: 0.8
                                             verticalAlignment: Text.AlignVCenter
                                             font.hintingPreference: Font.PreferNoHinting
+                                            layer.enabled: true
+                                            layer.smooth: true
+                                            layer.mipmap: true
                                             Behavior on color { enabled: !modelData.urgent; ColorAnimation { duration: 140 } }
                                             scale: (wsDelegate.isActive && wsHover.hovered) ? 1.25 : 1.0
                                             Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.5 } }
@@ -463,9 +514,6 @@ PanelWindow {
                                                    (modelData.urgent ? flashColor.val :
                                                    (wsHover.hovered ? (win.isDarkMode ? "#f2f2f2" : palette.accent) :
                                                    (win.isDarkMode ? "#d5c9b2" : "#1e2326")))
-                                        layer.enabled: true
-                                        layer.smooth: true
-                                        layer.mipmap: true
                                         }
 
                                     }
@@ -530,7 +578,7 @@ PanelWindow {
 
                 // Keep visible while update process is running
                 visible: updateProc.running || (updates.value !== "0" && updates.value !== "")
-                icon: "󰚰"
+                iconSource: "../lib/pacman.svg"
                 text: updateProc.running ? "…" : updates.value
                 bgColor: updatesBg; textColor: updatesFg; iconColor: updatesFg
                 borderWidth: 0; borderColor: "transparent"; hoverColor: palette.hoverSpotlight
@@ -650,31 +698,28 @@ PanelWindow {
             }
 
             // 13. CLOCK/DATE
-            Rectangle {
-                id: clockRect
+            Item {
+                id: clockContainer
                 Layout.preferredHeight: 34
                 Layout.preferredWidth: clockRow.implicitWidth + 30
-                radius: 17; color: palette.bg; clip: true
+                
                 scale: clockArea.pressed ? 0.98 : (clockArea.containsMouse ? 1.02 : 1.0)
                 y: clockArea.pressed ? 1 : 0
                 Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.05 } }
                 Behavior on y { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
 
-                RowLayout {
-                    id: clockRow
-                    anchors.centerIn: parent; spacing: 8
-                    Text { id: dateText; text: Qt.formatDateTime(new Date(), "ddd, MMM d"); font.family: Theme.textFont; font.pixelSize: 12; font.weight: 600; color: palette.accent }
-                    Text { text: "•"; font.pixelSize: 10; color: palette.textSecondary }
-                    Text { id: timeText; text: Qt.formatDateTime(new Date(), "h:mm AP"); font.family: Theme.textFont; font.pixelSize: 13; font.weight: 800; color: palette.textPrimary }
-                    Timer {
-                        interval: 1000; running: true; repeat: true
-                        onTriggered: { var now = new Date(); dateText.text = Qt.formatDateTime(now, "ddd, MMM d"); timeText.text = Qt.formatDateTime(now, "h:mm AP") }
-                    }
-                }
-                Rectangle { id: clockMask; anchors.fill: parent; radius: 17; visible: false }
+                // MASKED BACKGROUND LAYER 
                 Item {
                     anchors.fill: parent
-                    layer.enabled: true; layer.smooth: true; layer.effect: OpacityMask { maskSource: clockMask }
+                    layer.enabled: true
+                    layer.effect: OpacityMask { maskSource: clockMask }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        color: palette.bg
+                    }
+
+                    // Shimmer 
                     Rectangle {
                         id: clockShimmer
                         width: 44; height: parent.height * 2; rotation: 20
@@ -686,21 +731,45 @@ PanelWindow {
                             GradientStop { position: 1.0; color: "transparent" }
                         }
                     }
+                    
+                    Rectangle {
+                        anchors.fill: parent
+                        color: win.isDarkMode ? "#ffffff" : "#000000"
+                        opacity: clockArea.pressed ? 0.18 : (clockArea.containsMouse ? 0.12 : 0.0)
+                        Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                    }
                 }
-                NumberAnimation { id: clockShimmerAnim; target: clockShimmer; property: "x"; from: -60; to: clockRect.width + 60; duration: 800; easing.type: Easing.InOutQuad }
+
+                // Mask Source (Hidden)
+                Rectangle {
+                    id: clockMask
+                    anchors.fill: parent
+                    radius: 17
+                    visible: false
+                    antialiasing: true
+                }
+
+                // CONTENT (Unmasked)
+                RowLayout {
+                    id: clockRow
+                    anchors.centerIn: parent; spacing: 8
+                    Text { id: dateText; text: Qt.formatDateTime(new Date(), "ddd, MMM d"); font.family: Theme.textFont; font.pixelSize: 12; font.weight: 600; color: palette.accent }
+                    Text { text: "•"; font.pixelSize: 10; color: palette.textSecondary }
+                    Text { id: timeText; text: Qt.formatDateTime(new Date(), "h:mm AP"); font.family: Theme.textFont; font.pixelSize: 13; font.weight: 800; color: palette.textPrimary }
+                    Timer {
+                        interval: 1000; running: true; repeat: true
+                        onTriggered: { var now = new Date(); dateText.text = Qt.formatDateTime(now, "ddd, MMM d"); timeText.text = Qt.formatDateTime(now, "h:mm AP") }
+                    }
+                }
+
+                NumberAnimation { id: clockShimmerAnim; target: clockShimmer; property: "x"; from: -60; to: clockContainer.width + 60; duration: 800; easing.type: Easing.InOutQuad }
+                
                 MouseArea {
                     id: clockArea
                     anchors.fill: parent; hoverEnabled: true
                     onPressed: (mouse) => { win.requestHubToggle(); mouse.accepted = true }
                     onEntered: clockShimmerAnim.restart()
                 }
-                Rectangle {
-                    anchors.fill: parent; radius: 17
-                    color: win.isDarkMode ? "#ffffff" : "#000000"
-                    opacity: clockArea.pressed ? 0.18 : (clockArea.containsMouse ? 0.12 : 0.0)
-                    Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-                }
-                Rectangle { anchors.fill: parent; radius: 17; color: "transparent"; border.width: 0 }
             }
         }
     }

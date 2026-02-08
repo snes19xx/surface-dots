@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Qt5Compat.GraphicalEffects 
 import "../theme.js" as Theme
 
 Item {
@@ -52,7 +53,7 @@ Item {
                 Behavior on yScale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
             }
 
-            // FILL (+ Vibrancy)
+            // FILL
             Rectangle {
                 width: slider.visualPosition * parent.width
                 height: parent.height
@@ -63,24 +64,41 @@ Item {
                 Behavior on opacity { NumberAnimation { duration: 150 } }
             }
 
-            // ICON (Inside the slider)
-            Text {
+            // ICON
+            Item {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.leftMargin: 14 
-                
-                text: root.icon
-                font.family: Theme.iconFont
-                font.pixelSize: 18
-                
-                // Color vibrancy changes based on position
-                color: slider.visualPosition > 0.15 ? (root.theme ? root.theme.textOnAccent : Theme.fgOnAccent) : (root.theme ? root.theme.textSecondary : Theme.fgMuted)
-                Behavior on color { ColorAnimation { duration: 200 } }
+                width: 18
+                height: 18
 
-                // --- ICON POP ---
-                // Pop up when hovering OR dragging
-                scale: slider.hovered || slider.pressed ? 1.3 : 1.0
-                Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
+                Image {
+                    id: iconImg
+                    source: root.icon
+                    sourceSize: Qt.size(width, height)
+                    anchors.fill: parent
+                    visible: false // Hide source to prevent artifacts
+                    smooth: true
+                    mipmap: true
+                }
+
+                ColorOverlay {
+                    anchors.fill: iconImg
+                    source: iconImg
+                    cached: true // Optimize
+                    
+                    // If slider covers icon (>15%), use Accent Text. Otherwise Muted.
+                    color: slider.visualPosition > 0.15 
+                        ? (root.theme ? root.theme.textOnAccent : Theme.fgOnAccent) 
+                        : (root.theme ? root.theme.textSecondary : Theme.fgMuted)
+                    
+                    Behavior on color { ColorAnimation { duration: 200 } }
+
+                    // Icon Pop
+                    transformOrigin: Item.Center
+                    scale: slider.hovered || slider.pressed ? 1.3 : 1.0
+                    Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
+                }
             }
         }
 
