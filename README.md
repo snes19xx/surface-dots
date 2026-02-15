@@ -10,6 +10,7 @@ Also, please check my calendar app: [Evercal](https://github.com/snes19xx/EverCa
 - [Dependencies](#dependencies)
 - [Hyprland](#hyprland)
 - [Reading Mode](#reading-mode)
+- [CRT Mode](#crt-mode)
 - [Quickshell Bar](#quickshell-bar)
 - [Quickshell Hub (`snes-hub`)](#quickshell-hub-snes-hub)
 - [Google Calendar sync (vdirsyncer + khal)](#google-calendar-sync-vdirsyncer--khal)
@@ -24,21 +25,20 @@ Also, please check my calendar app: [Evercal](https://github.com/snes19xx/EverCa
 ---
 
 <div align="center">
-  <img src="media/screenshots/ss1.png" width="45%" />
-  <img src="media/screenshots/ss2.png" width="45%" />
-  <p><i>SDDM: Lock Screen & Login Screen (hyprlock also looks just like this + with media information if playing when locked)</i></p>
+  <img src="media/screenshots/lock.png" width="32%" alt="Lock Screen" />
+  <img src="media/screenshots/main_ui.png" width="32%" alt="Main UI" />
+  <img src="media/screenshots/windows.png" width="32%" alt="Workflow" />
   
-  <br/>
+  <p><i>Lock Screen • Main UI • Workflow</i></p>
 
-  <img src="media/screenshots/ss4.png" width="45%" />
-  <img src="media/screenshots/ss6.png" width="45%" />
-  <p><i>Dark Mode & Light Mode (Hub + Rofi)</i></p>
+  <br />
+  <hr />
+  <br />
 
-  <br/>
+  <img src="media/screenshots/reading.png" width="32%" alt="Reading Mode" />
+  <img src="media/screenshots/crt.png" width="32%" alt="CRT Mode" />
 
-  <img src="media/screenshots/reading_mode.png" width="45%" />
-  <img src="media/screenshots/ss12.png" width="45%" />
-  <p><i>Reading mode & Various other apps</i></p>
+  <p><i>Reading Mode • CRT Mode</i></p>
 </div>
 
 ## Dependencies
@@ -194,6 +194,22 @@ A shader-based reading mode to mimic an e-ink reader.
 - Fine paper grain -like texture
 - Shader located at `~/.config/hypr/shaders/reading_mode.glsl`
 - Uses [hyprshade](https://github.com/loqusion/hyprshade)
+
+## CRT Mode
+
+A shader-based CRT mode to mimic a crt screen
+
+- Generally meant for emulation, retro aesthetics, old 4:3 content
+- Uses rofi and waybar for simple retro look
+- Toggle on or off with `SUPER + C`
+- Please use my script to dctivate/deactivate on or off OR you must disable Hyprland's damage tracking: `"keyword debug:damage_tracking 0"`
+- Shader located at `~/config/hypr/shaders/crt_mode.glsl`
+
+Features: Curved screen distortion, subtle color fringing, horizontal scanlines with brightness-dependent phosphor bleed, vertical shadow mask to emulate phosphor stripes etc.
+
+I’ve also included a complementary Python image filter that applies CRT-style effects to images.
+
+- Script located at `utilities/crt_gen.py`
 
 ## Quickshell Bar
 

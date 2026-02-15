@@ -1,4 +1,9 @@
 #!/usr/bin/env python311
+
+""" Please make sure your filename does not have invalid characters 
+like spaces etc.
+Works best with images that aren't very bright or dark """
+
 import os
 import sys
 
