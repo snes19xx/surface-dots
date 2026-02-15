@@ -25,20 +25,21 @@ Also, please check my calendar app: [Evercal](https://github.com/snes19xx/EverCa
 ---
 
 <div align="center">
-  <img src="media/screenshots/lock.png" width="32%" alt="Lock Screen" />
-  <img src="media/screenshots/main_ui.png" width="32%" alt="Main UI" />
-  <img src="media/screenshots/windows.png" width="32%" alt="Workflow" />
+  <img src="media/screenshots/ss1.png" width="45%" />
+  <img src="media/screenshots/ss2.png" width="45%" />
+  <p><i>SDDM: Lock Screen & Login Screen (hyprlock also looks just like this + with media information if playing when locked)</i></p>
   
-  <p><i>Lock Screen • Main UI • Workflow</i></p>
+  <br/>
 
-  <br />
-  <hr />
-  <br />
+  <img src="media/screenshots/ss4.png" width="45%" />
+  <img src="media/screenshots/ss6.png" width="45%" />
+  <p><i>Dark Mode & Light Mode (Hub + Rofi)</i></p>
 
-  <img src="media/screenshots/reading.png" width="32%" alt="Reading Mode" />
-  <img src="media/screenshots/crt.png" width="32%" alt="CRT Mode" />
+  <br/>
 
-  <p><i>Reading Mode • CRT Mode</i></p>
+  <img src="media/screenshots/reading_mode.png" width="45%" />
+  <img src="media/screenshots/ss12.png" width="45%" />
+  <p><i>Reading mode & Various other apps</i></p>
 </div>
 
 ## Dependencies
