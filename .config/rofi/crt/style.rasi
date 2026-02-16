@@ -1,0 +1,140 @@
+/*****----- Configuration -----*****/
+configuration {
+    modi:                       "drun";
+    show-icons:                 true;
+    display-drun:               "[ PROGRAMS ]";
+    drun-display-format:        "{name}";
+}
+/*****----- Global Properties -----*****/
+* {
+    font:                        "Terminus Bold 11";
+    background:                  #2d353b;
+    background-alt:              #3c444a;
+    background-inset:            #252c31;
+    foreground:                  #d5c9b2;
+    selected:                    #83868b;
+    highlight:                   #5d666d;
+    shadow:                      #1a1e21;
+    border-char:                 #7aa2f7;  
+}
+
+/*****----- Main Window -----*****/
+window {
+    transparency:                "none";
+    location:                    southwest;
+    anchor:                      southwest;
+    x-offset:                    0px;
+    y-offset:                    -3px;
+    
+    width:                       420px;
+    enabled:                     true;
+    background-color:            @background;
+    cursor:                      "default";
+    
+    border:                      4px solid;
+    border-color:                @highlight;
+}
+
+/*****----- Main Box -----*****/
+mainbox {
+    enabled:                     true;
+    spacing:                     0px;
+    background-color:            @background;
+    orientation:                 vertical;
+    children:                    [ "inputbar", "listview" ];
+    padding:                     4px;
+}
+
+/*****----- Inputbar -----*****/
+inputbar {
+    enabled:                     true;
+    spacing:                     8px;
+    padding:                     12px;
+    background-color:            @background-inset;
+    text-color:                  @foreground;
+    orientation:                 horizontal;
+    children:                    [ "prompt", "entry" ];
+    border:                      2px solid;
+    border-color:                @shadow;
+    margin:                      4px;
+}
+
+prompt {
+    enabled:                     true;
+    padding:                     4px 8px;
+    background-color:            transparent;
+    text-color:                  @border-char;
+    font:                        "Terminus Bold 11";
+}
+entry {
+    enabled:                     true;
+    padding:                     4px 8px;
+    background-color:            transparent;
+    text-color:                  @selected;
+    cursor:                      text;
+    placeholder:                 "type to search...";
+    placeholder-color:           @highlight;
+}
+
+/*****----- Listview -----*****/
+listview {
+    enabled:                     true;
+    columns:                     1;
+    lines:                       10;
+    cycle:                       true;
+    dynamic:                     true;
+    scrollbar:                   true;
+    layout:                      vertical;
+    reverse:                     false;
+    fixed-height:                true;
+    
+    spacing:                     1px;
+    padding:                     4px;
+    background-color:            @background-inset;
+    text-color:                  @foreground;
+    cursor:                      "default";
+    
+    /* Inner border */
+    border:                      2px solid;
+    border-color:                @shadow;
+    margin:                      4px;
+}
+scrollbar {
+    enabled:                     true;
+    width:                       12px;
+    background-color:            @background;
+    handle-color:                @highlight;
+    handle-width:                8px;
+    border:                      1px solid;
+    border-color:                @shadow;
+    padding:                     2px;
+}
+
+/*****----- Elements -----*****/
+element {
+    enabled:                     true;
+    spacing:                     10px;
+    padding:                     6px 8px;
+    background-color:            transparent;
+    text-color:                  @foreground;
+    cursor:                      pointer;
+}
+
+element selected.normal {
+    background-color:            @selected;
+    text-color:                  @background;
+    border:                      1px solid;
+    border-color:                @selected;
+}
+
+element-icon {
+    background-color:            transparent;
+    size:                        20px;
+    cursor:                      inherit;
+}
+
+element-text {
+    background-color:            transparent;
+    text-color:                  inherit;
+    vertical-align:              0.5;
+}
