@@ -5,7 +5,7 @@ Item {
     
     // Visual Properties
     property color color: "white"
-    property real lineWidth: 3
+    property real lineWidth: 5
     property real amplitude: 6 
     property bool running: false 
     onColorChanged: canvas.requestPaint()

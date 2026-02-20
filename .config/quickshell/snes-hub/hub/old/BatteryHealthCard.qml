@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import "../lib" as Lib
+import "../theme.js" as Theme
 
 Lib.Card {
     id: root
@@ -9,10 +10,10 @@ Lib.Card {
     property bool active: false
 
     readonly property bool themed: root.theme !== null
-    readonly property color textPrimary:   themed ? root.theme.textPrimary   : "#d3c6aa"
-    readonly property color textSecondary: themed ? root.theme.textSecondary : "#9da9a0"
-    readonly property color accent:        themed ? root.theme.accent        : "#a7c080"
-    readonly property color accentAlt:     themed ? root.theme.accentSlider  : "#7AA1A6"
+    readonly property color textPrimary: themed ? root.theme.textPrimary : Theme.fgMain
+    readonly property color textSecondary: themed ? root.theme.textSecondary : Theme.fgMuted
+    readonly property color accent: themed ? root.theme.accent : Theme.accent
+    readonly property color accentAlt: themed ? root.theme.accentSlider : Theme.accentBlue
 
     property real contentHeight: contentLayout.implicitHeight + (root.pad * 2)
 
@@ -104,24 +105,24 @@ Lib.Card {
             Text {
                 text: "Battery Health  "
                 color: root.textPrimary
-                font.family: root.theme ? root.theme.textFont : "Manrope"
+                font.family: Theme.textFont
                 font.pixelSize: 10
-                font.weight: Font.DemiBold
+                font.weight: Font.DemiBold  
             }
-
+            
             Text {
                 text: "󱟢"
                 color: root.textPrimary
-                font.family: root.theme ? root.theme.textFont : "Manrope"
-                font.pixelSize: 20 // Set the battery icon size independently
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignLeft
+                font.family: Theme.textFont 
+                font.pixelSize: 20 // Set the battery icon size independently 
+                Layout.fillWidth: true 
+                horizontalAlignment: Text.AlignLeft 
             }
 
             Text {
                 text: root.stateText
                 color: root.textSecondary
-                font.family: root.theme ? root.theme.textFont : "Manrope"
+                font.family: Theme.textFont
                 font.pixelSize: 10
             }
         }
@@ -136,7 +137,7 @@ Lib.Card {
                 Text {
                     text: Math.round(root.healthPercent) + "% capacity"
                     color: root.textPrimary
-                    font.family: root.theme ? root.theme.textFont : "Manrope"
+                    font.family: Theme.textFont
                     font.pixelSize: 12
                     Layout.fillWidth: true
                 }
@@ -144,17 +145,17 @@ Lib.Card {
                 Text {
                     text: "Charge " + Math.round(Number(batteryInfo.percentage) || 0) + "%"
                     color: root.textSecondary
-                    font.family: root.theme ? root.theme.textFont : "Manrope"
+                    font.family: Theme.textFont
                     font.pixelSize: 10
                 }
             }
-            // Health Bar
+            // Health Bar 
             Rectangle {
                 id: barTrack
                 Layout.fillWidth: true
                 height: 7
                 radius: 4
-                color: themed ? root.theme.bgItem : "#2d353b"
+                color: themed ? root.theme.bgItem : Theme.bgItem
 
                 Rectangle {
                     id: barFill
@@ -179,7 +180,7 @@ Lib.Card {
                 Text {
                     text: "Cycles"
                     color: root.textSecondary
-                    font.family: root.theme ? root.theme.textFont : "Manrope"
+                    font.family: Theme.textFont
                     font.pixelSize: 9
                     opacity: 0.8
                     horizontalAlignment: Text.AlignHCenter
@@ -189,7 +190,7 @@ Lib.Card {
                 Text {
                     text: root.cyclesText
                     color: root.textPrimary
-                    font.family: root.theme ? root.theme.textFont : "Manrope"
+                    font.family: Theme.textFont
                     font.pixelSize: 13
                     font.weight: Font.Medium
                     horizontalAlignment: Text.AlignHCenter
@@ -205,7 +206,7 @@ Lib.Card {
                 Text {
                     text: "Energy (full / design)"
                     color: root.textSecondary
-                    font.family: root.theme ? root.theme.textFont : "Manrope"
+                    font.family: Theme.textFont
                     font.pixelSize: 9
                     opacity: 0.8
                     horizontalAlignment: Text.AlignHCenter
@@ -215,7 +216,7 @@ Lib.Card {
                 Text {
                     text: root.energyText
                     color: root.textPrimary
-                    font.family: root.theme ? root.theme.textFont : "Manrope"
+                    font.family: Theme.textFont
                     font.pixelSize: 10
                     font.weight: Font.Medium
                     horizontalAlignment: Text.AlignHCenter
@@ -231,7 +232,7 @@ Lib.Card {
                 Text {
                     text: "Time remaining"
                     color: root.textSecondary
-                    font.family: root.theme ? root.theme.textFont : "Manrope"
+                    font.family: Theme.textFont
                     font.pixelSize: 9
                     opacity: 0.8
                     horizontalAlignment: Text.AlignHCenter
@@ -241,7 +242,7 @@ Lib.Card {
                 Text {
                     text: root.timeText
                     color: root.textPrimary
-                    font.family: root.theme ? root.theme.textFont : "Manrope"
+                    font.family: Theme.textFont
                     font.pixelSize: 10
                     font.weight: Font.Medium
                     horizontalAlignment: Text.AlignHCenter

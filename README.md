@@ -1,7 +1,7 @@
 # surface-dots
 
 Personal dotfiles + UI setup for my **Surface Laptop 4 (AMD)** running **Hyprland**.
-Also, please check my calendar app: [Evercal](https://github.com/snes19xx/EverCal)
+Also, please see my calendar app: [Evercal](https://github.com/snes19xx/EverCal)
 
 ---
 
@@ -9,8 +9,7 @@ Also, please check my calendar app: [Evercal](https://github.com/snes19xx/EverCa
 
 - [Dependencies](#dependencies)
 - [Hyprland](#hyprland)
-- [Reading Mode](#reading-mode)
-- [CRT Mode](#crt-mode)
+- [Shaders](#shaders)
 - [Quickshell Bar](#quickshell-bar)
 - [Quickshell Hub (`snes-hub`)](#quickshell-hub-snes-hub)
 - [Google Calendar sync (vdirsyncer + khal)](#google-calendar-sync-vdirsyncer--khal)
@@ -183,7 +182,12 @@ Old Config at `~/.config/hypr/hyprland_OLD.conf`
 
 ---
 
-## Reading Mode
+## Shaders
+
+<details>
+  <summary><strong>Expand for shader based reading mode etc.</strong></summary>
+  
+### Reading Mode
 
 A shader-based reading mode to mimic an e-ink reader.
 
@@ -196,21 +200,22 @@ A shader-based reading mode to mimic an e-ink reader.
 - Shader located at `~/.config/hypr/shaders/reading_mode.glsl`
 - Uses [hyprshade](https://github.com/loqusion/hyprshade)
 
-## CRT Mode
+### CRT Mode
 
 A shader-based CRT mode to mimic a crt screen
 
-- Generally meant for emulation, retro aesthetics, old 4:3 content
-- Uses rofi and waybar for simple retro look
-- Toggle on or off with `SUPER + C`
-- Please use my script to dctivate/deactivate on or off OR you must disable Hyprland's damage tracking: `"keyword debug:damage_tracking 0"`
 - Shader located at `~/config/hypr/shaders/crt_mode.glsl`
-
-Features: Curved screen distortion, subtle color fringing, horizontal scanlines with brightness-dependent phosphor bleed, vertical shadow mask to emulate phosphor stripes etc.
+  Features: Curved screen distortion, subtle color fringing, horizontal scanlines with brightness-dependent phosphor bleed, vertical shadow mask to emulate phosphor stripes etc.
 
 I’ve also included a complementary Python image filter that applies CRT-style effects to images.
 
 - Script located at `utilities/crt_gen.py`
+
+### Other shaders
+
+There are two other shaders one's completely useless and the other is my daily driver, I use it by default.
+
+</details>
 
 ## Quickshell Bar
 
@@ -222,6 +227,9 @@ The bar uses an Arch glyph icon (top left) as the launcher button:
 ```bash
 bash ~/config/quickshell/snes-hub/bar/theme-mode.sh dark|light
 ```
+
+<details>
+  <summary><strong>Expand for Bar components</strong></summary>
 
 ### Workspaces
 
@@ -251,6 +259,8 @@ kitty -e bash -lc "sudo pacman -Syu"
 - Pressing the clock triggers a requestHubToggle() signal (used to open/close the hub).
 - Esc closes the hub (or clicking anywhere outside it).
 
+</details>
+
 ## Quickshell Hub (`snes-hub`)
 
 - Toggled by clicking the date/clock module in the bar or SUPER+SPACE keybinding through hyprland
@@ -258,7 +268,8 @@ kitty -e bash -lc "sudo pacman -Syu"
 - Organized into reusable components, making it straightforward to add/remove cards or re-skin pieces without rewriting the whole hub.
 - If you want a lightweight fallback, use the early **AGS** version in `.config/ags/` (works, but fewer features).
 
-### Components
+<details>
+  <summary><strong>Components</strong></summary>
 
 <img src="media/screenshots/comparison.png" align="right" width="580" alt="Hub comparison" />
     
@@ -358,6 +369,13 @@ khal list now 7d
 - Clicking dismisses.
 - Uses **mako** (`makoctl`) as the notification backend.
 - Contracted by default when the media player card is active, but can be expanded via the expand button.
+
+#### OSDs
+
+- custom OSDs for brightness and volume controls
+- custom OSD for various modes (Dark/Light/Reading Mode etc.)
+
+</details>
 
 ## Power menu
 

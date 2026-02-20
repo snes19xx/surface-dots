@@ -4,6 +4,7 @@ import QtQuick.Controls
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import "../lib" as Lib
+import "../theme.js" as Theme
 import "../config.js" as Config
 
 Item {
@@ -19,11 +20,11 @@ Item {
 
   readonly property bool _hasTheme: theme !== null
   readonly property bool _isDark: (!_hasTheme || theme.isDarkMode === undefined) ? true : theme.isDarkMode
-  readonly property color _textPrimary:      theme ? theme.textPrimary      : "#d3c6aa"
-  readonly property color _outline:          theme ? theme.outline          : Qt.rgba(1,1,1,0.10)
-  readonly property color _subtleFill:       theme ? theme.subtleFill       : Qt.rgba(1,1,1,0.05)
-  readonly property color _subtleFillHover:  theme ? theme.subtleFillHover  : Qt.rgba(1,1,1,0.15)
-  readonly property color _accentRed:        theme ? theme.accentRed        : "#e67e80"
+  readonly property color _textPrimary: theme ? theme.textPrimary : Theme.fgMain
+  readonly property color _outline: theme ? theme.outline : Qt.rgba(1,1,1,0.10)
+  readonly property color _subtleFill: theme ? theme.subtleFill : Qt.rgba(1,1,1,0.05)
+  readonly property color _subtleFillHover: theme ? theme.subtleFillHover : Qt.rgba(1,1,1,0.15)
+  readonly property color _accentRed: _isDark ? Theme.accentRed : (_hasTheme && theme.accentRed !== undefined ? theme.accentRed : Theme.accentRed)
 
   // One animated value for everything
   property real powerContainerHeight: 0
@@ -47,7 +48,7 @@ Item {
     if (!expanded) {
         powerContainerHeight = 0
     } else {
-        powerContainerHeight = 240
+        powerContainerHeight = 240  
     }
 }
 
@@ -95,7 +96,7 @@ Item {
 
         Text {
           text: root.profileName
-          font.family: theme ? theme.textFont : "Manrope"
+          font.family: Theme.textFont
           font.pixelSize: 18
           font.weight: 700
           color: root._textPrimary
@@ -121,14 +122,7 @@ Item {
                     scale: snapTap.pressed ? 0.95 : 1.0
                     Behavior on scale { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
                     Behavior on color { ColorAnimation { duration: 150 } }
-                    Text {
-                        anchors.centerIn: parent
-                        text: ""
-                        font.family: theme ? theme.iconFont : "JetBrainsMono Nerd Font"
-                        font.pixelSize: 16
-                        color: root._textPrimary
-                        topPadding: 1
-                    }
+                    Text { anchors.centerIn: parent; text: ""; font.family: Theme.iconFont; font.pixelSize: 16; color: root._textPrimary; topPadding: 1 }
                     HoverHandler { id: snapHover }
                     TapHandler { id: snapTap; onTapped: { root.closeRequested(); snapTimer.restart() } }
                 }
@@ -147,17 +141,17 @@ Item {
                     Text {
                       anchors.centerIn: parent
                       topPadding: 1
-                      rightPadding: -1
-
+                      rightPadding: -1 
+                      
                       text: root.expanded ? "" : ""  // Swaps between Power and Close icons
-                      font.family: theme ? theme.iconFont : "JetBrainsMono Nerd Font"
-                      font.pixelSize: 12
+                      font.family: Theme.iconFont
+                      font.pixelSize: 12       
                       color: (pwrHover.hovered || root.expanded || pwrTap.pressed)
                       //  ACTIVE STATE (Hovered/Clicked)
-                      ? (root._isDark ? "#e5e6c5" : "#e1e4bd")
-
+                      ? (root._isDark ? "#e5e6c5" : "#e1e4bd")  
+                      
                       //  INACTIVE STATE (Normal)
-                      : root._accentRed
+                      : root._accentRed       
                     }
 
                     HoverHandler { id: pwrHover }
@@ -211,7 +205,7 @@ Item {
               }
           }
 
-          // Follow any later implicitHeight changes
+          // Follow any later implicitHeight changes 
           Connections {
               target: powerLoader.item
               function onImplicitHeightChanged() {

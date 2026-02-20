@@ -41,7 +41,7 @@ Item {
     Rectangle { 
         id: mask
         anchors.fill: parent
-        radius: height / 2
+        radius: 17
         visible: false
         antialiasing: true 
     }
@@ -64,7 +64,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            radius: height / 2
+            radius: 17
             color: root.hoverColor
             opacity: press.pressed ? 0.22 : (hover.hovered ? 0.14 : 0.0)
             antialiasing: true
@@ -91,7 +91,7 @@ Item {
     // BORDER 
     Rectangle {
         anchors.fill: parent
-        radius: height / 2
+        radius: 17
         color: "transparent"
         antialiasing: true
         border.width: root.borderWidth

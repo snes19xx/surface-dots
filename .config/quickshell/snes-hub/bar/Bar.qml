@@ -8,7 +8,7 @@ import Quickshell.Wayland
 import Quickshell.Services.SystemTray
 import Quickshell.Services.Mpris
 import Quickshell.Hyprland
-import "../theme.js" as Theme
+
 import "../lib" as Lib
 
 PanelWindow {
@@ -64,6 +64,12 @@ PanelWindow {
         property color hoverPillG0: win.isDarkMode ? Qt.rgba(167/255, 192/255, 128/255, 0.15) : Qt.rgba(39/255, 48/255, 24/255, 0.14)
         property color hoverPillG1: win.isDarkMode ? Qt.rgba(230/255, 255/255, 200/255, 0.25) : Qt.rgba(39/255, 48/255, 24/255, 0.22)
         property color hoverPillG2: win.isDarkMode ? Qt.rgba(167/255, 192/255, 128/255, 0.15) : Qt.rgba(39/255, 48/255, 24/255, 0.14)
+    }
+
+    // 2b. THEME ENGINE (font & sizing constants for the bar)
+    Lib.ThemeEngine {
+        id: barTheme
+        isDarkMode: win.isDarkMode
     }
 
     // 3. HYPRLAND CACHE
@@ -464,7 +470,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 visible: !wsDelegate.hasWindows
                                 text: "•"
-                                font.family: Theme.iconFont; font.pixelSize: 14; lineHeight: 0.8
+                                font.family: barTheme.iconFont; font.pixelSize: 14; lineHeight: 0.8
                                 verticalAlignment: Text.AlignVCenter
                                 Behavior on color { ColorAnimation { duration: 140 } }
                                 color: isActive ? "#2d353b" : (wsHover.hovered ? (win.isDarkMode ? "#f2f2f2" : palette.accent) : (win.isDarkMode ? "#d5c9b2" : "#5c6a72"))
@@ -501,7 +507,7 @@ PanelWindow {
                                         Text {
                                             anchors.centerIn: parent
                                             text: win.getIcon(parent.safeClass)
-                                            font.family: Theme.iconFont; font.pixelSize: 18; lineHeight: 0.8
+                                            font.family: barTheme.iconFont; font.pixelSize: 18; lineHeight: 0.8
                                             verticalAlignment: Text.AlignVCenter
                                             font.hintingPreference: Font.PreferNoHinting
                                             layer.enabled: true
@@ -547,7 +553,7 @@ PanelWindow {
                     anchors.centerIn: parent
                     visible: !parent.isPlaying
                     text: Hyprland.activeToplevel?.title ?? "Desktop"
-                    font.family: Theme.iconFont; font.weight: 700; font.pixelSize: 13
+                    font.family: barTheme.iconFont; font.weight: 700; font.pixelSize: 13
                     color: palette.textPrimary
                     width: Math.min(implicitWidth, 500)
                     elide: Text.ElideRight
@@ -557,11 +563,11 @@ PanelWindow {
                     anchors.centerIn: parent
                     visible: parent.isPlaying
                     spacing: 10
-                    Text { text: ""; font.family: Theme.iconFont; font.pixelSize: 14; color: palette.accent }
+                    Text { text: ""; font.family: barTheme.iconFont; font.pixelSize: 14; color: palette.accent }
                     Text {
                         text: parent.parent.trackTitle + " <font color='" + palette.textSecondary + "'>- " + parent.parent.trackArtist + "</font>"
                         textFormat: Text.StyledText
-                        font.family: Theme.iconFont; font.weight: 700; font.pixelSize: 13
+                        font.family: barTheme.iconFont; font.weight: 700; font.pixelSize: 13
                         color: palette.textPrimary
                         Layout.maximumWidth: 350
                         elide: Text.ElideRight
@@ -753,9 +759,9 @@ PanelWindow {
                 RowLayout {
                     id: clockRow
                     anchors.centerIn: parent; spacing: 8
-                    Text { id: dateText; text: Qt.formatDateTime(new Date(), "ddd, MMM d"); font.family: Theme.textFont; font.pixelSize: 12; font.weight: 600; color: palette.accent }
+                    Text { id: dateText; text: Qt.formatDateTime(new Date(), "ddd, MMM d"); font.family: barTheme.textFont; font.pixelSize: 12; font.weight: 600; color: palette.accent }
                     Text { text: "•"; font.pixelSize: 10; color: palette.textSecondary }
-                    Text { id: timeText; text: Qt.formatDateTime(new Date(), "h:mm AP"); font.family: Theme.textFont; font.pixelSize: 13; font.weight: 800; color: palette.textPrimary }
+                    Text { id: timeText; text: Qt.formatDateTime(new Date(), "h:mm AP"); font.family: barTheme.textFont; font.pixelSize: 13; font.weight: 800; color: palette.textPrimary }
                     Timer {
                         interval: 1000; running: true; repeat: true
                         onTriggered: { var now = new Date(); dateText.text = Qt.formatDateTime(now, "ddd, MMM d"); timeText.text = Qt.formatDateTime(now, "h:mm AP") }

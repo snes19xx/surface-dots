@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import "../lib" as Lib
+import "../theme.js" as Theme
 
 Lib.Card {
   id: root
@@ -13,18 +14,18 @@ Lib.Card {
   readonly property bool hasTheme: root.theme !== null
   readonly property bool isDarkMode: (!hasTheme || (root.theme.isDarkMode === undefined)) ? true : root.theme.isDarkMode
 
-  readonly property color cFgMain:  isDarkMode ? "#d3c6aa" : root.theme.textPrimary
-  readonly property color cFgMuted: isDarkMode ? "#9da9a0" : root.theme.textSecondary
-  readonly property color cBgItem:  isDarkMode ? "#2d353b" : root.theme.bgItem
-  readonly property color cAccent:  isDarkMode ? "#a7c080" : root.theme.accent
+  readonly property color cFgMain: isDarkMode ? Theme.fgMain : root.theme.textPrimary
+  readonly property color cFgMuted: isDarkMode ? Theme.fgMuted : root.theme.textSecondary
+  readonly property color cBgItem: isDarkMode ? Theme.bgItem : root.theme.bgItem
+  readonly property color cAccent: isDarkMode ? Theme.accent : root.theme.accent
 
-  readonly property color cSoftBtn:      (!hasTheme || isDarkMode) ? Qt.rgba(1,1,1,0.04) : root.theme.subtleFill
+  readonly property color cSoftBtn: (!hasTheme || isDarkMode) ? Qt.rgba(1,1,1,0.04) : root.theme.subtleFill
   readonly property color cSoftBtnHover: (!hasTheme || isDarkMode) ? Qt.rgba(1,1,1,0.08) : root.theme.subtleFillHover
 
   readonly property color cItemHoverOverlay: (!hasTheme || isDarkMode) ? Qt.rgba(1, 1, 1, 0.08) : root.theme.hoverSpotlight
-  readonly property color cRipple:           (!hasTheme || isDarkMode) ? Qt.rgba(1, 1, 1, 0.15) : root.theme.hoverSpotlight
-  readonly property color cIconBg:           (!hasTheme || isDarkMode) ? Qt.rgba(1,1,1,0.05)    : root.theme.subtleFill
-  readonly property color cOvershoot:        (!hasTheme || isDarkMode) ? Qt.rgba(1,1,1,0.1)     : root.theme.hoverSpotlight
+  readonly property color cRipple: (!hasTheme || isDarkMode) ? Qt.rgba(1, 1, 1, 0.15) : root.theme.hoverSpotlight
+  readonly property color cIconBg: (!hasTheme || isDarkMode) ? Qt.rgba(1,1,1,0.05) : root.theme.subtleFill
+  readonly property color cOvershoot: (!hasTheme || isDarkMode) ? Qt.rgba(1,1,1,0.1) : root.theme.hoverSpotlight
 
   property bool compactMode: false
   property bool expanded: !compactMode
@@ -181,7 +182,7 @@ Lib.Card {
 
       Text {
         text: "Notifications"
-        font.family: root.theme ? root.theme.textFont : "Manrope"
+        font.family: Theme.textFont
         font.pixelSize: 13
         font.weight: 900
         color: root.cFgMain
@@ -199,7 +200,7 @@ Lib.Card {
           id: countText
           anchors.centerIn: parent
           text: String(notifModel.count)
-          font.family: root.theme ? root.theme.textFont : "Manrope"
+          font.family: Theme.textFont
           font.pixelSize: 11
           font.weight: 900
           color: root.cFgMain
@@ -225,8 +226,8 @@ Lib.Card {
 
         Text {
           anchors.centerIn: parent
-          text: ""
-          font.family: root.theme ? root.theme.iconFont : "JetBrainsMono Nerd Font"
+          text: ""
+          font.family: Theme.iconFont
           font.pixelSize: 14
           color: root.cFgMain
           rotation: root.expanded ? 180 : 0
@@ -252,7 +253,8 @@ Lib.Card {
         radius: 12
         implicitHeight: 26
         implicitWidth: 56
-        color: (!hasTheme || isDarkMode) ? Qt.rgba(0.9,0.5,0.5,0.10) : Qt.rgba(0.5,0.1,0.1,0.10)
+        color: (!hasTheme || isDarkMode) ? Qt.rgba(0.9,0.5,0.5,0.10): Qt.rgba(0.5,0.1,0.1,0.10)
+
 
         Rectangle {
           anchors.fill: parent; radius: parent.radius
@@ -265,10 +267,10 @@ Lib.Card {
         Text {
           anchors.centerIn: parent
           text: "Clear"
-          font.family: root.theme ? root.theme.textFont : "Manrope"
+          font.family: Theme.textFont
           font.pixelSize: 10
           font.weight: 700
-          color: (!hasTheme || isDarkMode) ? "#e67e80" : root.theme.accentRed
+          color: (!hasTheme || isDarkMode) ? Theme.accentRed : root.theme.accentRed
         }
 
         MouseArea {
@@ -288,7 +290,7 @@ Lib.Card {
       visible: notifModel.count === 0 && (!root.compactMode || root.expanded)
       opacity: visible ? 1 : 0
       text: "No new notifications"
-      font.family: root.theme ? root.theme.textFont : "Manrope"
+      font.family: Theme.textFont
       font.pixelSize: 11
       font.italic: true
       color: root.cFgMuted
@@ -381,36 +383,13 @@ Lib.Card {
                 width: 32; height: 32; radius: 16
                 color: root.cIconBg
                 Layout.alignment: Qt.AlignVCenter
-                Text {
-                    anchors.centerIn: parent
-                    text: "󰋽"
-                    font.family: root.theme ? root.theme.iconFont : "JetBrainsMono Nerd Font"
-                    font.pixelSize: 14
-                    font.weight: 900
-                    color: root.cAccent
-                }
+                Text { anchors.centerIn: parent; text: "󰋽"; font.family: Theme.iconFont; font.pixelSize: 14; font.weight: 900; color: root.cAccent }
               }
 
               ColumnLayout {
                 Layout.fillWidth: true; spacing: 3; Layout.alignment: Qt.AlignVCenter
-                Text {
-                    text: String(model.app).toUpperCase()
-                    font.family: root.theme ? root.theme.textFont : "Manrope"
-                    font.pixelSize: 9
-                    font.weight: 800
-                    color: root.cFgMuted
-                    elide: Text.ElideRight
-                    Layout.fillWidth: true
-                }
-                Text {
-                    text: model.summary
-                    font.family: root.theme ? root.theme.textFont : "Manrope"
-                    font.pixelSize: 12
-                    font.weight: 600
-                    color: root.cFgMain
-                    elide: Text.ElideRight
-                    Layout.fillWidth: true
-                }
+                Text { text: String(model.app).toUpperCase(); font.family: Theme.textFont; font.pixelSize: 9; font.weight: 800; color: root.cFgMuted; elide: Text.ElideRight; Layout.fillWidth: true }
+                Text { text: model.summary; font.family: Theme.textFont; font.pixelSize: 12; font.weight: 600; color: root.cFgMain; elide: Text.ElideRight; Layout.fillWidth: true }
               }
             }
 

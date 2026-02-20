@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import "../lib" as Lib
+import "../theme.js" as Theme
 
 Lib.Card {
   id: root
@@ -45,39 +46,30 @@ Lib.Card {
   }
 
   // --- BLUETOOTH ---
-  property bool _optBt: false       
-  property bool _toggling: false    
-  Timer { id: optTimer; interval: 3500; onTriggered: root._toggling = false }
-
-  // BT ON
   Lib.CommandPoll {
-    id: btOn;
-    running: root.active && root.visible; interval: 3000
-    command: sh("rfkill list bluetooth")
-    parse: function(o) { return String(o).includes("Soft blocked: no") }
-    onUpdated: if (!root._toggling) root._optBt = value 
+    id: btOn
+    running: root.active && root.visible
+    interval: 3000
+    command: sh("bluetoothctl show 2>/dev/null | awk -F': ' '/Powered:/{print $2; exit}' || true")
+    parse: function(o) { return String(o).trim() === "yes" }
   }
 
-  // BT Device ID
   Lib.CommandPoll {
-    id: btDev;
-    running: root.active && root.visible; interval: 3500
-    command: sh("pactl list cards 2>/dev/null | grep -A 20 'bluez_card' | grep 'device.description' | head -n1 | cut -d'=' -f2 | tr -d '\"'")
+    id: btDev
+    running: root.active && root.visible
+    interval: 3500
+    command: sh("bluetoothctl devices Connected 2>/dev/null | head -n1 | cut -d' ' -f3- || true")
     parse: function(o) {
-      var d = String(o).trim();
+      var d = String(o).trim()
       if (d.length > 0) return d.length > 9 ? d.slice(0, 9) : d
-      // Fallback: Use the strict btOn value.
-      return btOn.value ? "On" : "Off" 
+      if (btOn.value === false) return "Off"
+      return "On"
     }
   }
-  
-  // BT on/off
-  function toggleBt() { 
-      root._toggling = true;
-      root._optBt = !btOn.value;
-      optTimer.restart();
-      // 'rfkill unblock' forces the kernel to wake it up.
-      det("rfkill " + (root._optBt ? "unblock" : "block") + " bluetooth") 
+
+  function toggleBt() {
+    var next = !Boolean(btOn.value)
+    det("bluetoothctl power " + (next ? "on" : "off"))
   }
 
   // --- VOLUME / BRIGHTNESS ---
@@ -159,11 +151,9 @@ Lib.Card {
     if (root.autoMode) {
       return (root.theme && root.theme.isDarkMode !== undefined && !root.theme.isDarkMode)
         ? '#283314' // Hardcoded colors for now
-        : (root.theme ? root.theme.accent : "#a7c080")
+        : (Theme.accent || "#a7c080") // 
     }
-    return (root.cpuGov === "performance")
-        ? (root.theme ? root.theme.accentRed : "#e67e80")
-        : (root.theme ? root.theme.textPrimary : "#d3c6aa")
+    return (root.cpuGov === "performance") ? Theme.accentRed : (root.theme ? root.theme.textPrimary : Theme.fgMain)
   }
 
   // --- DND ---
@@ -203,6 +193,7 @@ Lib.Card {
             root.closeRequested()
             det("quickshell -p ~/.config/quickshell/snes-hub/lib/WifiMenu.qml")
         }
+        //fixX: -10  (no need for this since I am using svgs as icons)
       }
 
       Lib.ExpressiveButton {
@@ -215,6 +206,7 @@ Lib.Card {
             root.closeRequested()
             det("blueman-manager >/dev/null 2>&1 &")
         }
+        //fixX: -5
       }
 
       Lib.ExpressiveButton {
@@ -226,6 +218,7 @@ Lib.Card {
         hasCustomColor: true
         onClicked: root.togglePerf()
         onRightClicked: root.batteryToggleRequested()
+        //fixX: -2
       }
 
       Lib.ExpressiveButton {
@@ -234,6 +227,7 @@ Lib.Card {
         label: root.dnd ? "Silent" : "Notify"
         active: root.dnd
         onClicked: toggleDnd()
+        //fixX: -3
       }
     }
 
@@ -275,8 +269,8 @@ Lib.Card {
             ? root.theme.accentSlider
             : "#83C092"
         onUserChanged: det("pactl set-sink-volume @DEFAULT_SINK@ " + Math.round(value) + "%")
-      }
+      } 
     }
-
+    
   }
 }

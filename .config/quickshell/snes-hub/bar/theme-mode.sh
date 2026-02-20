@@ -32,6 +32,8 @@ STATE_FILE="$HOME/.cache/quickshell/theme_mode"
 KITTY_STATE="$HOME/.local/state/theme/kitty_theme.conf"
 MAKO_CONF="$HOME/.config/mako/config"
 
+[[ "$*" == *"--quiet"* ]] && QUIET=1 || QUIET=0
+
 # Create necessary directories if they don't exist
 # mkdir -p "$GTK3_CONF" "$GTK4_CONF" "$(dirname "$STATE_FILE")" "$(dirname "$KITTY_STATE")"
 
@@ -167,8 +169,12 @@ apply_theme() {
   [ "$prefer_dark_bool" == "true" ] && prefer_dark_int=1
   
   echo "Switching to $mode mode..."
-  echo "$mode" > "$STATE_FILE"
-  
+  # echo "$mode" > "$STATE_FILE"
+  # Write atomically to trigger file watchers
+echo "$mode" > "${STATE_FILE}.tmp" && mv -f "${STATE_FILE}.tmp" "$STATE_FILE"
+if [[ "$QUIET" != "1" ]]; then
+  echo "$mode" > "${HOME}/.cache/quickshell/theme_osd"
+fi
   # ---------------------------------------------------------------------------
   # GTK 3
   # ---------------------------------------------------------------------------
@@ -248,15 +254,7 @@ apply_theme() {
   # Uncomment if needed:
   xfce_thunar_sync "$theme_gtk" "$theme_icon"
   # set_vscode_theme "Everforest $mode"
-  
-  # ---------------------------------------------------------------------------
-  # NOTIFICATION
-  # ---------------------------------------------------------------------------
-  update_mako "$mako_conf"
 
-  if command -v notify-send &>/dev/null; then
-    notify-send -u normal -t 3000 "Theme Switcher" "Switched to $mode mode"
-  fi
 }
 
 

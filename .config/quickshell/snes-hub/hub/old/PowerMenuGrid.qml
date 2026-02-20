@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
+import "../theme.js" as Theme
 import "../lib" as Lib
 
 FocusScope {
@@ -28,17 +29,17 @@ FocusScope {
 
     // Theme colors
     readonly property bool isDark: (theme && theme.isDarkMode !== undefined) ? theme.isDarkMode : true
-    readonly property color cText:      theme ? theme.textPrimary      : "#d3c6aa"
-    readonly property color cSubtle:    theme ? theme.subtleFill       : Qt.rgba(1,1,1,0.05)
-    readonly property color cHoverFill: theme ? theme.subtleFillHover  : Qt.rgba(1,1,1,0.12)
-    readonly property color cActive:    isDark
-        ? (theme ? theme.accent : "#a7c080")
-        : "#2e3a13"
-    readonly property color cDanger: (theme && theme.accentRed !== undefined) ? theme.accentRed : "#e67e80"
+    readonly property color cText: theme ? theme.textPrimary : Theme.fgMain
+    readonly property color cSubtle: theme ? theme.subtleFill : Qt.rgba(1,1,1,0.05)
+    readonly property color cHoverFill: theme ? theme.subtleFillHover : Qt.rgba(1,1,1,0.12)
+readonly property color cActive: isDark 
+    ? (theme ? theme.accent : Theme.accent) 
+    : '#2e3a13'
+    readonly property color cDanger: (theme && theme.accentRed !== undefined) ? theme.accentRed : Theme.accentRed
 
     // Selection color profiles
-    readonly property real selTint:  isDark ? 0.22 : 0.34
-    readonly property real hovTint:  isDark ? 0.14 : 0.22
+    readonly property real selTint:  isDark ? 0.22 : 0.34   
+    readonly property real hovTint:  isDark ? 0.14 : 0.22   
     readonly property real iconTint: isDark ? 0.50 : 0.72
     readonly property real textTint: isDark ? 0.18 : 0.32
 
@@ -96,13 +97,13 @@ FocusScope {
 
             Text {
                 text: "Uptime 󰔛"
-                font.family: root.theme ? root.theme.iconFont : "JetBrainsMono Nerd Font"
+                font.family: Theme.iconFont
                 font.pixelSize: 10
                 color: Qt.rgba(root.cText.r, root.cText.g, root.cText.b, 0.70)
             }
             Text {
                 text: root.uptimeStr
-                font.family: root.theme ? root.theme.textFont : "Manrope"
+                font.family: Theme.textFont
                 font.pixelSize: 10
                 font.weight: 600
                 color: Qt.rgba(root.cText.r, root.cText.g, root.cText.b, 0.70)
@@ -157,7 +158,7 @@ FocusScope {
                         Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
                     }
 
-                    // Border
+                    // Border 
                     border.width: btn.selected ? 1 : 0
                     border.color: Qt.rgba(btn.accentFor.r, btn.accentFor.g, btn.accentFor.b, root.isDark ? 0.75 : 0.60)
 
@@ -194,7 +195,7 @@ FocusScope {
 
                         Text {
                             text: modelData.icon
-                            font.family: root.theme ? root.theme.iconFont : "JetBrainsMono Nerd Font"
+                            font.family: Theme.iconFont
                             font.pixelSize: 20
                             color: (btn.selected || hovered.hovered)
                                    ? root.mix(root.cText, btn.accentFor, root.iconTint)
@@ -204,7 +205,7 @@ FocusScope {
 
                         Text {
                             text: modelData.label
-                            font.family: root.theme ? root.theme.textFont : "Manrope"
+                            font.family: Theme.textFont
                             font.pixelSize: 10
                             font.weight: 650
                             color: btn.selected
@@ -232,7 +233,7 @@ FocusScope {
             Text {
                 anchors.centerIn: parent
                 text: ""
-                font.family: root.theme ? root.theme.iconFont : "JetBrainsMono Nerd Font"
+                font.family: Theme.iconFont
                 font.pixelSize: 14
                 color: root.cText
                 opacity: collapseHover.hovered ? 0.85 : 0.55

@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import "../theme.js" as Theme
 import "../lib" as Lib
 
 Rectangle {
@@ -11,14 +12,14 @@ Rectangle {
     readonly property bool hasTheme: theme !== null
     readonly property bool isDarkMode: (!hasTheme || (theme.isDarkMode === undefined)) ? true : theme.isDarkMode
 
-    readonly property color cBg:      isDarkMode ? "#2d353b" : (hasTheme ? theme.bgItem     : Qt.rgba(0,0,0,0.05))
-    readonly property color cBgHover: (!hasTheme || isDarkMode) ? "#374145" : Qt.rgba(0,0,0,0.08)
-    readonly property color cSheen:   (!hasTheme || isDarkMode) ? Qt.rgba(1, 1, 1, 0.06) : theme.subtleFillHover
-    readonly property color cRipple:  (!hasTheme || isDarkMode) ? Qt.rgba(1,1,1,0.12)    : theme.hoverSpotlight
-    readonly property color cIconBg:  (!hasTheme || isDarkMode) ? Qt.rgba(1,1,1,0.05)    : theme.subtleFill
-    readonly property color cAccent:  isDarkMode ? "#a7c080" : (hasTheme ? theme.accent        : "#3c4841")
-    readonly property color cFgMuted: isDarkMode ? "#9da9a0" : (hasTheme ? theme.textSecondary : "#232a23")
-    readonly property color cFgMain:  isDarkMode ? "#d3c6aa" : (hasTheme ? theme.textPrimary   : "#3c4841")
+    readonly property color cBg: isDarkMode ? Theme.bgItem : theme.bgItem
+    readonly property color cBgHover: (!hasTheme || isDarkMode) ? Theme.bgItemHover : Qt.rgba(0,0,0,0.08)
+    readonly property color cSheen: (!hasTheme || isDarkMode) ? Qt.rgba(1, 1, 1, 0.06) : theme.subtleFillHover
+    readonly property color cRipple: (!hasTheme || isDarkMode) ? Qt.rgba(1,1,1,0.12) : theme.hoverSpotlight
+    readonly property color cIconBg: (!hasTheme || isDarkMode) ? Qt.rgba(1,1,1,0.05) : theme.subtleFill
+    readonly property color cAccent: isDarkMode ? Theme.accent : theme.accent
+    readonly property color cFgMuted: isDarkMode ? Theme.fgMuted : theme.textSecondary
+    readonly property color cFgMain: isDarkMode ? Theme.fgMain : theme.textPrimary
 
     signal clicked()
 
@@ -64,7 +65,7 @@ Rectangle {
             Text {
                 anchors.centerIn: parent
                 text: "󰋽"
-                font.family: root.theme ? root.theme.iconFont : "JetBrainsMono Nerd Font"
+                font.family: Theme.iconFont
                 font.pixelSize: 15
                 font.weight: 900
                 color: cAccent
@@ -77,7 +78,7 @@ Rectangle {
 
             Text {
                 text: String(root.app).toUpperCase()
-                font.family: root.theme ? root.theme.textFont : "Manrope"
+                font.family: Theme.textFont
                 font.pixelSize: 9
                 font.weight: 900
                 color: cFgMuted
@@ -87,7 +88,7 @@ Rectangle {
 
             Text {
                 text: root.summary
-                font.family: root.theme ? root.theme.textFont : "Manrope"
+                font.family: Theme.textFont
                 font.pixelSize: 12
                 font.weight: 800
                 color: cFgMain

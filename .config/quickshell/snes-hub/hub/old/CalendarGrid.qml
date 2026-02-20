@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import "../theme.js" as Theme
 
 Item {
     id: root
@@ -12,8 +13,8 @@ Item {
     implicitWidth: grid.implicitWidth
     implicitHeight: grid.implicitHeight
 
-    readonly property color _fgOnAccent: (themed && theme.textOnAccent !== undefined) ? theme.textOnAccent : "#232a2e"
-    readonly property color _accent:     (themed && theme.accent !== undefined)       ? theme.accent       : "#a7c080"
+    readonly property color _fgOnAccent: (themed && theme.textOnAccent !== undefined) ? theme.textOnAccent : Theme.fgOnAccent
+    readonly property color _accent: (themed && theme.accent !== undefined) ? theme.accent : Theme.accent
 
     readonly property color _headColor: isDark
         ? Qt.rgba(0.62, 0.66, 0.63, 0.8)
@@ -63,7 +64,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     text: cell.t
-                    font.family: root.theme ? root.theme.textFont : "Manrope"
+                    font.family: Theme.textFont
                     font.pixelSize: (cell.kind === "head") ? 9 : 8
                     font.weight: (cell.kind === "head") ? 300 : (cell.today ? 800 : 400)
 

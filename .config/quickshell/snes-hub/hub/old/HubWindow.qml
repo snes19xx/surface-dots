@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import "../theme.js" as Theme
 import "../lib" as Lib
 import "../config.js" as Config
 
@@ -11,7 +12,7 @@ PanelWindow {
     color: "transparent"
     anchors { top: true; bottom: true; left: true; right: true }
 
-    // Hides window borders when the hub is open
+    // Hides window borders when the hub is open 
     function setBordersHidden(hidden) {
         Quickshell.execDetached(["hyprctl", "keyword", "general:border_size", hidden ? "0" : "1"])
     }
@@ -65,7 +66,6 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     focusable: visible
     WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
-    WlrLayershell.namespace: "snes-hub"
 
     property string profileName: Config.PROFILE_NAME
     property string profileImage: Config.PROFILE_IMG
@@ -121,7 +121,7 @@ PanelWindow {
             id: panel
             width: win.panelW
             height: Math.ceil(layout.implicitHeight + 24)
-            radius: theme.radiusOuter
+            radius: Theme.radiusOuter
             color: theme.bgMain
             border.width: 1
             border.color: theme.border
@@ -145,7 +145,7 @@ PanelWindow {
                 id: layout
                 anchors.fill: parent
                 anchors.margins: 12
-                spacing: theme.gapCard
+                spacing: Theme.gapCard
 
                 Header {
                     id: header

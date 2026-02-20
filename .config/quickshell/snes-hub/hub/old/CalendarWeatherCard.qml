@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import "../lib" as Lib
+import "../theme.js" as Theme
 
 Lib.Card {
   id: root
@@ -67,20 +68,20 @@ Lib.Card {
 
         Text {
           text: Qt.formatDate(root.now, "ddd").toUpperCase()
-          font.family: root.theme ? root.theme.textFont : "Manrope"
+          font.family: Theme.textFont
           font.pixelSize: 22
           font.weight: 600
-          color: (root.theme ? root.theme.textPrimary : "#d3c6aa")
+          color: (root.theme ? root.theme.textPrimary : Theme.fgMain)
           lineHeight: 0.8
           leftPadding: 5
         }
 
         Text {
           text: Qt.formatDate(root.now, "d")
-          font.family: root.theme ? root.theme.textFont : "Manrope"
+          font.family: Theme.textFont
           font.pixelSize: 54
           font.weight: 800
-          color: (root.theme ? root.theme.textPrimary : "#d3c6aa")
+          color: (root.theme ? root.theme.textPrimary : Theme.fgMain)
           lineHeight: 0.65
           lineHeightMode: Text.ProportionalHeight
         }
@@ -94,15 +95,15 @@ Lib.Card {
             text: weather.value ? weather.value.icon : "☁"
             font.family: "Noto Emoji"
             font.pixelSize: 12
-            color: root.theme ? root.theme.weatherColor : "#9da9a0"
+            color: (root.theme && root.theme.isDarkMode) ? Theme.weatherd : Theme.weatherl
           }
 
           Text {
             text: weather.value ? (weather.value.temp + " • " + weather.value.desc) : "—"
-            font.family: root.theme ? root.theme.textFont : "Manrope"
+            font.family: Theme.textFont
             font.pixelSize: 11
             font.weight: 600
-            color: (root.theme ? root.theme.textSecondary : "#9da9a0")
+            color: (root.theme ? root.theme.textSecondary : Theme.fgMuted)
             elide: Text.ElideRight
             Layout.fillWidth: true
           }
@@ -118,10 +119,10 @@ Lib.Card {
 
         Text {
           text: Qt.formatDate(root.now, "MMM").toUpperCase()
-          font.family: root.theme ? root.theme.textFont : "Manrope"
+          font.family: Theme.textFont
           font.pixelSize: 11
           font.weight: 800
-          color: (root.theme ? root.theme.accent : "#a7c080")
+          color: (root.theme ? root.theme.accent : Theme.accent)
           font.letterSpacing: 2.0
           Layout.alignment: Qt.AlignRight
         }
@@ -152,28 +153,28 @@ Lib.Card {
           Layout.fillWidth: true
 
           Text {
-            text: ""
-            font.family: root.theme ? root.theme.iconFont : "JetBrainsMono Nerd Font"
+            text: ""
+            font.family: Theme.iconFont
             font.pixelSize: 13
-            color: (root.theme ? root.theme.accent : "#a7c080")
+            color: (root.theme ? root.theme.accent : Theme.accent)
           }
 
           Text {
             text: modelData
-            font.family: root.theme ? root.theme.textFont : "Manrope"
+            font.family: Theme.textFont
             font.pixelSize: 13
-            color: (root.theme ? root.theme.textPrimary : "#d3c6aa")
+            color: (root.theme ? root.theme.textPrimary : Theme.fgMain)
             elide: Text.ElideRight
             Layout.fillWidth: true
           }
         }
-      }
+      }  
     }
   }
-
+  
   // To make CalendarWeatherCard launch my calendar app on click
   MouseArea {
-        parent: root
+        parent: root  
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
         onClicked: {
