@@ -3,6 +3,11 @@
 Personal dotfiles + UI setup for my **Surface Laptop 4 (AMD)** running **Hyprland**.
 Also, please see my calendar app: [Evercal](https://github.com/snes19xx/EverCal)
 
+#### <span style="color:#a41d1d">[Reuse Note:]</span>
+
+Copy/steal whatever you want. Fork it. Remix it. Break it as long as you cite me and
+more importantly the listed media sources in the credits/references where applicable.
+
 ---
 
 ## Table of contents
@@ -68,7 +73,7 @@ Also, please see my calendar app: [Evercal](https://github.com/snes19xx/EverCal)
 
 ### UI & Theming
 
-- mako
+- dunst
 - swww
 - waypaper
 - rofi
@@ -213,7 +218,7 @@ I’ve also included a complementary Python image filter that applies CRT-style 
 
 ### Other shaders
 
-There are two other shaders one's completely useless and the other is my daily driver, I use it by default.
+There are two other shaders one's completely useless and the other(main.glsl) is my daily driver, I use it by default.
 
 </details>
 
@@ -288,7 +293,7 @@ kitty -e bash -lc "sudo pacman -Syu"
 - Wi‑Fi toggle + SSID readout (right‑click opens the Wi‑Fi Rofi menu).
 - Bluetooth toggle + connected device status.
 - Performance profile button (cycle modes via `auto-cpufreq`, right click toggles battery health card).
-- DND toggle (mako).
+- DND toggle (dunst).
 - Volume + brightness sliders (pactl + brightnessctl).
 
 #### Battery health
@@ -367,7 +372,7 @@ khal list now 7d
 #### Notifications
 
 - Clicking dismisses.
-- Uses **mako** (`makoctl`) as the notification backend.
+- Uses **dunst** (`dunstctl`) as the notification backend.
 - Contracted by default when the media player card is active, but can be expanded via the expand button.
 
 #### OSDs

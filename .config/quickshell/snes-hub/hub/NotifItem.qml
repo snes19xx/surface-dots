@@ -7,6 +7,7 @@ Rectangle {
     property int nId: 0
     property string app: "SYSTEM"
     property string summary: "Notification"
+    property string body: ""
     property QtObject theme: null
     readonly property bool hasTheme: theme !== null
     readonly property bool isDarkMode: (!hasTheme || (theme.isDarkMode === undefined)) ? true : theme.isDarkMode
@@ -22,7 +23,7 @@ Rectangle {
 
     signal clicked()
 
-    radius: 16
+    radius: 22
     color: hovered ? cBgHover : cBg
     antialiasing: true
     border.width: 0
@@ -66,7 +67,7 @@ Rectangle {
                 text: "󰋽"
                 font.family: root.theme ? root.theme.iconFont : "JetBrainsMono Nerd Font"
                 font.pixelSize: 15
-                font.weight: 900
+                font.weight: 800
                 color: cAccent
             }
         }
@@ -79,7 +80,7 @@ Rectangle {
                 text: String(root.app).toUpperCase()
                 font.family: root.theme ? root.theme.textFont : "Manrope"
                 font.pixelSize: 9
-                font.weight: 900
+                font.weight: 700
                 color: cFgMuted
                 elide: Text.ElideRight
                 Layout.fillWidth: true
@@ -89,8 +90,19 @@ Rectangle {
                 text: root.summary
                 font.family: root.theme ? root.theme.textFont : "Manrope"
                 font.pixelSize: 12
-                font.weight: 800
+                font.weight: 700
                 color: cFgMain
+                elide: Text.ElideRight
+                Layout.fillWidth: true
+            }
+
+            Text {
+                text: root.body
+                visible: root.body !== ""
+                font.family: root.theme ? root.theme.textFont : "Manrope"
+                font.pixelSize: 11
+                font.weight: 300
+                color: cFgMuted
                 elide: Text.ElideRight
                 Layout.fillWidth: true
             }

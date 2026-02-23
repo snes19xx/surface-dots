@@ -166,22 +166,22 @@ Lib.Card {
         : (root.theme ? root.theme.textPrimary : "#d3c6aa")
   }
 
-  // --- DND ---
+// --- DND ---
   property bool dnd: false
 
   Lib.CommandPoll {
     id: dndPoll
     running: root.active && root.visible
     interval: 4000
-    command: sh("makoctl mode 2>/dev/null || true")
-    parse: function(o) { return String(o).includes("do-not-disturb") }
+    command: sh("dunstctl is-paused 2>/dev/null || echo false")
+    parse: function(o) { return String(o).trim() === "true" }
     onUpdated: root.dnd = value
   }
 
   function toggleDnd() {
     var next = !root.dnd
     root.dnd = next
-    det("makoctl mode " + (next ? "-a" : "-r") + " do-not-disturb")
+    det("dunstctl set-paused " + (next ? "true" : "false"))
   }
 
   // --- UI ---

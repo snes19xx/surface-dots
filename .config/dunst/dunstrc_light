@@ -1,0 +1,78 @@
+[global]
+    # --- MAIN ---
+    monitor = 0
+    follow = mouse
+    script = ~/.config/dunst/alert.sh
+
+    # --- Geometry ---
+    width = 300
+    height = 440
+    origin = top-right
+    offset = 12x12
+    notification_limit = 5
+
+    # --- Look & Feel ---
+    font = Inter 10
+    markup = full
+    format = "<b>%s</b>\n%b"
+    
+    # --- Progress Bar ---
+    progress_bar = true
+    progress_bar_height = 8
+    progress_bar_frame_width = 1
+    progress_bar_min_width = 280
+    progress_bar_max_width = 300
+    progress_bar_corner_radius = 4
+    
+    # --- Borders & Padding ---
+    padding = 16
+    horizontal_padding = 16
+    text_icon_padding = 16
+    gap_size = 10
+    frame_width = 2
+    corner_radius = 10
+    
+    # --- Icons ---
+    icon_position = left
+    max_icon_size = 48
+    icon_path = /usr/share/icons/Papirus-Light/48x48/status/:/usr/share/icons/Papirus-Light/48x48/devices/:/usr/share/icons/Papirus-Light/48x48/apps/
+    
+    # --- Interaction ---
+    dmenu = /usr/bin/dmenu -p dunst:
+    browser = /usr/bin/firefox -new-tab
+    mouse_left_click = close_current
+    mouse_middle_click = close_all
+    mouse_right_click = do_action
+    
+    # --- History ---
+    history_length = 100
+    sticky_history = yes
+
+    # --- Global Colors ---
+    separator_color = frame
+
+[urgency_low]
+    background = "#F0ECE6"
+    foreground = "#141719"
+    frame_color = "#e4e1cd"
+    highlight = "#939f91"
+    timeout = 3
+
+[urgency_normal]
+    background = "#F0ECE6"
+    foreground = "#141719"
+    frame_color = "#DAD6D2D9"
+    highlight = "#4F6B5B"
+    timeout = 5
+
+[urgency_critical]
+    background = "#cc4947"
+    foreground = "#F0ECE6"
+    frame_color = "#bd5a58"
+    highlight = "#ffffff"
+    timeout = 0
+
+# --- RULES ---
+[media_fix]
+    summary = "*media*"
+    timeout = 2

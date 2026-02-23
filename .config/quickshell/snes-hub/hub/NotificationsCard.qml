@@ -9,22 +9,24 @@ Lib.Card {
   Layout.fillWidth: true
   property bool active: true
 
-  // ---------- Theme ----------
-  readonly property bool hasTheme: root.theme !== null
-  readonly property bool isDarkMode: (!hasTheme || (root.theme.isDarkMode === undefined)) ? true : root.theme.isDarkMode
+  // Theme
+  property var engine: root.theme
 
-  readonly property color cFgMain:  isDarkMode ? "#d3c6aa" : root.theme.textPrimary
-  readonly property color cFgMuted: isDarkMode ? "#9da9a0" : root.theme.textSecondary
-  readonly property color cBgItem:  isDarkMode ? "#2d353b" : root.theme.bgItem
-  readonly property color cAccent:  isDarkMode ? "#a7c080" : root.theme.accent
+  // ---------- Color Mappings ----------
+  readonly property color cFgMain: engine.textPrimary
+  readonly property color cFgMuted: engine.textSecondary
+  readonly property color cBgItem: engine.bgItem
+  readonly property color cAccent: engine.accent
 
-  readonly property color cSoftBtn:      (!hasTheme || isDarkMode) ? Qt.rgba(1,1,1,0.04) : root.theme.subtleFill
-  readonly property color cSoftBtnHover: (!hasTheme || isDarkMode) ? Qt.rgba(1,1,1,0.08) : root.theme.subtleFillHover
+  readonly property color cSoftBtn: engine.subtleFill
+  readonly property color cSoftBtnHover: engine.subtleFillHover
 
-  readonly property color cItemHoverOverlay: (!hasTheme || isDarkMode) ? Qt.rgba(1, 1, 1, 0.08) : root.theme.hoverSpotlight
-  readonly property color cRipple:           (!hasTheme || isDarkMode) ? Qt.rgba(1, 1, 1, 0.15) : root.theme.hoverSpotlight
-  readonly property color cIconBg:           (!hasTheme || isDarkMode) ? Qt.rgba(1,1,1,0.05)    : root.theme.subtleFill
-  readonly property color cOvershoot:        (!hasTheme || isDarkMode) ? Qt.rgba(1,1,1,0.1)     : root.theme.hoverSpotlight
+  readonly property color cItemHoverOverlay: engine.hoverSpotlight
+  readonly property color cRipple: engine.hoverSpotlight
+  readonly property color cIconBg: engine.subtleFill
+  readonly property color cOvershoot: engine.hoverSpotlight
+  
+  readonly property color cAccentRed: engine.accentRed
 
   property bool compactMode: false
   property bool expanded: !compactMode
@@ -44,10 +46,7 @@ Lib.Card {
   function sh(cmd) { return ["bash","-lc", cmd] }
   function det(cmd) { Quickshell.execDetached(sh(cmd)) }
 
-  property var pollCommand: sh(
-    "makoctl history 2>/dev/null | " +
-    "awk 'BEGIN{c=0} /^Notification [0-9]+:/{c++; if(c>60) exit} {print}' || true"
-  )
+  property var pollCommand: sh("dunstctl history 2>/dev/null || true")
 
   property var pendingItems: null
   property bool hasPending: false
@@ -72,7 +71,7 @@ Lib.Card {
         if (!(root.active && root.visible)) return
 
         var raw = this.text ?? ""
-        var items = root.parseMakoToItems(raw)
+        var items = root.parseDunstToItems(raw)
 
         if (list.moving || list.flicking) {
           pendingItems = items
@@ -93,25 +92,26 @@ Lib.Card {
     onTriggered: proc.exec(root.pollCommand)
   }
 
-  function parseMakoToItems(raw) {
-    var lines = String(raw ?? "").split("\n")
+  function parseDunstToItems(raw) {
+    if (!raw || raw.trim() === "") return []
     var incoming = []
-    for (var i = 0; i < lines.length && incoming.length < 50; i++) {
-      var line = lines[i].trim()
-      var m = line.match(/^Notification\s+(\d+):\s*(.+)$/)
-      if (!m) continue
-      var id = Number(m[1])
-      var summary = m[2] || "Notification"
-      var app = "SYSTEM"
+    try {
+      var parsed = JSON.parse(raw)
+      var notifs = (parsed.data && parsed.data.length > 0) ? parsed.data[0] : []
+      
+      for (var i = 0; i < notifs.length && incoming.length < 50; i++) {
+        var n = notifs[i]
+        var id = (n.id && n.id.data !== undefined) ? Number(n.id.data) : 0
+        var app = (n.appname && n.appname.data) ? String(n.appname.data) : "SYSTEM"
+        var summary = (n.summary && n.summary.data) ? String(n.summary.data) : "Notification"
+        var body = (n.body && n.body.data) ? String(n.body.data) : ""
 
-      for (var j = i + 1; j < Math.min(i + 12, lines.length); j++) {
-        var l2 = lines[j].trim()
-        var am = l2.match(/^App name:\s*(.+)$/)
-        if (am) { app = am[1]; break }
-        if (l2.startsWith("Notification ")) break
+        if (!root.dismissed[id]) {
+          incoming.push({ nId: id, app: app, summary: summary, body: body })
+        }
       }
-
-      if (!root.dismissed[id]) incoming.push({ nId: id, app: app, summary: summary })
+    } catch(e) {
+      console.log("Dunst history parse error: " + e)
     }
     return incoming
   }
@@ -124,6 +124,7 @@ Lib.Card {
       if (m.nId !== it.nId) return false
       if (m.app !== it.app) return false
       if (m.summary !== it.summary) return false
+      if (m.body !== it.body) return false
     }
     return true
   }
@@ -141,7 +142,7 @@ Lib.Card {
   function dismissOne(index, id) {
     root.dismissed[id] = true
     notifModel.remove(index)
-    det("makoctl dismiss -n " + id + " >/dev/null 2>&1 || true")
+    det("dunstctl close " + id + " >/dev/null 2>&1; dunstctl history-rm " + id + " >/dev/null 2>&1 || true")
   }
 
   function triggerClearAll() {
@@ -152,8 +153,8 @@ Lib.Card {
   SequentialAnimation {
     id: wipeAnimation
     ParallelAnimation {
-      NumberAnimation { target: list; property: "opacity"; to: 0; duration: 300; easing.type: Easing.InQuart }
-      NumberAnimation { target: list; property: "contentY"; to: list.contentY - 40; duration: 300; easing.type: Easing.InQuart }
+      NumberAnimation { target: list; property: "opacity"; to: 0; duration: 300; easing.type: Easing.OutExpo }
+      NumberAnimation { target: list; property: "contentY"; to: list.contentY - 40; duration: 400; easing.type: Easing.OutExpo }
     }
     ScriptAction {
       script: {
@@ -161,7 +162,7 @@ Lib.Card {
           root.dismissed[notifModel.get(i).nId] = true
           notifModel.remove(i)
         }
-        det("makoctl dismiss -a >/dev/null 2>&1 || true")
+        det("dunstctl close-all >/dev/null 2>&1; dunstctl history-clear >/dev/null 2>&1 || true")
       }
     }
     PropertyAction { target: list; property: "opacity"; value: 1 }
@@ -181,7 +182,7 @@ Lib.Card {
 
       Text {
         text: "Notifications"
-        font.family: root.theme ? root.theme.textFont : "Manrope"
+        font.family: engine.textFont
         font.pixelSize: 13
         font.weight: 900
         color: root.cFgMain
@@ -199,7 +200,7 @@ Lib.Card {
           id: countText
           anchors.centerIn: parent
           text: String(notifModel.count)
-          font.family: root.theme ? root.theme.textFont : "Manrope"
+          font.family: engine.textFont
           font.pixelSize: 11
           font.weight: 900
           color: root.cFgMain
@@ -210,7 +211,7 @@ Lib.Card {
       Rectangle {
         id: expandBtn
         visible: root.compactMode
-        radius: 999
+        radius: 10
         implicitHeight: 26
         implicitWidth: 34
         color: root.cSoftBtn
@@ -225,12 +226,13 @@ Lib.Card {
 
         Text {
           anchors.centerIn: parent
-          text: ""
-          font.family: root.theme ? root.theme.iconFont : "JetBrainsMono Nerd Font"
+          text: ""
+          font.family: engine.iconFont
           font.pixelSize: 14
           color: root.cFgMain
           rotation: root.expanded ? 180 : 0
-          Behavior on rotation { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+          // Springy rotation
+          Behavior on rotation { SpringAnimation { spring: 3; damping: 0.45; mass: 0.5 } }
         }
 
         MouseArea {
@@ -242,33 +244,34 @@ Lib.Card {
         }
 
         scale: expandArea.pressed ? 0.92 : 1.0
-        Behavior on scale { NumberAnimation { duration: 110; easing.type: Easing.OutQuint } }
+        // Springy click feedback
+        Behavior on scale { SpringAnimation { spring: 4; damping: 0.4; mass: 0.5; epsilon: 0.005 } }
       }
 
       // Clear Button
       Rectangle {
         id: clearBtn
         visible: notifModel.count > 0
-        radius: 12
+        radius: 10
         implicitHeight: 26
         implicitWidth: 56
-        color: (!hasTheme || isDarkMode) ? Qt.rgba(0.9,0.5,0.5,0.10) : Qt.rgba(0.5,0.1,0.1,0.10)
+        color: Qt.alpha(root.cAccentRed, 0.1)
 
         Rectangle {
           anchors.fill: parent; radius: parent.radius
-          color: Qt.rgba(0.9,0.5,0.5,0.15)
+          color: Qt.alpha(root.cAccentRed, 0.15)
           opacity: clearArea.containsMouse ? 1 : 0
           visible: opacity > 0
-          Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
+          Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
         }
 
         Text {
           anchors.centerIn: parent
           text: "Clear"
-          font.family: root.theme ? root.theme.textFont : "Manrope"
+          font.family: engine.textFont
           font.pixelSize: 10
           font.weight: 700
-          color: (!hasTheme || isDarkMode) ? "#e67e80" : root.theme.accentRed
+          color: root.cAccentRed
         }
 
         MouseArea {
@@ -280,7 +283,8 @@ Lib.Card {
         }
 
         scale: clearArea.pressed ? 0.94 : 1.0
-        Behavior on scale { NumberAnimation { duration: 110; easing.type: Easing.OutQuint } }
+        // Springy click feedback
+        Behavior on scale { SpringAnimation { spring: 4; damping: 0.4; mass: 0.5; epsilon: 0.005 } }
       }
     }
 
@@ -288,7 +292,7 @@ Lib.Card {
       visible: notifModel.count === 0 && (!root.compactMode || root.expanded)
       opacity: visible ? 1 : 0
       text: "No new notifications"
-      font.family: root.theme ? root.theme.textFont : "Manrope"
+      font.family: engine.textFont
       font.pixelSize: 11
       font.italic: true
       color: root.cFgMuted
@@ -314,7 +318,7 @@ Lib.Card {
         : 0
 
       Layout.preferredHeight: viewHeight
-      Behavior on Layout.preferredHeight { NumberAnimation { duration: 400; easing.type: Easing.OutQuint } }
+      Behavior on Layout.preferredHeight { NumberAnimation { duration: 450; easing.type: Easing.OutExpo } }
       height: Layout.preferredHeight
 
       ListView {
@@ -329,8 +333,14 @@ Lib.Card {
 
         add: Transition {
           ParallelAnimation {
-            NumberAnimation { property: "opacity"; from: 0; to: 1; duration: root.animationsEnabled ? 250 : 0; easing.type: Easing.OutQuad }
-            NumberAnimation { property: "scale"; from: 0.8; to: 1.0; duration: root.animationsEnabled ? 250 : 0; easing.type: Easing.OutBack }
+            NumberAnimation { property: "opacity"; from: 0; to: 1; duration: root.animationsEnabled ? 300 : 0; easing.type: Easing.OutSine }
+            NumberAnimation { 
+              property: "scale"
+              from: 0.9; to: 1.0
+              duration: root.animationsEnabled ? 400 : 0
+              easing.type: Easing.OutBack
+              easing.overshoot: 0.8 
+            }
           }
         }
 
@@ -342,96 +352,28 @@ Lib.Card {
         }
 
         displaced: Transition {
-          NumberAnimation { properties: "x,y"; duration: 300; easing.type: Easing.OutQuint }
+          SpringAnimation { property: "y"; spring: 4; damping: 0.6; epsilon: 0.1 }
+          SpringAnimation { property: "x"; spring: 4; damping: 0.6; epsilon: 0.1 }
         }
 
-        delegate: Item {
-          id: itemContainer
+        delegate: NotifItem {
           width: list.width
-          height: list.itemH
-
-          function dismiss() { root.dismissOne(index, model.nId) }
-
-          Rectangle {
-            id: bg
-            anchors.fill: parent
-            radius: 14
-            color: root.cBgItem
-            scale: pressArea.pressed ? 0.98 : 1.0
-            Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutQuint } }
-
-            Rectangle {
-              anchors.fill: parent; radius: 14
-              color: root.cItemHoverOverlay
-              opacity: hoverArea.containsMouse ? 1 : 0
-              visible: opacity > 0
-              Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
-            }
-
-            Lib.ClickRipple {
-              id: clickRipple
-              anchors.fill: parent
-              color: root.cRipple
-            }
-
-            RowLayout {
-              anchors.fill: parent; anchors.margins: 12; spacing: 12
-
-              Rectangle {
-                width: 32; height: 32; radius: 16
-                color: root.cIconBg
-                Layout.alignment: Qt.AlignVCenter
-                Text {
-                    anchors.centerIn: parent
-                    text: "󰋽"
-                    font.family: root.theme ? root.theme.iconFont : "JetBrainsMono Nerd Font"
-                    font.pixelSize: 14
-                    font.weight: 900
-                    color: root.cAccent
-                }
-              }
-
-              ColumnLayout {
-                Layout.fillWidth: true; spacing: 3; Layout.alignment: Qt.AlignVCenter
-                Text {
-                    text: String(model.app).toUpperCase()
-                    font.family: root.theme ? root.theme.textFont : "Manrope"
-                    font.pixelSize: 9
-                    font.weight: 800
-                    color: root.cFgMuted
-                    elide: Text.ElideRight
-                    Layout.fillWidth: true
-                }
-                Text {
-                    text: model.summary
-                    font.family: root.theme ? root.theme.textFont : "Manrope"
-                    font.pixelSize: 12
-                    font.weight: 600
-                    color: root.cFgMain
-                    elide: Text.ElideRight
-                    Layout.fillWidth: true
-                }
-              }
-            }
-
-            MouseArea { id: hoverArea; anchors.fill: parent; hoverEnabled: true; acceptedButtons: Qt.NoButton }
-            MouseArea {
-              id: pressArea
-              anchors.fill: parent
-              hoverEnabled: false
-              onPressed: (mouse) => clickRipple.burst(mouse.x, mouse.y)
-              onClicked: dismissTimer.start()
-            }
-          }
-
-          Timer { id: dismissTimer; interval: 200; repeat: false; onTriggered: itemContainer.dismiss() }
+          height: model.body ? listWrapper.itemH + 16 : listWrapper.itemH
+          
+          nId: model.nId
+          app: model.app
+          summary: model.summary
+          body: model.body !== undefined ? model.body : ""
+          theme: root.engine
+          
+          onClicked: root.dismissOne(index, model.nId)
         }
       }
 
       Rectangle {
         anchors.top: parent.top; anchors.horizontalCenter: parent.horizontalCenter
         width: parent.width * 0.9; height: Math.abs(list.verticalOvershoot) * 0.5
-        radius: 20; color: root.cOvershoot
+        radius: 12; color: root.cOvershoot
         visible: list.verticalOvershoot < -1
         opacity: Math.min(1.0, Math.abs(list.verticalOvershoot) / 60)
       }
