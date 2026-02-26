@@ -180,9 +180,12 @@ Old Config at `~/.config/hypr/hyprland_OLD.conf`
 
 ## Shaders
 
-<details>
-  <summary><strong>Expand for shader based reading mode etc.</strong></summary>
-  
+activate with:
+`hyprshade on <name of the shader.glsl>`
+
+deactivate with:
+`hyprshade off`
+
 ### Reading Mode
 
 A shader-based reading mode to mimic an e-ink reader.
@@ -196,22 +199,24 @@ A shader-based reading mode to mimic an e-ink reader.
 - Shader located at `~/.config/hypr/shaders/reading_mode.glsl`
 - Uses [hyprshade](https://github.com/loqusion/hyprshade)
 
-### CRT Mode
-
-A shader-based CRT mode to mimic a crt screen
-
-- Shader located at `~/config/hypr/shaders/crt_mode.glsl`
-  Features: Curved screen distortion, subtle color fringing, horizontal scanlines with brightness-dependent phosphor bleed, vertical shadow mask to emulate phosphor stripes etc.
-
-I’ve also included a complementary Python image filter that applies CRT-style effects to images.
-
-- Script located at `utilities/crt_gen.py`
-
 ### Other shaders
 
-There are two other shaders one's completely useless and the other(main.glsl) is my daily driver, I use it by default.
+**Ranked from Useful to completely Useless:**
 
-</details>
+1. **`main.glsl`** – _my main shader to improve my display (I run it at startup)_
+2. **`night.glsl`** – _my main night-light mode shader (script coming soon)_
+3. **`outdoor.gls`** – _for maximum outdoor useability_
+4. **`cinema.glsl`** – _for media consumption_
+5. **`soft.glsl`** – _soft, muted textures_
+6. **`matte.glsl`** – _anti-glare, matte_
+7. **`IMB5151.glsl`** – _simulates vintage IBM 3278 / 5151 monitors_
+8. **`fuji_acros.glsl`** – _simulates fujifilm acros_
+9. **`crt_mode.glsl`** – _simulates a crt monitor/retro nostalgia_
+10. **`vhs.glsl`** – _simulates vhs_
+11. **`gameboy.glsl`** – _simulates a gameboy screen_
+12. **`clarity_inefficient.glsl`** – _an early version of my main shader_
+13. **`focus.glsl`** – _party trick_
+14. **`night_vision.glsl`** – _simulates night_vision_
 
 ## Quickshell Bar
 
