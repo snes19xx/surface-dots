@@ -11,12 +11,8 @@ vol=$(pamixer --get-volume)
 is_muted=$(pamixer --get-mute)
 
 if [ "$is_muted" = "true" ]; then
-    notify-send -c volume \
-        -h string:x-canonical-private-synchronous:volume \
-        "Volume: Muted"
+echo "${vol}:${is_muted}" > "$HOME/.cache/quickshell/volume"
+printf '%s\n%s\n%s' "$status" "$title" "$artist" > "$HOME/.cache/quickshell/media"
 else
-    notify-send -c volume \
-        -h string:x-canonical-private-synchronous:volume \
-        -h int:value:"$vol" \
-        "Volume: ${vol}%"
+echo "${vol}:${is_muted}" > "$HOME/.cache/quickshell/volume"
 fi

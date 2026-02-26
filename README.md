@@ -109,7 +109,7 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 ---
 
 > [!CAUTION]
-> Layout geometry is hardcoded for 3:2 high-resolution display. Deviation in aspect ratio or pixel density will result in misalignment or things looking too big or small. Please reconfigure values accordingly.
+> _Layout geometry is hardcoded for 3:2 high-resolution display. Deviation in aspect ratio or pixel density will result in misalignment or things looking too big or small. Please reconfigure values accordingly._
 
 ## Hyprland
 
@@ -180,9 +180,10 @@ Old Config at `~/.config/hypr/hyprland_OLD.conf`
 
 ## Shaders
 
-activate with:
-`hyprshade on <name of the shader.glsl>`
+All shaders located at `~/.config/hypr/shaders/` and use [hyprshade](https://github.com/loqusion/hyprshade)
 
+activate with:
+`hyprshade on <shader_name.glsl>`
 deactivate with:
 `hyprshade off`
 
@@ -193,11 +194,8 @@ A shader-based reading mode to mimic an e-ink reader.
 - Toggle with `SUPER + D` or `~/.config/hypr/shaders/reading_mode.sh`
 - Automatically disables animations, shadows, and blur
 - Custom GLSL shader with e-ink-like color reproduction
-- Warm cream paper tone
-- Soft charcoal blacks for reduced contrast
+- Warm cream paper tone and soft charcoal blacks for reduced contrast
 - Fine paper grain -like texture
-- Shader located at `~/.config/hypr/shaders/reading_mode.glsl`
-- Uses [hyprshade](https://github.com/loqusion/hyprshade)
 
 ### Other shaders
 
@@ -298,7 +296,7 @@ kitty -e bash -lc "sudo pacman -Syu"
 - Shows: **Health** (capacity %) + **current charge %**, **Charge cycles**, **Energy (full / design)**, **Time remaining** (to full/empty when available), **State** (charging/discharging/fully-charged)
 
 > [!NOTE]
-> If your battery isn’t `battery_BAT1`, swap the device path in `BatteryHealthCard.qml` to match your system.
+> _If your battery isn’t `battery_BAT1`, swap the device path in `BatteryHealthCard.qml` to match your system._
 
 #### Media card (MPRIS)
 
@@ -374,6 +372,8 @@ khal list now 7d
 
 - custom OSDs for brightness and volume controls
 - custom OSD for various modes (Dark/Light/Reading Mode etc.)
+  > [!NOTE]
+  > _You may need to update the scripts in .config/hypr/scripts. Please review the contents of audiocontrol.sh and brightnesscontrol.sh. Newer versions of these scripts write cache for osd qmls to read_
 
 </details>
 
