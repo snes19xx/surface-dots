@@ -109,7 +109,7 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 ---
 
 > [!CAUTION]
-> _Layout geometry is hardcoded for 3:2 high-resolution display. Deviation in aspect ratio or pixel density will result in misalignment or things looking too big or small. Please reconfigure values accordingly._
+> Layout geometry is hardcoded for 3:2 high-resolution display. Deviation in aspect ratio or pixel density will result in misalignment or things looking too big or small. Please reconfigure values accordingly.
 
 ## Hyprland
 
@@ -296,7 +296,7 @@ kitty -e bash -lc "sudo pacman -Syu"
 - Shows: **Health** (capacity %) + **current charge %**, **Charge cycles**, **Energy (full / design)**, **Time remaining** (to full/empty when available), **State** (charging/discharging/fully-charged)
 
 > [!NOTE]
-> _If your battery isn’t `battery_BAT1`, swap the device path in `BatteryHealthCard.qml` to match your system._
+> If your battery isn’t `battery_BAT1`, swap the device path in `BatteryHealthCard.qml` to match your system.s
 
 #### Media card (MPRIS)
 
@@ -372,8 +372,9 @@ khal list now 7d
 
 - custom OSDs for brightness and volume controls
 - custom OSD for various modes (Dark/Light/Reading Mode etc.)
-  > [!NOTE]
-  > _You may need to update the scripts in .config/hypr/scripts. Please review the contents of audiocontrol.sh and brightnesscontrol.sh. Newer versions of these scripts write cache for osd qmls to read_
+
+> [!NOTE]
+> You may need to update the scripts in .config/hypr/scripts. Please review the contents of audiocontrol.sh and brightnesscontrol.sh. Newer versions of these scripts write cache for osd qmls to read
 
 </details>
 
