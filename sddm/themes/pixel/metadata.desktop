@@ -1,6 +1,6 @@
 [SddmGreeterTheme]
 Name=pixel
-Description= CLean SDDM theme (dim wallpaper + big clock)
+Description=Surface-dots lockscreen
 Author=snes
 License=MIT
 Type=sddm-theme

@@ -1,3 +1,8 @@
+/*
+SDDM CUSTOM THEME FOR SURFACE-DOTS
+by @snes19xx
+*/
+
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15 as QQC2
@@ -5,7 +10,7 @@ import QtQuick.Window 2.15
 import Qt5Compat.GraphicalEffects 6.0 
 import SddmComponents 2.0
 import "."
-// import QtGraphicalEffects 1.0 [only for  sddm-greeter --test-mode --theme /directory]
+//import QtGraphicalEffects 1.0 //[only for  sddm-greeter --test-mode --theme /directory]
 
 
 Item {
@@ -23,12 +28,45 @@ Item {
     // 1.1 Status message from the system ("Authentication failure")
     property string statusMessage: ""
 
+    // 1.2 Face unlock animation state: "idle", "scanning", "verified", "failed"
+    property string authStatus: "idle"
+
     property int currentSessionIndex: 0
     property var now: new Date()
     
     Timer {
         interval: 1000; running: true; repeat: true
         onTriggered: root.now = new Date()
+    }
+
+    // Stage 1: wait for the card slide-up, then fire sddm.login() immediately
+    // so Howdy kicks the IR camera as soon as the screen is visible
+    Timer {
+        id: scanTimer
+        interval: 400
+        running: false; repeat: false
+        onTriggered: attemptLogin()
+    }
+
+    // Stage 2: [FAKE VERIFIED] flip to "verified" assuming Howdy will succeed.
+    // If onLoginFailed fires before this, authStatus becomes "failed" and the
+    // guard prevents this from overwriting it.
+    // NOTE: Change interval to match how long your Howdy scan typically takes.
+    Timer {
+        id: verifiedTimer
+        interval: 1800
+        running: false; repeat: false
+        onTriggered: {
+            if (root.authStatus === "scanning") root.authStatus = "verified"
+        }
+    }
+
+    // still scanning after 7s means something went wrong
+    Timer {
+        id: safetyTimer
+        interval: 7000
+        running: root.authStatus === "scanning"
+        onTriggered: root.authStatus = "failed"
     }
 
     readonly property real blurRadius: isNaN(Number(config.blurRadius)) ? 60 : Number(config.blurRadius)
@@ -42,6 +80,7 @@ Item {
     readonly property color cText:        "#D3C6AA"
     readonly property color cMuted:       "#859289"
     readonly property color cError:       "#E67E80" 
+    readonly property color cGreen:       "#aebb98"
 
 
     // 2. CONNECTIONS 
@@ -54,6 +93,7 @@ Item {
             passwordInput.forceActiveFocus()
             
             // 2.1 Trigger Visuals
+            root.authStatus = "failed"
             authCard.loginFailed = true 
             shakeAnimation.start()
             failResetTimer.restart()
@@ -64,6 +104,7 @@ Item {
         
         function onLoginSucceeded() {
             authCard.loginFailed = false
+            root.authStatus = "verified"
             root.statusMessage = "" 
         }
 
@@ -75,7 +116,10 @@ Item {
     Timer {
         id: failResetTimer
         interval: 900; repeat: false
-        onTriggered: authCard.loginFailed = false
+        onTriggered: {
+            authCard.loginFailed = false
+            if (root.authStatus === "failed") root.authStatus = "idle"
+        }
     }
 
 
@@ -119,19 +163,24 @@ Item {
             root.authOpen = true;
             root.sessionOpen = false;
             focusTimer.restart();
+            //For howdy face scan
+            root.authStatus = "scanning";
+            scanTimer.restart();
+            verifiedTimer.restart();
         }
     }
-
     function sleep() {
         root.authOpen = false;
         root.sessionOpen = false;
+        root.authStatus = "idle";
+        verifiedTimer.stop();
         passwordInput.text = "";
         root.statusMessage = ""; 
         wakeKeyCatcher.forceActiveFocus();
     }
 
     function attemptLogin() {
-        if (passwordInput.text.length === 0) return;
+        //if (passwordInput.text.length === 0) return;
         
         root.statusMessage = "" // Clear previous messages
         
@@ -249,7 +298,27 @@ Item {
     }
 
 
-    // 7. POWER MENU UI 
+    // 7. FACE UNLOCK ANIMATION
+
+    FaceUnlock {
+        id: faceUnlockAnim
+        z: 50
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.topMargin: 20
+
+        status:        root.authStatus
+        username:      userSelector.currentText
+        colorScan:     root.cText
+        colorVerified: root.cText
+        colorError:    root.cError
+
+        opacity: root.authOpen ? 1.0 : 0.0
+        Behavior on opacity { NumberAnimation { duration: 300 } }
+    }
+
+
+    // 8. POWER MENU UI 
 
     Rectangle {
         id: powerPill
@@ -301,7 +370,7 @@ Item {
         }
     }
 
-    // 8. AUTH CARD
+    // 9. AUTH CARD
 
     Rectangle {
         id: authCard
@@ -310,7 +379,7 @@ Item {
         radius: 28
         color: root.cSurface
 
-        // --- 8.1 ERROR BORDER ---
+        // --- 9.1 ERROR BORDER ---
         property bool loginFailed: false
         border.width: loginFailed ? 2 : 0
         border.color: loginFailed ? root.cError : "transparent"
@@ -325,7 +394,7 @@ Item {
         Behavior on anchors.bottomMargin { NumberAnimation { duration: 400; easing.type: Easing.OutBack } }
         Behavior on opacity { NumberAnimation { duration: 200 } }
 
-        // --- 8.2 RATTLE ANIMATION ---
+        // --- 9.2 RATTLE ANIMATION ---
         SequentialAnimation {
             id: shakeAnimation
             NumberAnimation { target: authCard; property: "anchors.horizontalCenterOffset"; from: 0; to: -16; duration: 50; easing.type: Easing.InOutQuad }
@@ -385,12 +454,12 @@ Item {
                 }
             }
 
-            // 8.3 PASSWORD INPUT AND STATUS MESSAGE
+            // 9.3 PASSWORD INPUT AND STATUS MESSAGE
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 10
 
-                // 8.3.1 INPUT BOX
+                // 9.3.1 INPUT BOX
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 56
@@ -415,8 +484,12 @@ Item {
                             Keys.onPressed: { if (event.key === Qt.Key_Down && root.sessionOpen) sessionList.forceActiveFocus() }
                         }
                         Text {
-                            anchors.centerIn: parent; text: "Enter Password"; color: root.cMuted
-                            visible: passwordInput.text.length === 0; font.pixelSize: 16
+                            anchors.centerIn: parent; 
+                            // Change text based on what's happening
+                            text: root.authOpen ? "Looking for you..." : "Enter Password"; 
+                            color: root.cMuted
+                            visible: passwordInput.text.length === 0;
+                            font.pixelSize: 16
                         }
                     }
 
@@ -438,7 +511,7 @@ Item {
                     }
                 }
                 
-                // 8.4 ERROR STATUS TEXT
+                // 9.4 ERROR STATUS TEXT
                 Text {
                     Layout.alignment: Qt.AlignHCenter
                     text: root.statusMessage
@@ -452,7 +525,7 @@ Item {
             }
         }
 
-        // 9. SESSION SELECTOR LIST
+        // 10. SESSION SELECTOR LIST
 
         Rectangle {
             anchors.bottom: parent.bottom; anchors.horizontalCenter: parent.horizontalCenter
@@ -493,6 +566,8 @@ Item {
         z: 4; anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom; anchors.bottomMargin: 40
         text: "Press any key to unlock"; color: root.cMuted
+        font.pixelSize: 19
+        font.italic: true
         opacity: root.authOpen ? 0.0 : 1.0
         Behavior on opacity { NumberAnimation { duration: 200 } }
     }

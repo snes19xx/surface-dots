@@ -1,5 +1,4 @@
-// Heavily inspired by PixelDots by @mahaveergurjar
-// PLease check https://github.com/mahaveergurjar/sddm/tree/pixel
+// based on @mahaveergurjar's Pixeldots
 
 import QtQuick 2.15
 

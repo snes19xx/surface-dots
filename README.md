@@ -1,12 +1,7 @@
 # surface-dots
 
 Personal dotfiles + UI setup for my **Surface Laptop 4 (AMD)** running **Hyprland**.
-Also, please see my calendar app: [Evercal](https://github.com/snes19xx/EverCal)
-
-#### <span style="color:#a41d1d">[Reuse Note:]</span>
-
-Copy/steal whatever you want. Fork it. Remix it. Break it as long as you cite me and
-more importantly the listed media sources in the credits/references where applicable.
+Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/EverCal)
 
 ---
 
@@ -17,7 +12,6 @@ more importantly the listed media sources in the credits/references where applic
 - [Shaders](#shaders)
 - [Quickshell Bar](#quickshell-bar)
 - [Quickshell Hub (`snes-hub`)](#quickshell-hub-snes-hub)
-- [Google Calendar sync (vdirsyncer + khal)](#google-calendar-sync-vdirsyncer--khal)
 - [Power menu](#power-menu)
 - [Wifi menu](#wifi-menu)
 - [Pixel sddm theme](#pixel-sddm-theme)
@@ -115,7 +109,7 @@ more importantly the listed media sources in the credits/references where applic
 ---
 
 > [!CAUTION]
-> Layout geometry is hardcoded for 3:2 high-resolution display. Deviation in aspect ratio or pixel density will result in misalignment or things looking too big. Please reconfigure values accordingly.
+> Layout geometry is hardcoded for 3:2 high-resolution display. Deviation in aspect ratio or pixel density will result in misalignment or things looking too big or small. Please reconfigure values accordingly.
 
 ## Hyprland
 
@@ -129,16 +123,17 @@ Old Config at `~/.config/hypr/hyprland_OLD.conf`
 
 - `SUPER + Q` → terminal (`kitty`)
 - `SUPER + E` → file manager (`thunar`)
-- `SUPER + R` → rofi launcher script
+- `SUPER + R` → rofi
 - `SUPER + B` → firefox
 - `SUPER + D` → reading mode
+- `SUPER + S` → my custom ocr app
 
 ### Window actions
 
 - `SUPER + SPACE` → toggle hub on or off
 - `SUPER + X` → kill active window
-- `SUPER + ALT + F` → toggle floating (simple)
-- `SUPER + F` → toggle floating **and** set size `900x600` + center
+- `SUPER + F` → toggle floating (simple)
+- `SUPER + ALT + F` → toggle floating **and** set size `900x600` + center
 - `SUPER + M` → fullscreen
 - `SUPER + P` → pseudotile
 - `SUPER + UP` → togglesplit
@@ -159,22 +154,18 @@ Old Config at `~/.config/hypr/hyprland_OLD.conf`
 - `SUPER + 1..0` → workspace `1..10`
 - `SUPER + SHIFT + 1..0` → move active window to workspace `1..10`
 - `SUPER + mouse wheel` → next/prev workspace
+- `SUPER + G` → toggle group
+- `SUPER+CTRL+LEFT/RIGHT` → move across grouped windows
 
 ### Scratchpad (“special workspace”)
 
-- `SUPER + S` → toggle special workspace `magic`
+- `SUPER + H` → toggle special workspace `magic`
 - `SUPER + SHIFT + S` → move active window to `special:magic`
 
 ### Mouse (window move/resize)
 
 - `SUPER + LMB` → move window
 - `SUPER + RMB` → resize window
-
-### Media / special keys
-
-- Brightness keys → `brightnesscontrol.sh` (up/down)
-- Volume keys → `audiocontrol.sh` (up/down/mute)
-- Play key → `mediacontrol.sh`
 
 ### Screenshots
 
@@ -290,7 +281,7 @@ kitty -e bash -lc "sudo pacman -Syu"
 
 #### Buttons and Sliders
 
-- Wi‑Fi toggle + SSID readout (right‑click opens the Wi‑Fi Rofi menu).
+- Wi‑Fi toggle + SSID readout (right‑click opens wifi module).
 - Bluetooth toggle + connected device status.
 - Performance profile button (cycle modes via `auto-cpufreq`, right click toggles battery health card).
 - DND toggle (dunst).
@@ -310,7 +301,6 @@ kitty -e bash -lc "sudo pacman -Syu"
 - Clicking the media card launches the external now-playing widget and then toggles the hub off.
 - It tracks metadata changes and resets its internal timing state when tracks change. It's still finicky with some browser contents like youtube videos
 - Only appears when something is playing
-- Summons Now playing widget on click
 
 #### Now Playing (Flutter)
 
@@ -388,10 +378,10 @@ khal list now 7d
   <table>
     <tr>
       <td>
-        <img src="media/screenshots/powermenu.png" height="300" alt="Quickshell Power Menu screenshot (Dark)" />
+        <img src="media/screenshots/powermenu.png" height="200" alt="Quickshell Power Menu screenshot (Dark)" />
       </td>
       <td>
-        <img src="media/screenshots/powermenu_light.png" height="300" alt="Quickshell Power Menu screenshot (Light)" />
+        <img src="media/screenshots/powermenu_light.png" height="200" alt="Quickshell Power Menu screenshot (Light)" />
       </td>
     </tr>
   </table>
@@ -412,17 +402,18 @@ Standalone network manager applet located at lib/WifiMenu.qml. With both (light/
 - or run: `quickshell -p ~/.config/quickshell/snes-hub/lib/Wifimenu.qml`
 
 > [!WARNING]
-> You cannot connect to enterprise access points yet, I haven't had the time to fix it yet
+> You cannot connect to enterprise access points (for now), I haven't had the time to fix it yet
 
 ## Pixel sddm theme
 
-- Required (I recommend installing `qt5-graphicaleffects qt5-quickcontrols2 qt5-svg` too if it keeps giving error):
+[Note: I am using qt5, please install qt5 dependencies]
 
 ```bash
 sudo pacman -S qt6-5compat qt6-svg qqc2-desktop-style inter-font ttf-nerd-fonts-symbols
 ```
 
-- There's an alternative version with windows hello like animations for howdy facial recognition at `sddm/themes/pixel/.withhowdy_effects`
+_<b>if you don't want windows hello like animation please use main.qml from the </b>`old` <b>directory</b>_
+
 - To install:
   - move the contents of sddm/theme folder to `/usr/share/sddm/themes/` (create the dir if it doesn't exist yet)
   - Set "pixel" as the current theme by creating a config file in `/etc/sddm.conf.d/`:
@@ -454,15 +445,32 @@ Firefox doesn't really want you to use local html as a new tab page so
 - [Everforest-GTK-Theme](https://github.com/Fausto-Korpsvart/Everforest-GTK-Theme) by Fausto-Korpsvart
 - Rofi themes loosely based on @adi1090x's [type 7](https://github.com/adi1090x/rofi/blob/master/previews/launchers/type-7/5.png)
 - `Pixeldots.qml` in sddm theme based on @mahaveergurjar's [Pixeldots](https://github.com/mahaveergurjar/sddm/tree/pixel)
-- Colors: https://github.com/sainnhe/everforest
+- Colors: Modified from https://github.com/sainnhe/everforest
 - SVG icons: https://www.svgrepo.com/
 - linux-surface project: https://github.com/linux-surface/linux-surface
-- Thorium: https://thorium.rocks/
+- Thorium: https://thorium.rocks/ for the background visualizations in firefox custom new tab
 
 ## Media sources
 
-- 14.jpg: Photo by fffunction studio on [Unsplash](https://unsplash.com/photos/green-trees-near-mountains-during-daytime-IrWgzQ_Y_zg)
-- 15.jpg: Photo by Brian McGowan on [Unsplash](https://unsplash.com/photos/astronaut-in-white-suit-in-grayscale-photography-I0fDR8xtApA)
-- luci_light.jpg: https://www.amazon.ca/Art-Fire-Emblem-Awakening-ebook/dp/B01J1XIC2O
+1. Photo by fffunction studio on [Unsplash](https://unsplash.com/photos/green-trees-near-mountains-during-daytime-IrWgzQ_Y_zg)
+2. Photo by Brian McGowan on [Unsplash](https://unsplash.com/photos/astronaut-in-white-suit-in-grayscale-photography-I0fDR8xtApA)
+3. Photo by Mimicry Hu on [Unsplash](https://unsplash.com/photos/aerial-photography-of-persons-on-plant-field-24tsXm7qGQE)
+4. Photo by Bailey Zindel on [Unsplash](https://unsplash.com/photos/body-of-water-surrounded-by-trees-NRQV-hBF10M)
+5. Photo by on Jay Yu on [Unsplash](https://unsplash.com/photos/silhouette-of-trees-under-starry-night-atiSW3NHtUM)
+6. Photo by Ben Dutton on [Unsplash](https://unsplash.com/photos/green-trees-FKrcPEZfoNU)
+7. Photo by Richard Rhee on [Flickr](https://www.flickr.com/photos/rcrhee/15167206848/)
+8. Photo by Cedric Chambaz on [Flickr](https://www.flickr.com/photos/cchambaz/2391578535/in/gallery-195423583@N07-72157720611385337/)
+
+[OC]
+
+- Lucina wallpaper from [Fire Emblem Awekening Artbook](https://www.amazon.ca/Art-Fire-Emblem-Awakening-ebook/dp/B01J1XIC2O)
 - Final Fantasy X logo: by [Yoshitaka Amano](https://en.yoshitaka-amano.com/#/)
+- Most Monogatari wallpapers are edited from the scans of [Monogatari Series 10th Anniversary Illustration Works Art Book](https://www.ebay.ca/itm/403993406564)
+- crab2,hanekawa3 and crab2.png are form [AhogeDesu](https://imgur.com/gallery/utamonogatari-styled-heroines-DH4ca2m)
+
 - All Rofi pictures were pulled from Pinterest; I don’t know the original owners.
+
+#### <span style="color:#a41d1d">[Reuse Note:]</span>
+
+Feel free to copy/steal whatever you want as long as you cite me and
+more importantly the listed media sources in the credits/references where applicable.
