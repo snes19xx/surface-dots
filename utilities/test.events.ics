@@ -1,0 +1,446 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//AetherCorp//Enterprise Calendar v9.1//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Maya Rodriguez – Executive Calendar
+X-WR-TIMEZONE:America/Chicago
+X-WR-CALDESC:Primary calendar for Maya Rodriguez, VP of Product Strategy
+NAME:Maya Rodriguez – Executive Calendar
+
+BEGIN:VTIMEZONE
+TZID:America/Chicago
+LAST-MODIFIED:20241029T050000Z
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0600
+TZOFFSETTO:-0500
+TZNAME:CDT
+DTSTART:19700308T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:-0500
+TZOFFSETTO:-0600
+TZNAME:CST
+DTSTART:19701101T020000
+RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU
+END:STANDARD
+END:VTIMEZONE
+
+BEGIN:VTIMEZONE
+TZID:Europe/Berlin
+LAST-MODIFIED:20241029T050000Z
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
+
+BEGIN:VTIMEZONE
+TZID:Asia/Tokyo
+LAST-MODIFIED:20241029T050000Z
+BEGIN:STANDARD
+TZOFFSETFROM:+0900
+TZOFFSETTO:+0900
+TZNAME:JST
+DTSTART:19700101T000000
+END:STANDARD
+END:VTIMEZONE
+
+BEGIN:VEVENT
+SUMMARY:Leadership Daily Briefing
+DTSTART;TZID=America/Chicago:20260119T083000
+DTEND;TZID=America/Chicago:20260119T093000
+DTSTAMP:20241215T100000Z
+UID:leadership-brief-20260119@aethercorp.com
+CREATED:20241101T080000Z
+DESCRIPTION:Executive team sync on daily priorities and critical updat
+ es. Requires pre-read of overnight metrics dashboard.
+LOCATION:Executive War Room (Floor 30)
+ORGANIZER;CN="CEO Office":mailto:ceo.office@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="Maya Rodriguez":mailto
+ :maya.rodriguez@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="David Chen":mailto:dav
+ id.chen@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=TENTATIVE;CN="Sarah Johnson":mailto
+ :sarah.johnson@aethercorp.com
+CATEGORIES:Leadership,Operations
+CLASS:CONFIDENTIAL
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER;RELATED=START:-PT15M
+DESCRIPTION:Leadership Briefing starts soon.
+END:VALARM
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Project Helios – Phase 3 Kickoff
+DTSTART;TZID=America/Chicago:20260119T103000
+DTEND;TZID=America/Chicago:20260119T120000
+DTSTAMP:20241215T100000Z
+UID:helios-kickoff-20260119@aethercorp.com
+CREATED:20241120T140000Z
+LAST-MODIFIED:20241210T110000Z
+DESCRIPTION:Official launch of Phase 3 development. Final requirements
+  sign-off and engineering timeline review.
+LOCATION:Innovation Lab 3
+ORGANIZER;CN="Maya Rodriguez":mailto:maya.rodriguez@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="Maya Rodriguez":mailto
+ :maya.rodriguez@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="Engineering Leads":mai
+ lto:eng-leads@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;CN="Design Director":mailto:alex.wu@aetherco
+ rp.com
+CATEGORIES:Product Launch,Engineering
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Lunch with Venture Capital Partners
+DTSTART;TZID=America/Chicago:20260119T123000
+DTEND;TZID=America/Chicago:20260119T140000
+DTSTAMP:20241215T100000Z
+UID:lunch-vc-horizon@aethercorp.com
+CREATED:20241105T091500Z
+DESCRIPTION:Relationship building with Horizon Ventures. Discussing fu
+ ture market trends and investment opportunities.
+LOCATION:The Capital Grill, 100 N Riverside Plaza
+ORGANIZER;CN="Maya Rodriguez":mailto:maya.rodriguez@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="Maya Rodriguez":mailto
+ :maya.rodriguez@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="Michael Thorne (Horizo
+ n VP)":mailto:mthorne@horizon.vc
+CLASS:PRIVATE
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:EMEA Market Expansion Review
+DTSTART;TZID=Europe/Berlin:20260120T140000
+DTEND;TZID=Europe/Berlin:20260120T153000
+DTSTAMP:20241215T100000Z
+UID:emea-review-q1-20260120@aethercorp.com
+CREATED:20241110T090000Z
+DESCRIPTION:Quarterly performance review with Berlin and Paris teams. 
+ Focus on Q2 localization strategy.
+LOCATION:Microsoft Teams (EMEA Bridge)
+ORGANIZER;CN="Klaus Wagner":mailto:klaus.wagner@aethercorp.de
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="Maya Rodriguez":mailto
+ :maya.rodriguez@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;CN="Klaus Wagner":mailto:klaus.wagner@aether
+ corp.de
+ATTENDEE;ROLE=REQ-PARTICIPANT;CN="Sophie Laurent":mailto:sophie.laurent@ae
+ thercorp.fr
+CATEGORIES:International,Strategy
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Board Preparation Working Session
+DTSTART;TZID=America/Chicago:20260120T160000
+DTEND;TZID=America/Chicago:20260120T173000
+DTSTAMP:20241215T100000Z
+UID:board-prep-20260120@aethercorp.com
+CREATED:20241125T100000Z
+DESCRIPTION:Deep dive with CFO and CTO to prepare materials for upcomi
+ ng board meeting. Financial projections and tech roadmap.
+LOCATION:CFO's Office (2920)
+ORGANIZER;CN="David Chen (CFO)":mailto:david.chen@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="Maya Rodriguez":mailto
+ :maya.rodriguez@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="David Chen":mailto:dav
+ id.chen@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;CN="James Kim (CTO)":m
+ ailto:james.kim@aethercorp.com
+CATEGORIES:Board,Planning
+CLASS:CONFIDENTIAL
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Tokyo Partnership Announcement Coordination
+DTSTART;TZID=Asia/Tokyo:20260121T110000
+DTEND;TZID=Asia/Tokyo:20260121T123000
+DTSTAMP:20241215T100000Z
+UID:tokyo-partner-announce@aethercorp.com
+CREATED:20241115T150000Z
+DESCRIPTION:Final coordination call with Fujikawa Industries regarding
+  joint press release and launch timeline.
+LOCATION:Zoom (Secure Link)
+ORGANIZER;CN="Kenji Sato":mailto:kenji.sato@fujikawa.co.jp
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="Maya Rodriguez":mailto
+ :maya.rodriguez@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;CN="Kenji Sato":mailto:kenji.sato@fujikawa.c
+ o.jp
+ATTENDEE;ROLE=REQ-PARTICIPANT;CN="Legal Counsel":mailto:legal@aethercorp.c
+ om
+CATEGORIES:Partnership,International
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Product All-Hands: Q1 Roadmap Reveal
+DTSTART;TZID=America/Chicago:20260121T130000
+DTEND;TZID=America/Chicago:20260121T143000
+DTSTAMP:20241215T100000Z
+UID:product-allhands-20260121@aethercorp.com
+CREATED:20241201T090000Z
+DESCRIPTION:Company-wide presentation of the Q1 product roadmap. New f
+ eature demos and team recognitions.
+LOCATION:Main Auditorium & Global Stream
+ORGANIZER;CN="Product Strategy":mailto:product-comms@aethercorp.com
+ATTENDEE;CUTYPE=GROUP;ROLE=REQ-PARTICIPANT;CN="All Product & Engineering"
+ ;MEMBER="mailto:product-eng-all@aethercorp.com"
+CATEGORIES:Company,Presentation
+CLASS:PUBLIC
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Architecture Review: Next-Gen Platform
+DTSTART;TZID=America/Chicago:20260121T150000
+DTEND;TZID=America/Chicago:20260121T163000
+DTSTAMP:20241215T100000Z
+UID:arch-review-platform-20260121@aethercorp.com
+CREATED:20241128T140000Z
+DESCRIPTION:Technical deep-dive on the new microservices architecture.
+  Key decision point on database migration strategy.
+LOCATION:Engineering Hub, Whiteboard Wall
+ORGANIZER;CN="James Kim (CTO)":mailto:james.kim@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="Maya Rodriguez":mailto
+ :maya.rodriguez@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;CN="Principal Architects":mailto:architectur
+ e-team@aethercorp.com
+CATEGORIES:Technical,Planning
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Strategic Planning Offsite – Day 1
+DTSTART;TZID=America/Chicago:20260122T090000
+DTEND;TZID=America/Chicago:20260122T170000
+DTSTAMP:20241215T100000Z
+UID:offsite-day1-20260122@aethercorp.com
+CREATED:20241015T110000Z
+DESCRIPTION:Executive leadership offsite at Lake Geneva. Focus on 3-ye
+ ar strategic vision and competitive positioning.
+LOCATION:The Geneva Resort, Lake Geneva, WI
+ORGANIZER;CN="CEO Office":mailto:ceo.office@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="Maya Rodriguez":mailto
+ :maya.rodriguez@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;CN="Executive Leadership Team":mailto:el
+ t@aethercorp.com
+CATEGORIES:Strategy,Offsite
+CLASS:PRIVATE
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Strategic Planning Offsite – Day 2
+DTSTART;TZID=America/Chicago:20260123T090000
+DTEND;TZID=America/Chicago:20260123T160000
+DTSTAMP:20241215T100000Z
+UID:offsite-day2-20260123@aethercorp.com
+CREATED:20241015T110000Z
+DESCRIPTION:Day 2: Breakout sessions on market expansion and technolog
+ y investments. Working dinner to follow.
+LOCATION:The Geneva Resort, Lake Geneva, WI
+ORGANIZER;CN="CEO Office":mailto:ceo.office@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="Maya Rodriguez":mailto
+ :maya.rodriguez@aethercorp.com
+CATEGORIES:Strategy,Offsite
+CLASS:PRIVATE
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Quarterly Business Review with Sales Leadership
+DTSTART;TZID=America/Chicago:20260126T100000
+DTEND;TZID=America/Chicago:20260126T113000
+DTSTAMP:20241215T100000Z
+UID:qbr-sales-q4-20260126@aethercorp.com
+CREATED:20241105T130000Z
+DESCRIPTION:Review of Q4 sales performance against product roadmap. Pl
+ anning for upcoming sales enablement materials.
+LOCATION:Sales Command Center
+ORGANIZER;CN="Sarah Johnson (CRO)":mailto:sarah.johnson@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="Maya Rodriguez":mailto
+ :maya.rodriguez@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;CN="Regional Sales VPs":mailto:sales-vps@aet
+ hercorp.com
+CATEGORIES:Sales,Business Review
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+RRULE:FREQ=MONTHLY;BYMONTHDAY=26;COUNT=12
+EXDATE;TZID=America/Chicago:20260226T100000
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Industry Analyst Briefing (Rescheduled)
+DTSTART;TZID=America/Chicago:20260209T140000
+DTEND;TZID=America/Chicago:20260209T153000
+DTSTAMP:20241215T100000Z
+UID:analyst-briefing-resched@aethercorp.com
+CREATED:20241110T090000Z
+DESCRIPTION:Rescheduled briefing for Gartner and Forrester on our AI p
+ latform vision. Updated demo required.
+RECURRENCE-ID;TZID=America/Chicago:20260226T140000
+LOCATION:Virtual Executive Briefing Center
+ORGANIZER;CN="Maya Rodriguez":mailto:maya.rodriguez@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;CN="Industry Analysts":mailto:analyst-relati
+ ons@aethercorp.com
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Customer Advisory Council – Quarterly Summit
+DTSTART;TZID=America/Chicago:20260210T090000
+DTEND;TZID=America/Chicago:20260210T170000
+DTSTAMP:20241215T100000Z
+UID:cac-summit-q1-2026@aethercorp.com
+CREATED:20241001T120000Z
+DESCRIPTION:Full-day summit with top 20 enterprise customers. Feedback
+  sessions on beta features and future direction.
+LOCATION:AetherCorp Headquarters, Executive Wing
+ORGANIZER;CN="Customer Success":mailto:cac@aethercorp.com
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="Maya Rodriguez":mailto
+ :maya.rodriguez@aethercorp.com
+ATTENDEE;CUTYPE=GROUP;ROLE=REQ-PARTICIPANT;CN="Advisory Council Members":M
+ EMBER="mailto:cac-members-2026@aethercorp.com"
+CATEGORIES:Customer,Strategy
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Flight to Austin for Tech Summit
+DTSTART;TZID=America/Chicago:20260215T070000
+DTEND;TZID=America/Chicago:20260215T093000
+DTSTAMP:20241215T100000Z
+UID:flight-aus-feb15@aethercorp.com
+CREATED:20241120T100000Z
+DESCRIPTION:AA 2345 | ORD -> AUS. Keynote speaker at Southwest Tech Su
+ mmit. Car service to hotel confirmed.
+LOCATION:O'Hare International Airport, Terminal 3
+CATEGORIES:Travel,Conference
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+ACTION:EMAIL
+TRIGGER;RELATED=START:-P1D
+DESCRIPTION:Flight check-in reminder.
+ATTENDEE:mailto:maya.rodriguez@aethercorp.com
+END:VALARM
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Southwest Tech Summit – Keynote Presentation
+DTSTART;TZID=America/Chicago:20260216T110000
+DTEND;TZID=America/Chicago:20260216T123000
+DTSTAMP:20241215T100000Z
+UID:keynote-southwest-tech@aethercorp.com
+CREATED:20241110T150000Z
+DESCRIPTION:"The Future of Enterprise AI" – Main stage keynote. Press 
+ in attendance. Green room available 30min prior.
+LOCATION:Austin Convention Center, Ballroom A
+CATEGORIES:Conference,Speaking
+CLASS:PUBLIC
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Deep Focus: Annual Product Strategy Document
+DTSTART;TZID=America/Chicago:20260218T130000
+DTEND;TZID=America/Chicago:20260218T180000
+DTSTAMP:20241215T100000Z
+UID:deep-focus-strategy-doc@aethercorp.com
+CREATED:20241201T090000Z
+DESCRIPTION:Protected time to draft the annual 3-year product strategy
+  document. Do not disturb.
+LOCATION:Home Study
+CATEGORIES:Focus Time,Planning
+CLASS:PRIVATE
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+X-MICROSOFT-CDO-BUSYSTATUS:FREE
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Board of Directors Meeting – Q1
+DTSTART;TZID=America/Chicago:20260305T080000
+DTEND;TZID=America/Chicago:20260305T170000
+DTSTAMP:20241215T100000Z
+UID:board-meeting-q1-2026@aethercorp.com
+CREATED:20241001T100000Z
+DESCRIPTION:Full-day board meeting. Presentation of Q4 results and Q1 
+ forecast. Formal attire.
+LOCATION:Boardroom (Penthouse Level)
+ORGANIZER;CN="Corporate Secretary":mailto:corporate.secretary@aethercorp.c
+ om
+ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="Maya Rodriguez":mailto
+ :maya.rodriguez@aethercorp.com
+ATTENDEE;CUTYPE=GROUP;ROLE=REQ-PARTICIPANT;CN="Board Members":MEMBER="mail
+ to:board@aethercorp.com"
+CATEGORIES:Board,Governance
+CLASS:CONFIDENTIAL
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Team Offsite – Product Leadership
+DTSTART;VALUE=DATE:20260320
+DTEND;VALUE=DATE:20260323
+DTSTAMP:20241215T100000Z
+UID:product-leadership-offsite-2026@aethercorp.com
+CREATED:20241115T110000Z
+DESCRIPTION:Annual product leadership retreat. Team building and strat
+ egy alignment for H2 planning.
+LOCATION:Big Sur, California
+CATEGORIES:Team Building,Offsite
+CLASS:PUBLIC
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+
+BEGIN:VEVENT
+SUMMARY:Fiscal Year-End Close
+DTSTART;VALUE=DATE:20260331
+DTEND;VALUE=DATE:20260401
+DTSTAMP:20241215T100000Z
+UID:fy-end-close-2026@aethercorp.com
+CREATED:20241201T080000Z
+DESCRIPTION:All financial reporting must be finalized. Product departm
+ ent budget reconciliation due.
+LOCATION:
+CATEGORIES:Finance,Deadline
+CLASS:PUBLIC
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+
+END:VCALENDAR

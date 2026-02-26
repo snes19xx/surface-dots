@@ -7,6 +7,8 @@
    and this is easily the best real-world application of them I've found. 
    It works brilliantly-looks like real paper, killed my eye strain, and even reduced the insane 
    reflections from my glossy surface display.
+
+   by @snes19xx, https://github.com/snes19xx
 */
 
 

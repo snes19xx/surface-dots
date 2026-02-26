@@ -8,8 +8,8 @@
     that "premium" punchy look without crushing blacks or looking fake.
     It's also extremely efficient. No neighbor sampling, no heavy math.
 
-    [NOTE] This shader is strictly tuned for my taste and my specific display,
-    please adjust values accordingly.
+    [strictly tuned for my taste and my specific display]
+    by @snes19xx, https://github.com/snes19xx
 */
 
 precision highp float;

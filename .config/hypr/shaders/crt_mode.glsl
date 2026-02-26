@@ -62,13 +62,13 @@ void main() {
     vec3 color = vec3(r, g, b);
     
     // Scanlines (Horizontal)
-    // unlike the random noise in my e-ink shader, I want a predictable periodic wave here so I am using sin()
+    // unlike the random noise in my e-ink shader, I *want* a predictable periodic wave here so I am using sin()
     // it is doing actual math here instead of being a pseudo-random hash function
     float scanline = sin(gl_FragCoord.y * 1.5) * 0.5 + 0.5;
     
     // Phosphor Bleed
     // bright phosphors glow and scatter light. if the pixel is bright,
-    // it should bleed over the scanline gap. Also improves visibility.
+    // it should bleed over the scanline gap. improves visibility.
     float luma = dot(color, vec3(0.299, 0.587, 0.114));
     float scan_attenuation = 1.0 - (SCAN_STR * (1.0 - luma));
     
@@ -89,7 +89,7 @@ void main() {
     color *= vig;
 
     // Gain Compensation
-    // the image is a little too dim now becayse of scanlines and masks cover half of the pixels
+    // the image is too dim now becayse of scanlines and masks cover half of the pixels
     // so overdrive the brightness to compensate.
     color *= BLOOM_STR;
 

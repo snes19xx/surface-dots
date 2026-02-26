@@ -1,5 +1,11 @@
 #version 320 es
 
+/*
+    Please do not use this for more than a party trick.
+    by @snes19xx, https://github.com/snes19xx
+*/
+
+
 precision highp float;
 in vec2 v_texcoord;
 uniform sampler2D tex;
