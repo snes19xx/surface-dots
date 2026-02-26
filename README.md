@@ -270,7 +270,7 @@ kitty -e bash -lc "sudo pacman -Syu"
 - If you want a lightweight fallback, use the early **AGS** version in `.config/ags/` (works, but fewer features).
 
 <details>
-  <summary><strong>Components</strong></summary>
+  <summary><strong>Components (click to expand)</strong></summary>
 
 <img src="media/screenshots/comparison.png" align="right" width="580" alt="Hub comparison" />
     
