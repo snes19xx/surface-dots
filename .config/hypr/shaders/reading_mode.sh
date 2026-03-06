@@ -3,11 +3,13 @@
 # PATHS
 home="$HOME"
 shader_path="$home/.config/hypr/shaders/reading_mode.glsl"
-theme_script="$home/.config/quickshell/snes-hub/bar/theme-mode.sh"
+#theme_script="$home/.config/quickshell/top-bar/bar/theme-mode.sh"     # use this if top-bar
+theme_script="$home/.config/quickshell/task-bar/utils/theme-mode.sh"
 current_theme_file="$home/.cache/quickshell/theme_mode"
 restore_file="$home/.cache/quickshell/reading_mode_restore"
 wallpaper_reading="$home/Pictures/desktop/WP/6.jpg"
-
+wallpaper_dark="$home/Pictures/desktop/wpdark.jpg"
+wallpaper_light="$home/Pictures/desktop/wplight.jpg"
 
 # SWITCHER
 # Check if shader is active
@@ -26,22 +28,24 @@ if [[ "$current_shader" == *"reading_mode"* ]]; then
         prev_theme="dark" # Default fallback
     fi
 
-    # Turn off shader (failsafe: hyprctl reload usually turns it off anyways)
+    # Turn off shader (hyprctl reload usually turns it off anyways)
     # & restore theme
     hyprshade off &
-    $theme_script "$prev_theme" &
+    $theme_script "$prev_theme" --quiet &
+    echo "off" > "$HOME/.cache/quickshell/reading_mode"
 
+    if [[ "$prev_theme" == "light" ]]; then
+        swww img "$wallpaper_light" --transition-type none &
+    else
+        swww img "$wallpaper_dark" --transition-type none &
+    fi
     # Restore Hyprland
     hyprctl reload
 
     # Cleanup
     rm -f "$restore_file"
 
-    # Restart Shell
-    qs -c snes-hub &
 
-    # Send Notification
-    notify-send 'Reading Mode' 'off'
 
 
 else
@@ -60,15 +64,16 @@ else
 
     # Enable Shader & Switch to Light Theme
     hyprshade on "$shader_path"
-    pkill qs
-    $theme_script light
+    $theme_script light --quiet
+    echo "on" > "$HOME/.cache/quickshell/reading_mode"
 
-    # Set Wallpaper & Brightness (Async)
-    swww img "$wallpaper_reading" --transition-type none &
+    # Set Wallpaper & Brightness
+    sleep 1
+    swww img "$wallpaper_reading" --transition-type none&
     brightnessctl set 37% &
 
     # Apply E-ink Overrides
-    # Constructing the batch string directly
+    # the batch string directly
     overrides="keyword animations:enabled 0;\
     keyword decoration:shadow:enabled 0;\
     keyword decoration:blur:enabled 0;\
@@ -82,6 +87,4 @@ else
     
     hyprctl --batch "$overrides"
 
-    # Send Notification
-    notify-send 'Reading Mode' 'Activated'
 fi

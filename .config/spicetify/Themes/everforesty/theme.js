@@ -43,7 +43,7 @@
                             let img = document.createElement("img");
                             img.classList.add("playlist-picture");
                             img.src = res.metadata.picture;
-                            img.style.borderRadius = "50%"; // Circular sidebar icons
+                            img.style.borderRadius = "50%"; 
                             img.style.width = "24px";
                             img.style.height = "24px";
                             img.style.marginRight = "12px";
@@ -54,10 +54,8 @@
                 }
             }
         }
-        
-        // Watch for changes (scrolling/loading more playlists)
+
         new MutationObserver(loadPlaylistImage).observe(root, { childList: true, subtree: true });
-        // Run once on load
         loadPlaylistImage();
     });
 })();

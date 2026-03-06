@@ -24,13 +24,9 @@ fi
 if [ "$CURRENT_MODE" == "dark" ]; then
     echo "Switching to Light Mode..."
     ln -sf "$THEME_DIR/$LIGHT_THEME" "$TARGET_FILE"
-    # Send notification 
-    notify-send -h string:x-canonical-private-synchronous:sys-notify -u low "Theme" "Switched to Light Mode"
 else
     echo "Switching to Dark Mode..."
     ln -sf "$THEME_DIR/$DARK_THEME" "$TARGET_FILE"
-    # Send notification
-    notify-send -h string:x-canonical-private-synchronous:sys-notify -u low "Theme" "Switched to Dark Mode"
 fi
 
 # Reload Kitty instances

@@ -1,7 +1,8 @@
 #version 320 es
 
+/* [DISABLES DAMAGE TRACKING]
+FOR REFERENCE ONLY -- DO NOT USE !!!! */
 
-/* FOR REFERENCE ONLY -- DO NOT USE !!!! */
 precision highp float;
 in vec2 v_texcoord;
 uniform sampler2D tex;

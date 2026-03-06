@@ -2,7 +2,6 @@
 
 /*
     Inspired by vintage IBM 3278 / 5151 monitors.
-    Clean, readable, and surprisingly easy on the eyes for long sessions.
 
     Use monospace font for maximum nostalgia.
     by @snes19xx, https://github.com/snes19xx

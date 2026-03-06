@@ -1,0 +1,304 @@
+/**
+ * Rofi - DARK 
+ * by @snes19xx
+ **/
+
+/*****----- Configuration -----*****/
+configuration {
+    modi:                       "drun,filebrowser,window,shaders:~/.config/rofi/shaders_menu.sh";
+    show-icons:                 true;
+    display-drun:               "  Apps";
+    display-run:                "  Run";
+    display-filebrowser:        "  Files";
+    display-window:             "  Windows";
+    display-shaders:            "󰓠  Shaders";
+    
+    drun-display-format:        "{name}";
+    window-format:              "{c}";
+    icon-theme:                 "Papirus-Dark";
+
+    /* BEHAVIOR */
+    disable-history:            false;
+    sort:                       true;
+    sorting-method:             "fzf";
+    matching:                   "fuzzy";
+
+    /* MOUSE BEHAVIOR */
+    hover-select:               true;
+    me-select-entry:            "";
+    me-accept-entry:            "MousePrimary";
+
+    /* KEYBINDINGS */
+    kb-row-tab:                 "";
+    kb-accept-alt:              "";
+    kb-accept-custom:           "Shift+Return";
+    kb-accept-entry:            "Return";
+    kb-move-char-back:          "Left";
+    kb-move-char-forward:       "Right";
+    kb-mode-next:               "Shift+Right,Control+Tab,Shift+Down";
+    kb-row-first:               "";
+    kb-move-front:              "Home";
+    kb-remove-to-sol:           "Control+a";
+    click-to-exit:              true;
+}
+
+/*****----- Global Properties -----*****/
+* {
+    font:                        "JetBrains Mono Nerd Font 10";
+    
+    background:                  #141719; 
+    background-alt:              #1E2428;
+    foreground:                  #E3DED1;
+    selected:                    #7898679d;
+    active:                      #2E3F34;
+    urgent:                      #D08261;
+    
+    tile-bg:                     #1e23269e; 
+    divider:                     #7c797430;
+}
+
+/*****----- Main Window -----*****/
+window {
+    transparency:                "real";
+    location:                    southwest;
+    anchor:                      southwest;
+    fullscreen:                  false;
+    
+    width:                       950px;
+    height:                      500px;
+    
+    x-offset:                    4px;
+    y-offset:                    -10px;
+
+    enabled:                     true;
+    border-radius:               8px;
+    cursor:                      "default";
+    border: 2px;
+    border-color:                #15191c76;
+    background-color: @background;
+
+}
+
+/*****----- Main Box -----*****/
+mainbox {
+    enabled:                     true;
+    spacing:                     0px;
+    background-color:            transparent;
+    orientation:                 horizontal;
+    children:                    [ "sidebar-box", "listbox" ];
+}
+
+/*****----- Sidebar (Left) -----*****/
+sidebar-box {
+    width:                       260px;
+    expand:                      false;
+    orientation:                 vertical;
+    children:                    [ "inputbar", "mode-switcher", "sidebar-spacer", "user-profile" ];
+    
+    background-color:            @background;
+    /* UNCOMMENT THE LINE BELOW IF YOU WANT TO USE AN IMAGE: */
+    /* background-image: url("crop2.png", height); */
+    spacing:                     20px;
+    padding:                     25px;
+}
+
+/* --- Search --- */
+inputbar {
+    enabled:                     true;
+    spacing:                     0px;
+    padding:                     2px;
+    background-color:            #1E2326D0; 
+    border-radius:               8px;
+    text-color:                  @foreground;
+    orientation:                 horizontal;
+    children:                    [ "textbox-prompt-colon", "entry" ];
+}
+
+textbox-prompt-colon {
+    enabled:                     true;
+    expand:                      false;
+    str:                         "";
+    padding:                     12px 16px;
+    background-color:            transparent;
+    text-color:                  inherit;
+    vertical-align:              0.5;
+}
+
+entry {
+    enabled:                     true;
+    expand:                      true; 
+    padding:                     12px 0px;
+    background-color:            transparent;
+    text-color:                  inherit;
+    cursor:                      text;
+    placeholder:                 "Search...";
+    placeholder-color:           inherit;
+    vertical-align:              0.5;
+}
+
+/* --- Modes --- */
+mode-switcher{
+    enabled:                     true;
+    spacing:                     15px;
+    background-color:            transparent;
+    text-color:                  @foreground;
+    orientation:                 vertical; 
+}
+
+button {
+    padding:                     12px;
+    border-radius:               8px;
+    background-color:            #1E2326D0;
+    text-color:                  inherit;
+    font:                        "JetBrains Mono Nerd Font 11";
+    cursor:                      pointer;
+    horizontal-align:            0.0;
+}
+
+button selected {
+    background-image:            linear-gradient(to right, #f1af97, #7baaba);
+    text-color:                  #1E2326;
+    border:                      0px;
+}
+
+sidebar-spacer {
+    expand:                      true;
+    background-color:            transparent;
+}
+
+/* --- Profile --- */
+user-profile {
+    orientation: horizontal;
+    expand: false;
+    spacing: 10px;
+    background-color: transparent;
+    children: [ "user-icon", "textbox-user" ];
+}
+
+user-icon { 
+    expand: false; 
+    width: 48px; 
+    height: 48px; 
+    border-radius: 100%; 
+    background-image: url("/home/snes/.config/rofi/profile.jpg",height); 
+    background-color: transparent; 
+    padding: 24px;
+    }
+
+
+textbox-user {
+    str: "snes";
+    expand: false;
+    background-color: transparent;
+    text-color: @foreground;
+    font: "JetBrains Mono Nerd Font 13";
+    vertical-align: 0.6;
+}
+
+
+
+
+/*****----- Listbox (Right) -----*****/
+listbox {
+    spacing:                     15px;
+    padding:                     20px;
+    background-color:            transparent;
+    orientation:                 vertical;
+    children:                    [ "message", "listview" ];
+    border:                      0px 0px 0px 1px;
+    border-color:                @divider;
+}
+
+listview {
+    enabled:                     true;
+    columns:                     4; 
+    lines:                       4; 
+    cycle:                       true;
+    dynamic:                     true;
+    scrollbar:                   false;
+    layout:                      vertical;
+    reverse:                     false;
+    fixed-height:                false;
+    fixed-columns:               true;
+    spacing:                     10px;
+    background-color:            transparent;
+    text-color:                  @foreground;
+    cursor:                      "default";
+}
+
+/*****----- Elements (Tiles) -----*****/
+element {
+    enabled:                     true;
+    spacing:                     10px;
+    padding:                     15px 10px;
+    border-radius:               8px;
+    background-color:            @tile-bg; 
+    text-color:                  @foreground;
+    cursor:                      pointer;
+    orientation:                 vertical; 
+}
+
+element normal.normal {
+    background-color:            @tile-bg;
+    text-color:                  inherit;
+}
+element normal.active {
+    background-color:            @tile-bg;
+    text-color:                  inherit;
+}
+element normal.urgent {
+    background-color:            @urgent;
+    text-color:                  @foreground;
+}
+
+element selected.normal {
+    background-color:            @selected; 
+    border:                      1px;
+    border-color:                @selected;
+    text-color:                  @foreground;
+}
+element selected.active {
+    background-color:            @background-alt;
+    border:                      1px;
+    border-color:                @selected;
+    text-color:                  @foreground;
+}
+element selected.urgent {
+    background-color:            @urgent;
+    text-color:                  @foreground;
+}
+
+element-icon {
+    background-color:            transparent;
+    text-color:                  inherit;
+    size:                        48px;
+    cursor:                      inherit;
+    horizontal-align:            0.5;
+}
+
+element-text {
+    background-color:            transparent;
+    text-color:                  inherit;
+    cursor:                      inherit;
+    horizontal-align:            0.5;
+    vertical-align:              0.5;
+}
+
+/*****----- Message -----*****/
+message {
+    background-color:            transparent;
+}
+textbox {
+    padding:                     10px;
+    border-radius:               10px;
+    background-color:            @background-alt;
+    text-color:                  @foreground;
+    vertical-align:              0.5;
+    horizontal-align:            0.0;
+}
+error-message {
+    padding:                     10px;
+    border-radius:               20px;
+    background-color:            @background;
+    text-color:                  @foreground;
+}

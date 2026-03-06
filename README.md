@@ -7,37 +7,50 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 
 ## Table of contents
 
+- [Screenshots](#screenshots)
 - [Dependencies](#dependencies)
+- [Installation](#installation)
 - [Hyprland](#hyprland)
 - [Shaders](#shaders)
-- [Quickshell Bar](#quickshell-bar)
-- [Quickshell Hub (`snes-hub`)](#quickshell-hub-snes-hub)
+- [Desktop Layouts](#desktop-layouts)
+- [Quickshell Hub](#quickshell-hub)
 - [Power menu](#power-menu)
 - [Wifi menu](#wifi-menu)
+- [Themes](#themes)
 - [Pixel sddm theme](#pixel-sddm-theme)
-- [Firefox custom new-tab](#firefox-custom-new-tab)
-- [Surface-only features](#surface-only-features)
+- [Firefox Customizations](#firefox-customizations)
+- [Utilities](#utilities-1)
 - [Credits & acknowledgements](#credits--acknowledgements)
 - [Media sources](#media-sources)
+- [FAQs](#faqs)
 
 ---
 
+## Screenshots
+
 <div align="center">
-  <img src="media/screenshots/ss1.png" width="45%" />
-  <img src="media/screenshots/ss2.png" width="45%" />
-  <p><i>SDDM: Lock Screen & Login Screen (hyprlock also looks just like this + with media information if playing when locked)</i></p>
-  
-  <br/>
+<div style="display:flex; justify-content:center; gap:10px;">
+  <img src="media/screenshots/main_ui.png" width="30%" />
+  <img src="media/screenshots/A1.png" width="30%" />
+  <img src="media/screenshots/A2.png" width="30%" />
+</div>
+<p><i>Desktop Layouts</i></p>
+<br/>
+<div style="display:flex; justify-content:center; gap:10px;">
+  <img src="media/screenshots/A3.jpg" width="30%" />
+  <img src="media/screenshots/A4.jpg" width="30%" />
+</div>
+<p><i>Workflow & Windows</i></p>
 
-  <img src="media/screenshots/ss4.png" width="45%" />
-  <img src="media/screenshots/ss6.png" width="45%" />
-  <p><i>Dark Mode & Light Mode (Hub + Rofi)</i></p>
+<br/>
 
-  <br/>
+<div style="display:flex; justify-content:center; gap:10px;">
+  <img src="media/screenshots/A5.jpg" width="30%" />
+  <img src="media/screenshots/reading.png" width="30%" />
+  <img src="media/screenshots/layers.jpg" width="30%" />
+</div>
+<p><i>Lockscreen, Reading Mode, Other system components</i></p>
 
-  <img src="media/screenshots/reading_mode.png" width="45%" />
-  <img src="media/screenshots/ss12.png" width="45%" />
-  <p><i>Reading mode & Various other apps</i></p>
 </div>
 
 ## Dependencies
@@ -48,7 +61,8 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 
 ### Core & System
 
-- Hyprland
+- quickshell
+- hyprland
 - hypridle
 - hyprlock
 - hyprshade
@@ -69,19 +83,18 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 
 - dunst
 - swww
-- waypaper
 - rofi
 - kitty
 - firefox
 - colorreload-gtk-module
-- Everforest-Dark-theme
-- EVerforest-Light-theme
 - qt6ct
 - kvantum
 - papirus-icon-theme
 - ttf-manrope
 - ttf-nerd-fonts-symbols
+- Iosevka Nerd Font Mono
 - inter-font
+- volantes_cursors
 
 </td>
 <td valign="top">
@@ -89,19 +102,19 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 ### Utilities
 
 - grim, slurp, swappy, grimblast
-- pamixer, pipewire-pulse or pulseaudio
+- pamixer
+- pulseaudio-utils
 - playerctl
 - brightnessctl
-- quickshell
+- libnotify
+- wl-clipboard
 - vdirsyncer
 - khal
 - [EverCal](https://github.com/snes19xx/EverCal)
 - xdg-utils
 - curl, jq
-- flutter, dart
-- linux-surface tools (Linux-surface only)
 - auto-cpufreq
-
+- howdy-git (optional)
 </td>
 </tr>
 </table>
@@ -111,10 +124,46 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 > [!CAUTION]
 > Layout geometry is hardcoded for 3:2 high-resolution display. Deviation in aspect ratio or pixel density will result in misalignment or things looking too big or small. Please reconfigure values accordingly.
 
-## Hyprland
+## Installation
 
-Main config is for Hyprland v0.53: `~/.config/hypr/hyprland.conf`
-Old Config at `~/.config/hypr/hyprland_OLD.conf`
+A GUI installer is included for installing surface-dots.
+
+Installer [source code](./.source_codes/installer_src) and [documentation](./.source_codes/installer_src/SETUP.md)
+
+> [!IMPORTANT]
+> If the installer fails to launch, you may need the WebKitGTK runtime libraries
+
+```bash
+# arch:
+sudo pacman -S webkit2gtk-4.1
+# debian:
+sudo apt install libwebkit2gtk-4.1-0
+# fedora:
+sudo dnf install webkit2gtk4.1
+```
+
+##### Installation Steps
+
+1. Clone the repository
+2. Make the precompiled installer executable
+3. Launch the installer
+
+```bash
+git clone https://github.com/snes19xx/surface-dots
+cd surface-dots
+chmod +x surface-dots-installer
+./surface-dots-installer
+```
+
+##### Note
+
+- The installer does **not** install dependencies. Install any required packages through your distribution’s package manager before running it.
+
+- Some files from `.config` are intentionally skipped by the installer. If you need anything not included in the automated install, please manually copy the files from git clone.
+
+- The installer has only been tested on Arch Linux with the glibc versions used by Arch. Compatibility with other distributions is unknown. If you test it on another distribution, feel free to report whether it works or fails.
+
+## Hyprland
 
 <details>
   <summary><strong>Keybindings</strong></summary>
@@ -126,6 +175,7 @@ Old Config at `~/.config/hypr/hyprland_OLD.conf`
 - `SUPER + R` → rofi
 - `SUPER + B` → firefox
 - `SUPER + D` → reading mode
+- `SUPER + N` → night light
 - `SUPER + S` → my custom ocr app
 
 ### Window actions
@@ -169,10 +219,9 @@ Old Config at `~/.config/hypr/hyprland_OLD.conf`
 
 ### Screenshots
 
-- `Print` → screenshot script mode `s`
-- `SUPER + Print` → mode `p`
-- `SUPER + SHIFT + Print` → mode `sf`
-- `SUPER + O` → mode `m`
+- `Print` → Screen snip
+- `SUPER + Print` <i>or</i> `SUPER + O` → Capture screen
+- `SUPER + SHIFT + Print` → Window capture
 
 </details>
 
@@ -180,14 +229,21 @@ Old Config at `~/.config/hypr/hyprland_OLD.conf`
 
 ## Shaders
 
-All shaders located at `~/.config/hypr/shaders/` and use [hyprshade](https://github.com/loqusion/hyprshade)
+Shaders are integral part of my setup, I find them fun.
 
-activate with:
-`hyprshade on <shader_name.glsl>`
-deactivate with:
-`hyprshade off`
+- All shaders located at `~/.config/hypr/shaders/` and use [hyprshade](https://github.com/loqusion/hyprshade)
+- shaders can be accessed and toggled through rofi start menu (only in taskbar mode)
 
-### Reading Mode
+OR:
+
+```bash
+# activate with:
+hyprshade on <shader_name.glsl>
+# deactivate with:
+hyprshade off
+```
+
+#### Reading Mode
 
 A shader-based reading mode to mimic an e-ink reader.
 
@@ -197,54 +253,129 @@ A shader-based reading mode to mimic an e-ink reader.
 - Warm cream paper tone and soft charcoal blacks for reduced contrast
 - Fine paper grain -like texture
 
-### Other shaders
+#### Other shaders
 
 **Ranked from Useful to completely Useless:**
 
-1. **`main.glsl`** – _my main shader to improve my display (I run it at startup)_
-2. **`night.glsl`** – _my main night-light mode shader (script coming soon)_
+1. **`main.glsl`** – _main shader to improve my display (activates on startup through hyprland exec)_
+2. **`night.glsl`** – _my main night-light mode shader_ (toggle with `SUPER + N`)
 3. **`outdoor.gls`** – _for maximum outdoor useability_
 4. **`cinema.glsl`** – _for media consumption_
 5. **`soft.glsl`** – _soft, muted textures_
 6. **`matte.glsl`** – _anti-glare, matte_
 7. **`IMB5151.glsl`** – _simulates vintage IBM 3278 / 5151 monitors_
 8. **`fuji_acros.glsl`** – _simulates fujifilm acros_
-9. **`crt_mode.glsl`** – _simulates a crt monitor/retro nostalgia_
+9. **`crt_mode.glsl`** – _simulates a crt monitor_
 10. **`vhs.glsl`** – _simulates vhs_
 11. **`gameboy.glsl`** – _simulates a gameboy screen_
-12. **`clarity_inefficient.glsl`** – _an early version of my main shader_
+12. **`clarity_inefficient.glsl`** – _early version of my main shader inefficient but looks better_
 13. **`focus.glsl`** – _party trick_
 14. **`night_vision.glsl`** – _simulates night_vision_
 
-## Quickshell Bar
+## Desktop Layouts
 
-The bar uses an Arch glyph icon (top left) as the launcher button:
+Two desktop layouts are available depending on how you want the bar positioned.
 
-- Left click: launches rofi, choosing a different launcher script depending on the current theme mode.
-- Right click: toggles the bar’s isDarkMode and calls a theme script:
+Use the **top bar layout**:
 
 ```bash
-bash ~/config/quickshell/snes-hub/bar/theme-mode.sh dark|light
+qs -c top-bar
 ```
 
+Use the **taskbar layout**:
+
+```bash
+qs -c task-bar
+```
+
+Both layouts (mostly) reuse the same core components but behave differently depending on mode.
+
+> _The layouts are implemented as separate shells rather than a single unified shell. The project originally started as a simple calendar widget for my Google Calendar events. As more components were added over time, it evolved without a strict overall layout plan. Consolidating everything into a single shell would require significant code edits which I don't want to do atm_
+
+#### Taskbar Mode Behavior
+
+Taskbar mode has additional desktop components and layout changes:
+
+- `desktop/ScreenBorders.qml`
+- `dock/Drawer.qml`
+
+##### Default state (no active windows)
+
+When the session starts or when no windows are open:
+
+- ScreenBorders wrap around the display edges.
+- The taskbar switches to dock mode.
+- The center of the dock contains a quickshell app drawer: `dock/Drawer.qml`
+
+##### When a window becomes active
+
+As soon as a window opens:
+
+- ScreenBorders hide
+- The taskbar switches to workspace mode
+  - The taskbar in this state behaves similarly to the regular bar used in top-bar mode, except it appears at the bottom of the screen.
+  - The launcher drawer switches to rofi instead of the Quickshell drawer.
+
+##### Other taskbar-specific changes
+
+- The rofi (start) menu is wider and contains `shaders`(inspired by windows 10 start menu)
+- The Hub media card derives its background colors from album art palette colors, instead of using blurred album artwork.
+- Upcoming events are no longer displayed inside `CalendarsWeatherCard.qml` and have a dedicated card
+  `hub/Events.qml`. By default, the next upcoming event is shown until it ends. Multiple events can be added to the list by increasing the loop count in the file.
+- <strong>Theme switching</strong> also differs between layouts:
+  - <u>Taskbar mode</u>: the Hub header has a theme toggle button (dark/light).
+  - <u>Topbar mode</u>: right-clicking the Arch glyph launcher icon toggles the theme.
+    Both modes use the same theme script just located at:
+
+  ```bash
+  # in top bar mode:
+  bash ~/config/quickshell/top-bar/bar/theme-mode.sh dark|light
+  ```
+
+  ```bash
+  # in task bar mode:
+  bash ~/config/quickshell/task-bar/utils/theme-mode.sh dark|light
+  ```
+
+- Changing colors is generally easier in **Taskbar mode**, as most styling is handled through the dynamic theme system in `lib/ThemeEngine.qml`. Some components still use the older `theme.js` configuration, and a few define their own colors internally, so theme behavior is still not completely unified.
+
 <details>
-  <summary><strong>Expand for Bar components</strong></summary>
+  
+  <summary><strong><u>Expand for Topbar/Taskbar components</u></strong></summary>
 
 ### Workspaces
 
-Clicking a workspace pill runs: `- hyprctl dispatch workspace <id>`
+Clicking a workspace pill runs:
+
+```
+hyprctl dispatch workspace <id>
+```
 
 ### Updates
 
-Updates are shown using a poller, but it won’t run checkupdates while pacman is busy (to avoid lock-related crashes). When the pacman lock file exists, the bar displays the last cached update count instead. Polled with:
+Updates are hardcoded for `archlinux` if you are using a different distro please replace:
 
-```bash
-if [ -e /var/lib/pacman/db.lck ]; then
-  cat /tmp/qs_updates_count 2>/dev/null || echo 0
-else
-  checkupdates 2>/dev/null | wc -l | tee /tmp/qs_updates_count
-fi
+```qml
+// replace this snippet
+sh(`
+            if [ -e /var/lib/pacman/db.lck ]; then
+                cat /tmp/qs_updates_count 2>/dev/null || echo 0
+                exit 0
+            fi
+            n=$(checkupdates 2>/dev/null | wc -l)
+            echo "$n" | tee /tmp/qs_updates_count
+        `)
+```
 
+with a poller for your distro, for example `debian`:
+
+```qml
+// replacement snippet:
+sh(`
+            # apt list --upgradable does not lock the database, so we skip the lock check
+            n=$(apt list --upgradable 2>/dev/null | grep -v 'Listing...' | wc -l)
+            echo "$n" | tee /tmp/qs_updates_count
+        `)
 ```
 
 Clicking the updates pill runs:
@@ -253,106 +384,199 @@ Clicking the updates pill runs:
 kitty -e bash -lc "sudo pacman -Syu"
 ```
 
+with this line in `Taskbar.qml` (_line 932_) and `Bar.qml`(_line 595_):
+
+```qml
+command: ["kitty", "-e", "bash", "-lc", "sudo pacman -Syu"]
+```
+
+please replace this line with your package manager's update/upgrade command
+
 ### Date and Clock
 
-- Pressing the clock triggers a requestHubToggle() signal (used to open/close the hub).
-- Esc closes the hub (or clicking anywhere outside it).
+- Pressing the clock emits a `requestHubToggle()` signal used to open or close the hub.
+- Pressing **Esc** or clicking outside the hub closes it.
 
 </details>
 
-## Quickshell Hub (`snes-hub`)
+# Quickshell Hub
 
-- Toggled by clicking the date/clock module in the bar or SUPER+SPACE keybinding through hyprland
-- The hub window is an overlay (wlr-layershell) and is designed to get out of your way quickly:
-- Organized into reusable components, making it straightforward to add/remove cards or re-skin pieces without rewriting the whole hub.
-- If you want a lightweight fallback, use the early **AGS** version in `.config/ags/` (works, but fewer features).
+The hub is named 'snes-hub` with
+
+```qml
+// in HubWindow.qml (line 78 in task-bar and line 68 in top-bar):
+WlrLayershell.namespace: "snes-hub"
+```
+
+This is the main control/notification center.
+The hub is opened by:
+
+- Clicking the **date/clock module** in the bar
+- Pressing **SUPER + SPACE** through a Hyprland keybinding
+
+It is rendered as a **wlr-layershell overlay** designed to stay out of the way and close quickly. The UI is composed of reusable components so cards can be added, removed, or restyled without rewriting the entire hub.
+
+If you want a lightweight fallback, an earlier **AGS** version is available in `.config/ags/`.
 
 <details>
-  <summary><strong>Components (click to expand)</strong></summary>
+  <summary><strong><u>EXPAND FOR INDIVIDUAL COMPONENTS</u></strong></summary>
 
-<img src="media/screenshots/comparison.png" align="right" width="580" alt="Hub comparison" />
-    
-#### Header
-- Profile icon,username + RAM/CPU usage chips.
-- Screenshot button (runs the capture script and then closes the hub).
+### Header
+
+- Profile icon and username
+- RAM and CPU usage indicators (only in topbar mode)
+- Screenshot button (runs capture script and closes the hub)
 - Power button
+- Theme toggle button (taskbar mode)
 
-#### Power options
+---
 
-- Compact power grid that expands (click the power button or press `p` key) _inside the header_ (no extra window):
-- Keyboard navigation: **Arrow keys / Tab** to move, **Enter** to trigger, **Esc** to close.
+### Power Options
 
-#### Buttons and Sliders
+A compact power grid expands **inside the header**.
 
-- Wi‑Fi toggle + SSID readout (right‑click opens wifi module).
-- Bluetooth toggle + connected device status.
-- Performance profile button (cycle modes via `auto-cpufreq`, right click toggles battery health card).
-- DND toggle (dunst).
-- Volume + brightness sliders (pactl + brightnessctl).
+Open it by:
 
-#### Battery health
+- Clicking the power button
+- Pressing the `p` key
 
-- Polls: `upower -i /org/freedesktop/UPower/devices/battery_BAT1`
-- Shows: **Health** (capacity %) + **current charge %**, **Charge cycles**, **Energy (full / design)**, **Time remaining** (to full/empty when available), **State** (charging/discharging/fully-charged)
+Keyboard navigation:
 
-> [!NOTE]
-> If your battery isn’t `battery_BAT1`, swap the device path in `BatteryHealthCard.qml` to match your system.s
+- Arrow keys / Tab to move
+- Enter to activate
+- Esc to close
 
-#### Media card (MPRIS)
+---
 
-- The hub includes an MPRIS-powered media card:
-- Clicking the media card launches the external now-playing widget and then toggles the hub off.
-- It tracks metadata changes and resets its internal timing state when tracks change. It's still finicky with some browser contents like youtube videos
-- Only appears when something is playing
+### Buttons and Sliders
 
-#### Now Playing (Flutter)
+- `Wi-Fi toggle` with SSID readout (right-click opens the Wi-Fi module)
+- `Bluetooth toggle` with connected device status
+- `Performance profile button` (cycles profiles through `auto-cpufreq`, right click toggles battery health card)
+- `DND toggle` (dunst)
+- `Volume and brightness sliders` (`pactl` and `brightnessctl`)
 
-- This is a separate Flutter desktop widget (class rules are handled in Hyprland).
-- Resizable is disabled (setResizable(false) is used)
+---
+
+### Battery Health
+
+The battery health card shows RAM and CPU usage in Taskbar mode.
+
+Polled using:
+
+```
+upower -i /org/freedesktop/UPower/devices/battery_BAT1
+```
+
+Displayed information:
+
+- Health (capacity %)
+- Current charge %
+- Charge cycles
+- Energy (full / design)
+- Time remaining (when available)
+- Charging state
+
+> NOTE  
+> If your battery device is not `battery_BAT1`, update the device path in `BatteryHealthCard.qml`.
+
+---
+
+### Media Card (MPRIS)
+
+The hub includes an **MPRIS media card**.
+
+- Appears only when media is playing
+- Clicking it launches the external **Now Playing widget** and closes the hub
+- Resets its internal state when track metadata changes
+
+Some browser content (like YouTube) can behave inconsistently depending on how the browser exposes MPRIS.
+
+In taskbar mode, the media card uses colors extracted from album art instead of blurred artwork backgrounds.
+
+---
+
+### Now Playing (Flutter)
+
+This is a separate Flutter desktop widget managed through Hyprland window rules.
+
+Behavior:
+
+- Window resizing is disabled (`setResizable(false)`)
 - Esc closes the widget
-- Generates theme colors from album art using palette_generator
+- Theme colors are generated from album artwork using `palette_generator`
 
-#### Calendar, Weather and Events
+> NOTE  
+> You may need to make the now_playing binary executable and change the path to it in MediaCard.qml
 
-A simple calendar with weather (json based script and events from my google calendar using khal+ vdirsyncer.
+---
+
+### Calendar, Weather and Events
+
+The hub includes a calendar and weather card using a JSON-based weather script.
+
+Calendar events are synced from **Google Calendar** using:
+
+- `vdirsyncer`
+- `khal`
+
+Events are displayed in a dedicated Events card in Taskbar mode instead of inside `CalendarsWeatherCard.qml`.
+
+The next upcoming event remains visible until it finishes. Multiple events can be configured inside:
+
+```
+hub/Events.qml
+```
 
 <details>
 <summary><strong>Google Calendar sync (vdirsyncer + khal)</strong></summary>
 
-Recommended approach (avoids system Python packaging issues):
+Recommended installation method (avoids system Python packaging issues):
 
 ```bash
 sudo pacman -S --needed python-pipx
 ```
 
-```python
+```bash
 pipx install "vdirsyncer[google]"
 ```
 
-- If you have both a system and pipx vdirsyncer, remove the system one and make sure PATH prefers ~/.local/bin.
+If both a system and pipx version of vdirsyncer exist, remove the system package and ensure `~/.local/bin` appears earlier in `PATH`.
 
-###### Config
+### Setup
 
-Create folders:
+Create the required directories:
 
 ```bash
 mkdir -p ~/.config/vdirsyncer/status ~/.config/vdirsyncer/tokens
 mkdir -p ~/.local/share/vdirsyncer/calendars
 ```
 
-Example vdirsyncer config uses:
-`token_file = "~/.config/vdirsyncer/tokens/google_calendar"`
-`type = "google_calendar"`
-`client_id / client_secret` from Google Cloud OAuth
-`~/.local/share/vdirsyncer/calendars/*` - Khal reads .ics files from here
+Example configuration values:
 
-###### Note:
+```
+token_file = "~/.config/vdirsyncer/tokens/google_calendar"
+type = "google_calendar"
+client_id / client_secret
+```
 
-- You must enable CalDAV API in Google Cloud (not only the “Google Calendar API”).
-- If OAuth consent is in Testing mode, add yourself as a “Test user”.
-- If you get “token obtained but Not Found”, enable calendars at: https://calendar.google.com/calendar/syncselect
+Calendar files are stored in:
 
-###### Run + test
+```
+~/.local/share/vdirsyncer/calendars/*
+```
+
+Khal reads `.ics` files from this location.
+
+### Notes
+
+- The **CalDAV API** must be enabled in Google Cloud.
+- If OAuth consent is in testing mode, add yourself as a **test user**.
+- If you receive “token obtained but Not Found”, enable calendars at:
+
+https://calendar.google.com/calendar/syncselect
+
+### Sync and test
 
 ```bash
 vdirsyncer discover
@@ -362,19 +586,16 @@ khal list now 7d
 
 </details>
 
-#### Notifications
+---
 
-- Clicking dismisses.
-- Uses **dunst** (`dunstctl`) as the notification backend.
-- Contracted by default when the media player card is active, but can be expanded via the expand button.
+### Notifications
 
-#### OSDs
+- Clicking a notification dismisses it
+- Uses dunst (`dunstctl`) as the backend
+- Collapsed by default when the media card is active
+- Can be expanded with the expand button
 
-- custom OSDs for brightness and volume controls
-- custom OSD for various modes (Dark/Light/Reading Mode etc.)
-
-> [!NOTE]
-> You may need to update the scripts in .config/hypr/scripts. Please review the contents of audiocontrol.sh and brightnesscontrol.sh. Newer versions of these scripts write cache for osd qmls to read
+---
 
 </details>
 
@@ -397,7 +618,13 @@ wlr-layershell power menu overlay (separate from the hub header menu). Toggled w
 **Run**
 
 ```bash
-quickshell -p ~/.config/quickshell/snes-hub/bar/PowerMenu.qml
+# in Topbar mode:
+quickshell -p ~/.config/quickshell/top-bar/bar/PowerMenu.qml
+```
+
+```bash
+# in Taskbar mode:
+quickshell -p ~/.config/quickshell/task-bar/utils/PowerMenu.qml
 ```
 
 ## Wifi menu
@@ -405,40 +632,58 @@ quickshell -p ~/.config/quickshell/snes-hub/bar/PowerMenu.qml
 Standalone network manager applet located at lib/WifiMenu.qml. With both (light/dark) theme.
 
 - Trigger: Right-click the Wi-Fi button in the Hub.
-- or run: `quickshell -p ~/.config/quickshell/snes-hub/lib/Wifimenu.qml`
+- or run: `quickshell -p ~/<pathto>lib/Wifimenu.qml`
 
 > [!WARNING]
 > You cannot connect to enterprise access points (for now), I haven't had the time to fix it yet
 
+## OSDs
+
+Custom on-screen displays for:
+
+- Volume
+- Brightness
+- Various system modes (Dark, Light, Reading Mode, etc.)
+
+## Themes
+
+##### GTK:
+
+I use a modified version of Fausto-Korpsvart's Everforest gtk theme. The installer automatically copies it to the required directory for the theme toggle script to use it.
+
+##### Qt / Kvantum
+
+Kvantum theme files are located in:
+`.config/Kvantum`
+
+Additional related configuration files:
+.config/qt6ct  
+.config/color-schemes
+
+Use _Kvantum Manager_ to install and apply the Kvantum theme.
+
 ## Pixel sddm theme
 
-[Note: I am using qt5, please install qt5 dependencies]
+[Note: I am using qt5, you may need qt5 dependencies alongside qt6]
 
 ```bash
 sudo pacman -S qt6-5compat qt6-svg qqc2-desktop-style inter-font ttf-nerd-fonts-symbols
 ```
 
-_<b>if you don't want windows hello like animation please use main.qml from the </b>`old` <b>directory</b>_
+The installer installs the theme and writes to conf.d automatically. It will however prompt you for password authorization via pkexec.
 
-- To install:
-  - move the contents of sddm/theme folder to `/usr/share/sddm/themes/` (create the dir if it doesn't exist yet)
-  - Set "pixel" as the current theme by creating a config file in `/etc/sddm.conf.d/`:
-  - make sure the directory exists:
+- For Manual install:
+  - move the contents of sddm/theme folder to `/usr/share/sddm/themes/` (create the dir if it doesn't exist yet) and:
 
-  ```bash
-  sudo mkdir -p /etc/sddm.conf.d
-  ```
+    ```bash
+    sudo mkdir -p /etc/sddm.conf.d
+    echo -e "[Theme]\nCurrent=pixel" | sudo tee /etc/sddm.conf.d/theme.conf
+    ```
 
-  - then create the config file:
+## Firefox Customizations
 
-  ```bash
-  echo -e "[Theme]\nCurrent=pixel" | sudo tee /etc/sddm.conf.d/theme.conf
-  ```
-
-## Firefox custom new-tab
-
-- Custom Firefox start page: https://github.com/snes19xx/custom-firefox-start
-- usercss (Also in this repo): https://github.com/snes19xx/firefox-customizations
+- [Custom Firefox start page](https://github.com/snes19xx/custom-firefox-start)
+- [usercss](https://github.com/snes19xx/firefox-customizations)
 
 Firefox doesn't really want you to use local html as a new tab page so
 
@@ -446,37 +691,113 @@ Firefox doesn't really want you to use local html as a new tab page so
 - Edit mozilla.cfg (repo path: .config/firefox/mozilla.cfg) and set your file path
 - Move mozilla.cfg to the Firefox install directory root (e.g. /usr/lib/firefox/)
 
-## Credits & acknowledgements
+## Utilities
+
+Utilities include the following:
+
+- `crt_gen.py` a script to add crt like filters to an image (works best with images that aren't too bright or too dark)
+- `figures.py` script to generate nice fun mathematical illustrations
+- `SR4.icm` Color profile for the display of the Surface Laptop 4. Import it in KDE Plasma to get Windows-like color calibration.
+- Fonts I like and use often
+
+## Credits & Acknowledgements
 
 - [Everforest-GTK-Theme](https://github.com/Fausto-Korpsvart/Everforest-GTK-Theme) by Fausto-Korpsvart
-- Rofi themes loosely based on @adi1090x's [type 7](https://github.com/adi1090x/rofi/blob/master/previews/launchers/type-7/5.png)
+- Topbar mode Rofi themes loosely based on @adi1090x's [type 7](https://github.com/adi1090x/rofi/blob/master/previews/launchers/type-7/5.png)
 - `Pixeldots.qml` in sddm theme based on @mahaveergurjar's [Pixeldots](https://github.com/mahaveergurjar/sddm/tree/pixel)
 - Colors: Modified from https://github.com/sainnhe/everforest
-- SVG icons: https://www.svgrepo.com/
+- VScode theme: Modified from Andrei Lucaci's [Everforest pro theme](https://marketplace.visualstudio.com/items?itemName=AndreiLucaci.everforest-pro)
+- [Hyprshade](https://github.com/loqusion/hyprshade)
+- Kvantum theme based on [materia-everforest-kvantum](https://github.com/binEpilo/materia-everforest-kvantum)
+- Dave Hoskins for [Hash without Sine](https://www.shadertoy.com/view/4djSRW)
+- Most svgs are from [https://www.svgrepo.com/](https://www.svgrepo.com/) , I made some myself
 - linux-surface project: https://github.com/linux-surface/linux-surface
 - Thorium: https://thorium.rocks/ for the background visualizations in firefox custom new tab
+- My design inspiration comes mainly from : [Microsoft design](https://microsoft.design/), [Material design](https://m3.material.io/blog/building-with-m3-expressive) and [calla](https://github.com/Stardust-kyun/calla). The typography and UI design used in the installer are my own original work, which I’ve also used in several of my other projects, including my website.
 
-## Media sources
+## Media Sources
 
 1. Photo by fffunction studio on [Unsplash](https://unsplash.com/photos/green-trees-near-mountains-during-daytime-IrWgzQ_Y_zg)
 2. Photo by Brian McGowan on [Unsplash](https://unsplash.com/photos/astronaut-in-white-suit-in-grayscale-photography-I0fDR8xtApA)
 3. Photo by Mimicry Hu on [Unsplash](https://unsplash.com/photos/aerial-photography-of-persons-on-plant-field-24tsXm7qGQE)
 4. Photo by Bailey Zindel on [Unsplash](https://unsplash.com/photos/body-of-water-surrounded-by-trees-NRQV-hBF10M)
-5. Photo by on Jay Yu on [Unsplash](https://unsplash.com/photos/silhouette-of-trees-under-starry-night-atiSW3NHtUM)
+5. Photo by Jay Yu on [Unsplash](https://unsplash.com/photos/silhouette-of-trees-under-starry-night-atiSW3NHtUM)
 6. Photo by Ben Dutton on [Unsplash](https://unsplash.com/photos/green-trees-FKrcPEZfoNU)
 7. Photo by Richard Rhee on [Flickr](https://www.flickr.com/photos/rcrhee/15167206848/)
 8. Photo by Cedric Chambaz on [Flickr](https://www.flickr.com/photos/cchambaz/2391578535/in/gallery-195423583@N07-72157720611385337/)
+9. Photo by temo Berishvili on [Unsplash](https://www.pexels.com/photo/herd-of-animals-on-grass-field-near-mountains-1574843/)
+10. Photo by Lucas Pezeta on [Unsplash](https://www.pexels.com/photo/cows-grazing-on-field-2331478/)
+11. `media/wallpaper/surface_defaults` wallpapers are from microsoft
+12. All Rofi pictures were pulled from Pinterest; I don’t know the original owners.
 
 [OC]
 
-- Lucina wallpaper from [Fire Emblem Awekening Artbook](https://www.amazon.ca/Art-Fire-Emblem-Awakening-ebook/dp/B01J1XIC2O)
-- Final Fantasy X logo: by [Yoshitaka Amano](https://en.yoshitaka-amano.com/#/)
-- Most Monogatari wallpapers are edited from the scans of [Monogatari Series 10th Anniversary Illustration Works Art Book](https://www.ebay.ca/itm/403993406564)
-- crab2,hanekawa3 and crab2.png are form [AhogeDesu](https://imgur.com/gallery/utamonogatari-styled-heroines-DH4ca2m)
+`media/wallpaper`
+Collection of pictures taken by me, some edited/created by me and a bunch of them are just screencaps from the monogatari series:
 
-- All Rofi pictures were pulled from Pinterest; I don’t know the original owners.
+- Lucina wallpaper from [Fire Emblem Awekening Artbook](https://www.amazon.ca/Art-Fire-Emblem-Awakening-ebook/dp/B01J1XIC2O)
+- Final Fantasy logos: by [Yoshitaka Amano](https://en.yoshitaka-amano.com/#/)
+- Monogatari wallpapers are edited from the scans of [Monogatari Series 10th Anniversary Illustration Works Art Book](https://www.ebay.ca/itm/403993406564)
+- [15,16 and 17].png are from [AhogeDesu](https://imgur.com/gallery/utamonogatari-styled-heroines-DH4ca2m)
+- untitled.png from nanora on [artstation](https://www.artstation.com/nanora)
 
 #### <span style="color:#a41d1d">[Reuse Note:]</span>
 
-Feel free to copy/steal whatever you want as long as you cite me and
-more importantly the listed media sources in the credits/references where applicable.
+Feel free to copy/steal whatever you want as long as you cite me and more importantly the listed media sources in the credits/references where applicable.
+
+## FAQs
+
+**Q: Will this run on a non-Surface device?**
+_A: Yes. It does not use any tools or features exclusive to linux-surface._
+
+**Q: Will this run on a distro other than Arch Linux?**
+_A: I'm not sure about the installer but as long as you have the dependencies I don't see why it wouldn't._
+
+**Q: Can I use this setup with another compositor or desktop environment?**
+_A: Yes. Most features, including Quickshell, will work correctly (as long as you're on wayland). Shaders are the only exception. However, some features exclusively rely on hyprland's ipcs, for best experience please use with hyprland_
+
+**Q: Why use Flutter for the "Now Playing" widget?**
+_A: It was one of my first projects while learning Flutter, which explains the older dependencies. Behind the Material Design frontend, it is just a standard MPRIS controller._
+
+**Q: How does the face unlock animation work?**
+_A: It assumes the authentication was successful by default. You may need to adjust the timer in `main.qml` to get the timing right for a realistic effect. It does properly recognize authentication failures and timeouts._
+
+**Q: Why are there multiple app drawers (including the top-bar Rofi drawers)?**
+_A: I am currently experimenting with different designs and layouts. My plan is to write a custom app drawer from scratch in rust with live tiles similar to Windows 10. I want it to feel distinctly native to Linux rather than acting as a cheap copy of the Windows Metro UI._
+
+**Q: How do I enable or disable screen borders?**
+_A: (Only in taskbar mode) follow the instruction in shell.qml_
+
+**Q: Components are misaligned in the hub. How do I fix them?**
+_A: You can correct alignment by adding padding (left, right, up, down), adjusting spacing, or using the `translate` function. For example, to move weather in `CalendarWeather` card to the right:_
+
+```qml
+// Right: Weather
+      ColumnLayout {
+        Layout.alignment: Qt.AlignTop | Qt.AlignRight
+        Layout.preferredWidth: 110
+
+        /* increase to move right, decrease (values can be negatives too) to move to the left */
+        transform: Translate { x: 5 }  // <--- add this
+```
+
+**Q: The taskbar is covering windows at the bottom of the screen. How do I fix this?**
+_A: Decrease the layer exclusive zone in `Taskbar.qml` or increase the gaps in Hyprland config._
+
+```qml
+// desktop/Taskbar.qml
+    WlrLayershell.exclusiveZone: 47 // <-- change this
+```
+
+**Q: Will you make a settings app to configure things instead of requiring file edits?**
+_A: Yes, that is the plan. I do not have a strict timeline yet because there's so much spaghetti code_
+
+**Q: Can I use the top-bar Rofi on the taskbar, or vice versa?**
+_A: Yes. You just need to edit the path to the launcher script in your Hyprland configuration and update the on-click action within the launcher component for the respective bars._
+
+**Q: The theme switcher is not applying my GTK or Qt themes. How do I fix it?**
+_A: First, make sure the script has executable permissions. Next, verify the theme files exist and match the names referenced in the script. Finally, run the script directly from the terminal to check for specific error messages abd fix them one by one._
+
+<div style="text-align:center;">
+  <i>If you have any other questions, please start an issue. I'd be more than happy to answer it for you.</i>
+</div>

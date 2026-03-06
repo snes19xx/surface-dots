@@ -1,6 +1,6 @@
 [%General]
-author=Alexey Varfolomeev, based on KvAdaptaDark by Tsu Jan
-comment=A Nord dark variant of Materia GTK theme
+author= Edited from Alexey Varfolomeev, based on KvAdaptaDark by Tsu Jan
+comment=Everforest-like kv theme
 alt_mnemonic=true
 animate_states=true
 attach_active_tab=false

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 80" width="512" height="512">
+
+  <!-- Camera body -->
+  <rect x="5" y="22" width="90" height="52" rx="6" fill="#141719"/>
+
+  <!-- Top plate (cream) -->
+  <rect x="5" y="16" width="90" height="12" rx="4" fill="#ffffff"/>
+
+  <!-- Viewfinder hump -->
+  <rect x="30" y="8" width="28" height="12" rx="3" fill="#141719"/>
+
+  <!-- Shutter button -->
+  <circle cx="78" cy="16" r="5" fill="#141719"/>
+
+  <!-- Lens outer ring -->
+  <circle cx="42" cy="50" r="22" fill="#ffffff"/>
+
+  <!-- Lens inner -->
+  <circle cx="42" cy="50" r="16" fill="#141719"/>
+
+  <!-- Lens glass -->
+  <circle cx="42" cy="50" r="10" fill="#ffffff" opacity="0.15"/>
+
+  <!-- Lens center -->
+  <circle cx="42" cy="50" r="5" fill="#141719"/>
+
+</svg>

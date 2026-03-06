@@ -5,7 +5,7 @@
     `exec-once = hyprshade on main.glsl`
     It attempts to fix weird blurry scalling and dull colors on my surface laptop's 
     high dpi display. It's a lightweight color-grading pass that restores 
-    that "premium" punchy look without crushing blacks or looking fake.
+    that premium punchy look without crushing blacks or looking fake.
     It's also extremely efficient. No neighbor sampling, no heavy math.
 
     [strictly tuned for my taste and my specific display]

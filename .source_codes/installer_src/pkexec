@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# tests without firing real polkit and writing on my actual root dirs
+
+SANDBOX_ROOT="/tmp/sandbox-root"
+
+mkdir -p "$SANDBOX_ROOT/usr/share/sddm/themes"
+mkdir -p "$SANDBOX_ROOT/etc/sddm.conf.d"
+
+if [[ "$1" == "bash" && "$2" == "-c" ]]; then
+    PATCHED_SCRIPT=$(echo "$3" | sed "s|/usr/|$SANDBOX_ROOT/usr/|g; s|/etc/|$SANDBOX_ROOT/etc/|g")
+    echo "[fake-pkexec] running: $PATCHED_SCRIPT" >&2
+    bash -c "$PATCHED_SCRIPT"
+    exit $?
+fi
