@@ -31,16 +31,10 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 <div align="center">
 <div style="display:flex; justify-content:center; gap:10px;">
   <img src="media/screenshots/main_ui.png" width="30%" />
-  <img src="media/screenshots/A1.png" width="30%" />
+  <img src="media/screenshots/A3.jpg" width="30%" />
   <img src="media/screenshots/A2.png" width="30%" />
 </div>
 <p><i>Desktop Layouts</i></p>
-<br/>
-<div style="display:flex; justify-content:center; gap:10px;">
-  <img src="media/screenshots/A3.jpg" width="30%" />
-  <img src="media/screenshots/A4.jpg" width="30%" />
-</div>
-<p><i>Workflow & Windows</i></p>
 
 <br/>
 
