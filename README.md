@@ -128,7 +128,7 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 
 A GUI installer is included for installing surface-dots.
 
-Installer [source code](./.source_codes/installer_src) and [documentation](./.source_codes/installer_src/SETUP.md)
+Installer [source code](./.source_codes/installer_src) and [documentation](./.source_codes/installer_src/installer_readme.md)
 
 > [!IMPORTANT]
 > If the installer fails to launch, you may need the WebKitGTK runtime libraries
