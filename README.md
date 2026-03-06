@@ -741,25 +741,25 @@ Feel free to copy/steal whatever you want as long as you cite me and more import
 
 ## FAQs
 
-**Q: Will this run on a distro other than Arch Linux?**
+**Q: Will this run on a distro other than Arch Linux?** <br>
 _A: I'm not sure about the installer but as long as you have the dependencies I don't see why it wouldn't._
 
-**Q: Can I use this setup with another compositor or desktop environment?**
+**Q: Can I use this setup with another compositor or desktop environment?** <br>
 _A: Yes. Most features, including Quickshell, will work correctly (as long as you're on wayland). Shaders are the only exception. However, some features exclusively rely on hyprland's ipcs, for best experience please use with hyprland_
 
-**Q: Why use Flutter for the "Now Playing" widget?**
+**Q: Why use Flutter for the "Now Playing" widget?** <br>
 _A: It was one of my first projects while learning Flutter, which explains the older dependencies. Behind the Material Design frontend, it is just a standard MPRIS controller._
 
-**Q: How does the face unlock animation work?**
+**Q: How does the face unlock animation work?** <br>
 _A: It assumes the authentication was successful by default. You may need to adjust the timer in `main.qml` to get the timing right for a realistic effect. It does properly recognize authentication failures and timeouts._
 
-**Q: Why are there multiple app drawers (including the top-bar Rofi drawers)?**
+**Q: Why are there multiple app drawers (including the top-bar Rofi drawers)?**<br>
 _A: I am currently experimenting with different designs and layouts. My plan is to write a custom app drawer from scratch in rust with live tiles similar to Windows 10. I want it to feel distinctly native to Linux rather than acting as a cheap copy of the Windows Metro UI._
 
-**Q: How do I enable or disable screen borders?**
+**Q: How do I enable or disable screen borders?** <br>
 _A: (Only in taskbar mode) follow the instruction in shell.qml_
 
-**Q: Components are misaligned in the hub. How do I fix them?**
+**Q: Components are misaligned in the hub. How do I fix them?** <br>
 _A: You can correct alignment by adding padding (left, right, up, down), adjusting spacing, or using the `translate` function. For example, to move weather in `CalendarWeather` card to the right:_
 
 ```qml
@@ -772,7 +772,7 @@ _A: You can correct alignment by adding padding (left, right, up, down), adjusti
         transform: Translate { x: 5 }  // <--- add this
 ```
 
-**Q: The taskbar is covering windows at the bottom of the screen. How do I fix this?**
+**Q: The taskbar is covering windows at the bottom of the screen. How do I fix this?** <br>
 _A: Decrease the layer exclusive zone in `Taskbar.qml` or increase the gaps in Hyprland config._
 
 ```qml
@@ -780,13 +780,13 @@ _A: Decrease the layer exclusive zone in `Taskbar.qml` or increase the gaps in H
     WlrLayershell.exclusiveZone: 47 // <-- change this
 ```
 
-**Q: Will you make a settings app to configure things instead of requiring file edits?**
+**Q: Will you make a settings app to configure things instead of requiring file edits?** <br>
 _A: Yes, that is the plan. I do not have a strict timeline yet because there's so much spaghetti code_
 
-**Q: Can I use the top-bar Rofi on the taskbar, or vice versa?**
+**Q: Can I use the top-bar Rofi on the taskbar, or vice versa?** <br>
 _A: Yes. You just need to edit the path to the launcher script in your Hyprland configuration and update the on-click action within the launcher component for the respective bars._
 
-**Q: The theme switcher is not applying my GTK or Qt themes. How do I fix it?**
+**Q: The theme switcher is not applying my GTK or Qt themes. How do I fix it?** <br>
 _A: First, make sure the script has executable permissions. Next, verify the theme files exist and match the names referenced in the script. Finally, run the script directly from the terminal to check for specific error messages abd fix them one by one._
 
 <div style="text-align:center;">
