@@ -741,9 +741,6 @@ Feel free to copy/steal whatever you want as long as you cite me and more import
 
 ## FAQs
 
-**Q: Will this run on a non-Surface device?**
-_A: Yes. It does not use any tools or features exclusive to linux-surface._
-
 **Q: Will this run on a distro other than Arch Linux?**
 _A: I'm not sure about the installer but as long as you have the dependencies I don't see why it wouldn't._
 
