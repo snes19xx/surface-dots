@@ -31,8 +31,8 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 <div align="center">
 <div style="display:flex; justify-content:center; gap:10px;">
   <img src="media/screenshots/main_ui.png" width="30%" />
-  <img src="media/screenshots/A3.jpg" width="30%" />
-  <img src="media/screenshots/A2.png" width="30%" />
+  <img src="media/screenshots/A3_.jpg" width="30%" />
+  <img src="media/screenshots/A2.jpg" width="30%" />
 </div>
 <p><i>Desktop Layouts</i></p>
 
