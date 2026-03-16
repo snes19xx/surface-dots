@@ -125,7 +125,9 @@ A GUI installer is included for installing surface-dots.
 Installer [source code](./.source_codes/installer_src) and [documentation](./.source_codes/installer_src/installer_readme.md)
 
 > [!IMPORTANT]
-> If the installer fails to launch, you may need the WebKitGTK runtime libraries
+>
+> - If the installer fails to launch, you may need the WebKitGTK runtime libraries
+> - You must have a polkit authentication agent installed and running before you run the installer to prompt you for your sudo password
 
 ```bash
 # arch:
