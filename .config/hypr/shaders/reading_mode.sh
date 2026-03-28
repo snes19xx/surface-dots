@@ -35,9 +35,9 @@ if [[ "$current_shader" == *"reading_mode"* ]]; then
     echo "off" > "$HOME/.cache/quickshell/reading_mode"
 
     if [[ "$prev_theme" == "light" ]]; then
-        swww img "$wallpaper_light" --transition-type none &
+        awww img "$wallpaper_light" --transition-type none &
     else
-        swww img "$wallpaper_dark" --transition-type none &
+        awww img "$wallpaper_dark" --transition-type none &
     fi
     # Restore Hyprland
     hyprctl reload
@@ -69,7 +69,7 @@ else
 
     # Set Wallpaper & Brightness
     sleep 1
-    swww img "$wallpaper_reading" --transition-type none&
+    awww img "$wallpaper_reading" --transition-type none&
     brightnessctl set 37% &
 
     # Apply E-ink Overrides

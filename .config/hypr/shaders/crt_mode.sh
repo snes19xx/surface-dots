@@ -32,9 +32,9 @@ if [[ "$current_shader" == *"crt"* ]]; then
     fi
 
     if [[ "$saved_theme" == "light" ]]; then
-        swww img "$wallpaper_light" --transition-type none
+        awww img "$wallpaper_light" --transition-type none
     else
-        swww img "$wallpaper_dark" --transition-type none
+        awww img "$wallpaper_dark" --transition-type none
     fi
     
     # Send a notification
@@ -49,7 +49,7 @@ else
     hyprshade on "$shader_path"
     
     #CRT Wallpaper
-    swww img "$wallpaper_crt" \
+    awww img "$wallpaper_crt" \
     --transition-type grow \
     --transition-pos 0.5,0.5 \
     --transition-duration 1.5 \

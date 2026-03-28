@@ -76,7 +76,8 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 ### UI & Theming
 
 - dunst
-- swww
+- awww
+- waypaper-git
 - rofi
 - kitty
 - firefox
