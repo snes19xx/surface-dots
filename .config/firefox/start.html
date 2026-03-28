@@ -1,0 +1,1785 @@
+<!--
+stellarium.html
+My custom newtab/home page.
+I love astronomy!
+
+Use alongside my userChrome.css for best experience
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@400;500&family=Space+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f4efe5;
+        --ink: #19140c;
+        --ink-2: #3c2e1c;
+        --muted: #887560;
+        --faint: #cab89a;
+        --accent: #7a2213;
+        --border: #c6b394;
+        --border-s: #8a7050;
+        --grain-op: 0.06;
+        --vignette: rgba(8, 4, 0, 0.2);
+      }
+      :root.night {
+        --bg: #0b0a08;
+        --ink: #e8dec8;
+        --ink-2: #bba880;
+        --muted: #58503e;
+        --faint: #28221a;
+        --accent: #c24e28;
+        --border: #241e16;
+        --border-s: #42382a;
+        --grain-op: 0.095;
+        --vignette: rgba(0, 0, 0, 0.6);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        font-family: "EB Garamond", Georgia, serif;
+        background: var(--bg);
+        color: var(--ink);
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 1.1s ease,
+          color 1.1s ease;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      /* Background layers */
+      #bg-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+      }
+      #starfield {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 2s ease;
+      }
+      :root.night #starfield {
+        opacity: 1;
+      }
+
+      #system-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0.25;
+        transition: opacity 2s ease;
+      }
+      :root.night #system-canvas {
+        opacity: 0;
+      }
+
+      /* Comet-- day only */
+      #comet-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 2;
+        pointer-events: none;
+        opacity: 1;
+        transition: opacity 2s ease;
+      }
+      :root.night #comet-canvas {
+        opacity: 0;
+      }
+
+      .grain {
+        position: fixed;
+        inset: 0;
+        z-index: 3;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        opacity: var(--grain-op);
+        mix-blend-mode: multiply;
+        transition: opacity 1.1s;
+      }
+      :root.night .grain {
+        mix-blend-mode: overlay;
+      }
+
+      #ink-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+        pointer-events: none;
+      }
+
+      .spine {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 2.4px;
+        z-index: 20;
+        background: linear-gradient(
+          to bottom,
+          transparent,
+          var(--accent) 30%,
+          var(--accent) 70%,
+          transparent
+        );
+        opacity: 0.3;
+      }
+      :root.night .spine {
+        display: none;
+      }
+
+      /* Main layout */
+      .codex {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        max-width: 960px;
+        padding: 0 3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .rule-top {
+        border: none;
+        border-top: 1.2px solid var(--border-s);
+        margin-bottom: 2.22rem;
+        opacity: 0;
+        animation: up 0.8s ease 0.05s forwards;
+      }
+      .rule-bot {
+        border: none;
+        border-top: 1.2px solid var(--border-s);
+        margin-top: 2.22rem;
+        opacity: 0;
+        animation: up 0.8s ease 0.72s forwards;
+      }
+
+      .codex-body {
+        display: grid;
+        grid-template-columns: 1fr 1.2px 1.08fr;
+        gap: 0 3.36rem;
+        align-items: start;
+      }
+      .col-divider {
+        background: var(--border);
+        align-self: stretch;
+        margin: 0.72rem 0;
+        transition: background 1.1s;
+      }
+
+      /* Left column elements */
+      .col-left {
+        display: flex;
+        flex-direction: column;
+        gap: 1.86rem;
+      }
+
+      .clock-block {
+        opacity: 0;
+        animation: up 1s ease 0.18s forwards;
+      }
+
+      .clock-face {
+        font-family: "Cormorant Garamond", serif;
+        font-weight: 300;
+        font-size: clamp(4.56rem, 8.88vw, 6.72rem);
+        line-height: 1;
+        letter-spacing: -0.03em;
+        display: flex;
+        align-items: baseline;
+      }
+      .clock-sep {
+        color: var(--accent);
+        margin: 0 0.03em;
+        animation: blink 2s ease-in-out infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        45%,
+        55% {
+          opacity: 0.12;
+        }
+      }
+
+      .clock-sub {
+        margin-top: 0.72rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.22rem;
+      }
+      .clock-greeting {
+        font-family: "Lora", serif;
+        font-style: italic;
+        font-size: 1rem;
+        line-height: 1.3;
+        color: var(--muted);
+      }
+      .clock-date {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 1.2rem;
+        color: var(--ink-2);
+        letter-spacing: 0.01em;
+      }
+      .clock-sec {
+        font-family: "Space Mono", monospace;
+        font-size: 0.7rem;
+        color: var(--accent);
+        letter-spacing: 0.06em;
+        margin-top: 0.12rem;
+      }
+
+      .orn {
+        display: flex;
+        align-items: center;
+        gap: 0.78rem;
+        opacity: 0;
+        animation: up 0.8s ease 0.4s forwards;
+      }
+      .orn::before,
+      .orn::after {
+        content: "";
+        flex: 1;
+        height: 1.2px;
+        background: var(--border);
+        transition: background 1.1s;
+      }
+      .orn-g {
+        font-family: "EB Garamond", serif;
+        color: var(--accent);
+        font-size: 0.94rem;
+        line-height: 1;
+      }
+
+      .wx-block {
+        opacity: 0;
+        animation: up 0.9s ease 0.5s forwards;
+      }
+      .section-label {
+        font-family: "Cinzel", serif;
+        font-size: 0.66rem;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 0.72rem;
+      }
+      .wx-row {
+        display: flex;
+        align-items: center;
+        gap: 1.02rem;
+      }
+      .wx-icon {
+        width: 21.6px;
+        height: 21.6px;
+        stroke: var(--muted);
+        fill: none;
+        flex-shrink: 0;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .wx-temp {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 2.22rem;
+        line-height: 1;
+      }
+      .wx-meta {
+        font-family: "Space Mono", monospace;
+        font-size: 0.68rem;
+        color: var(--muted);
+        line-height: 1.75;
+      }
+
+      .moon-block {
+        display: flex;
+        align-items: center;
+        gap: 1.02rem;
+        opacity: 0;
+        animation: up 0.9s ease 0.58s forwards;
+      }
+      #moon-svg {
+        width: 33.6px;
+        height: 33.6px;
+        flex-shrink: 0;
+      }
+      .moon-data {
+        font-family: "Space Mono", monospace;
+        font-size: 0.68rem;
+        color: var(--muted);
+        line-height: 1.8;
+      }
+      .moon-data em {
+        font-style: normal;
+        color: var(--ink-2);
+      }
+
+      /* Right column elements */
+      .col-right {
+        display: flex;
+        flex-direction: column;
+        gap: 1.8rem;
+      }
+
+      .search-block {
+        opacity: 0;
+        animation: up 1s ease 0.28s forwards;
+      }
+      .search-input {
+        width: 100%;
+        background: transparent;
+        border: none;
+        border-bottom: 1.2px solid var(--border);
+        padding: 0.36rem 0;
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-size: 1.5rem;
+        color: var(--ink);
+        outline: none;
+        transition: border-color 0.3s;
+        caret-color: var(--accent);
+      }
+      .search-input::placeholder {
+        font-style: italic;
+        color: var(--faint);
+      }
+      .search-input:focus {
+        border-bottom-color: var(--accent);
+      }
+
+      .shortcuts-block {
+        opacity: 0;
+        animation: up 0.9s ease 0.45s forwards;
+      }
+      .shortcuts-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.54rem 0.66rem;
+      }
+      .sc-link {
+        text-decoration: none;
+        color: var(--ink-2);
+        font-family: "EB Garamond", serif;
+        font-size: 1.08rem;
+        display: flex;
+        align-items: center;
+        gap: 0.46rem;
+        padding: 0.41rem 0.58rem;
+        border: 1.2px solid var(--border);
+        border-radius: 2.4px;
+        background: transparent;
+        transition:
+          color 0.22s,
+          border-color 0.22s,
+          background 0.22s;
+        position: relative;
+        overflow: hidden;
+      }
+      .sc-link::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--accent);
+        opacity: 0;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition:
+          transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+          opacity 0.28s;
+      }
+      .sc-link:hover::before {
+        transform: scaleX(1);
+        opacity: 0.07;
+      }
+      .sc-link:hover {
+        color: var(--accent);
+        border-color: var(--border-s);
+      }
+      .sc-icon {
+        font-size: 0.82rem;
+        opacity: 0.42;
+        flex-shrink: 0;
+        font-family: "Space Mono", monospace;
+      }
+      .sc-name {
+        position: relative;
+        z-index: 1;
+      }
+
+      .ephem-block {
+        opacity: 0;
+        animation: up 0.9s ease 0.62s forwards;
+      }
+      .ephem-text {
+        font-family: "Space Mono", monospace;
+        font-size: 0.67rem;
+        color: var(--muted);
+        letter-spacing: 0.03em;
+        line-height: 2.1;
+      }
+      .ephem-text span {
+        color: var(--ink-2);
+      }
+
+      .footer-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        opacity: 0;
+        animation: up 0.8s ease 0.78s forwards;
+      }
+      .footer-mono {
+        font-family: "Space Mono", monospace;
+        font-size: 0.66rem;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+      }
+
+      @keyframes up {
+        from {
+          opacity: 0;
+          transform: translateY(9.6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 600px) {
+        .codex-body {
+          grid-template-columns: 1fr;
+        }
+        .col-divider {
+          display: none;
+        }
+        .codex {
+          padding: 0 1.68rem;
+        }
+        .clock-face {
+          font-size: 4.56rem;
+        }
+        .shortcuts-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="bg-canvas"></canvas>
+    <canvas id="starfield"></canvas>
+    <canvas id="system-canvas"></canvas>
+    <canvas id="comet-canvas"></canvas>
+
+    <div class="grain"></div>
+    <div class="vignette"></div>
+    <div class="spine"></div>
+    <canvas id="ink-canvas"></canvas>
+
+    <main class="codex">
+      <hr class="rule-top" />
+
+      <div class="codex-body">
+        <div class="col-left">
+          <div class="clock-block">
+            <div class="clock-face">
+              <span id="ch">-</span><span class="clock-sep">:</span
+              ><span id="cm">-</span>
+            </div>
+            <div class="clock-sub">
+              <div class="clock-greeting" id="greeting">-</div>
+              <div class="clock-date" id="clock-date">-</div>
+              <div class="clock-sec" id="cs">00s</div>
+            </div>
+          </div>
+
+          <div class="orn"><span class="orn-g">✦</span></div>
+
+          <div class="wx-block">
+            <div class="section-label">Conditions</div>
+            <div class="wx-row">
+              <svg class="wx-icon" id="wx-icon" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+              <div class="wx-temp" id="wx-temp">-°C</div>
+              <div class="wx-meta" id="wx-meta">Toronto, ON<br />-</div>
+            </div>
+          </div>
+
+          <div class="moon-block">
+            <svg id="moon-svg" viewBox="0 0 28 28"></svg>
+            <div class="moon-data">
+              ☽ <em id="moon-name">-</em><br />
+              LST <em id="sidereal">-</em> &nbsp;·&nbsp; elev
+              <em id="sun-elev">-</em>°
+            </div>
+          </div>
+        </div>
+
+        <div class="col-divider"></div>
+
+        <div class="col-right">
+          <div class="search-block">
+            <div class="section-label">Search</div>
+            <input
+              class="search-input"
+              id="search"
+              type="text"
+              placeholder=""
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
+
+          <div class="shortcuts-block">
+            <div class="section-label">Shortcuts</div>
+            <div class="shortcuts-grid" id="sc-grid"></div>
+          </div>
+
+          <div class="ephem-block">
+            <div class="ephem-text" id="ephem"></div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="rule-bot" />
+
+      <div class="footer-row">
+        <span class="footer-mono" id="footer-lst">LST -</span>
+        <span class="footer-mono" id="footer-utc">UTC -</span>
+      </div>
+    </main>
+
+    <script>
+      /*----------------------------------------------------------------- Configuration --------------------------------------------------------------------*/
+      const CFG = {
+        name: "snes",
+        lat: 43.654,
+        lon: -79.383,
+        links: [
+          { label: "Quercus", href: "https://q.utoronto.ca/", sym: "①" },
+          { label: "Acorn", href: "https://acorn.utoronto.ca/", sym: "②" },
+          { label: "Outlook", href: "https://outlook.office.com", sym: "③" },
+          { label: "YouTube", href: "https://youtube.com", sym: "④" },
+          { label: "Calendar", href: "https://calendar.google.com", sym: "⑤" },
+          { label: "Archwiki", href: "https://wiki.archlinux.org/", sym: "⑥" },
+          {
+            label: "Notebooklm",
+            href: "https://notebooklm.google.com",
+            sym: "⑦",
+          },
+          { label: "Library", href: "https://library.utoronto.ca/", sym: "⑧" },
+          { label: "Instagram", href: "https://instagram.com", sym: "⑨" },
+        ],
+      };
+
+      const pad = (n) => String(n).padStart(2, "0");
+      const DAYS = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
+      const MONTHS = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+
+      /* Theme */
+      function applyTheme(isDay) {
+        const h = new Date().getHours();
+        document.documentElement.classList.toggle(
+          "night",
+          !(isDay && h >= 6 && h < 19),
+        );
+      }
+      applyTheme(true);
+
+      /*Clock */
+      let _prevMin = -1;
+      function tick() {
+        const now = new Date();
+        const h = now.getHours(),
+          m = now.getMinutes(),
+          s = now.getSeconds();
+        document.getElementById("ch").textContent = pad(h);
+        if (m !== _prevMin) {
+          const mEl = document.getElementById("cm");
+          mEl.style.transition = "opacity 0.25s";
+          mEl.style.opacity = "0.25";
+          setTimeout(() => {
+            mEl.textContent = pad(m);
+            mEl.style.opacity = "1";
+          }, 180);
+          _prevMin = m;
+        }
+        document.getElementById("cs").textContent = pad(s) + "s";
+        const g = document.getElementById("greeting");
+        const dow = now.getDay();
+        if (dow === 5 && h >= 16) g.textContent = `Happy Friday, ${CFG.name}.`;
+        else if (h < 5) g.textContent = `Still up, ${CFG.name}?`;
+        else if (h < 12) g.textContent = `Good morning, ${CFG.name}.`;
+        else if (h < 18) g.textContent = `Good afternoon, ${CFG.name}.`;
+        else g.textContent = `Good evening, ${CFG.name}.`;
+        document.getElementById("clock-date").textContent =
+          `${DAYS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+        const utcH = now.getUTCHours(),
+          utcM = now.getUTCMinutes(),
+          utcS = now.getUTCSeconds();
+        document.getElementById("footer-utc").textContent =
+          `UTC ${pad(utcH)}:${pad(utcM)}:${pad(utcS)}`;
+        document.getElementById("footer-lst").textContent =
+          `LST ${siderealTime(CFG.lon, now)}`;
+      }
+      document.getElementById("cm").textContent = pad(new Date().getMinutes());
+      setInterval(tick, 1000);
+      tick();
+
+      /* Moon phase logic */
+      function moonPhase(date) {
+        return (
+          ((((date - new Date(2000, 0, 6)) / 86400000) % 29.530588853) +
+            29.530588853) %
+          29.530588853
+        );
+      }
+      function moonName(p) {
+        if (p < 1.85) return "New Moon";
+        if (p < 7.38) return "Waxing Crescent";
+        if (p < 9.22) return "First Quarter";
+        if (p < 14.77) return "Waxing Gibbous";
+        if (p < 16.61) return "Full Moon";
+        if (p < 22.15) return "Waning Gibbous";
+        if (p < 23.99) return "Last Quarter";
+        return "Waning Crescent";
+      }
+      function drawMoon(phase) {
+        const svg = document.getElementById("moon-svg");
+        const r = 11,
+          cx = 14,
+          cy = 14;
+        const p = phase / 29.53,
+          isWaxing = p < 0.5;
+        const termX = r * Math.cos(p * Math.PI * 2);
+        const atx = Math.max(0.35, Math.abs(termX));
+        let inner = "";
+        if (p < 0.02 || p > 0.98) inner = "";
+        else if (p > 0.48 && p < 0.52)
+          inner = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--ink)" opacity="0.85"/>`;
+        else if (isWaxing) {
+          const sw = termX > 0 ? 0 : 1;
+          inner = `<path d="M${cx} ${cy - r} A${atx} ${r} 0 0 ${sw} ${cx} ${cy + r} A${r} ${r} 0 0 1 ${cx} ${cy - r}Z" fill="var(--ink)" opacity="0.85"/>`;
+        } else {
+          const sw = termX < 0 ? 1 : 0;
+          inner = `<path d="M${cx} ${cy - r} A${r} ${r} 0 0 0 ${cx} ${cy + r} A${atx} ${r} 0 0 ${sw} ${cx} ${cy - r}Z" fill="var(--ink)" opacity="0.85"/>`;
+        }
+        svg.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--bg)" stroke="var(--border-s)" stroke-width="0.7"/>${inner}`;
+      }
+
+      /* Sidereal time*/
+      function siderealTime(lon, date) {
+        const JD = date.getTime() / 86400000 + 2440587.5;
+        const T = (JD - 2451545) / 36525;
+        let GMST =
+          280.46061837 + 360.98564736629 * (JD - 2451545) + T * T * 0.000387933;
+        GMST = ((GMST % 360) + 360) % 360;
+        const LST = (((GMST + lon) % 360) + 360) % 360;
+        return `${pad(Math.floor(LST / 15))}ʰ${pad(Math.floor(((LST / 15) % 1) * 60))}ᵐ`;
+      }
+
+      /* Sun elevation */
+      function sunElev(lat, lon, date) {
+        const JD = date.getTime() / 86400000 + 2440587.5,
+          n = JD - 2451545;
+        const L = ((280.46 + 0.9856474 * n) * Math.PI) / 180;
+        const g = ((357.528 + 0.9856003 * n) * Math.PI) / 180;
+        const lam =
+          L + ((1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * Math.PI) / 180;
+        const eps = (23.439 * Math.PI) / 180;
+        const dec = Math.asin(Math.sin(eps) * Math.sin(lam));
+        const GMST =
+          (((280.46061837 + 360.98564736629 * (JD - 2451545)) % 360) + 360) %
+          360;
+        const LST = (((GMST + lon) % 360) + 360) % 360;
+        const HA =
+          ((LST - (((((lam * 180) / Math.PI) % 360) + 360) % 360)) * Math.PI) /
+          180;
+        const latR = (lat * Math.PI) / 180;
+        const alt = Math.asin(
+          Math.sin(latR) * Math.sin(dec) +
+            Math.cos(latR) * Math.cos(dec) * Math.cos(HA),
+        );
+        return ((alt * 180) / Math.PI).toFixed(1);
+      }
+
+      /* Celestial data update  */
+      function updateCelestial() {
+        const now = new Date();
+        const phase = moonPhase(now);
+        drawMoon(phase);
+        document.getElementById("moon-name").textContent = moonName(phase);
+        document.getElementById("sidereal").textContent = siderealTime(
+          CFG.lon,
+          now,
+        );
+        document.getElementById("sun-elev").textContent = sunElev(
+          CFG.lat,
+          CFG.lon,
+          now,
+        );
+        const doy = Math.ceil(
+          (now - new Date(now.getFullYear(), 0, 0)) / 86400000,
+        );
+        const illum = Math.round(
+          ((1 - Math.cos((phase / 29.53) * 2 * Math.PI)) / 2) * 100,
+        );
+        document.getElementById("ephem").innerHTML =
+          `Day <span>${doy}</span> of <span>${now.getFullYear()}</span>` +
+          ` &nbsp;·&nbsp; Moon <span>${illum}%</span> illuminated` +
+          `<br>Solar elevation <span>${sunElev(CFG.lat, CFG.lon, now)}°</span>`;
+      }
+      updateCelestial();
+      setInterval(updateCelestial, 30000);
+
+      /*  Shortcuts */
+      const grid = document.getElementById("sc-grid");
+      CFG.links.forEach(({ label, href, sym }, i) => {
+        const a = document.createElement("a");
+        a.className = "sc-link";
+        a.href = href;
+        a.style.cssText = `opacity:0; animation: up 0.7s ease ${0.5 + i * 0.04}s forwards`;
+        a.innerHTML = `<span class="sc-icon">${sym}</span><span class="sc-name">${label}</span>`;
+        grid.appendChild(a);
+      });
+
+      /* Search  */
+      document.getElementById("search").addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && e.target.value.trim())
+          location.href = `https://www.google.com/search?q=${encodeURIComponent(e.target.value.trim())}`;
+      });
+
+      /* Weather  */
+      const WX_SVG = {
+        sunny: `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`,
+        moon: `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`,
+        cloud: `<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>`,
+        rain: `<path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><line x1="8" y1="19" x2="8" y2="21"/><line x1="12" y1="17" x2="12" y2="19"/><line x1="16" y1="19" x2="16" y2="21"/>`,
+        snow: `<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/><line x1="11" y1="20" x2="11" y2="22"/>`,
+        storm: `<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>`,
+      };
+      const WX_DESC = {
+        0: "Clear",
+        1: "Mostly clear",
+        2: "Partly cloudy",
+        3: "Overcast",
+        45: "Fog",
+        48: "Icy fog",
+        51: "Light drizzle",
+        53: "Drizzle",
+        55: "Dense drizzle",
+        61: "Light rain",
+        63: "Rain",
+        65: "Heavy rain",
+        71: "Light snow",
+        73: "Snow",
+        75: "Heavy snow",
+        77: "Snow grains",
+        80: "Showers",
+        81: "Showers",
+        82: "Violent showers",
+        85: "Snow showers",
+        86: "Heavy snow showers",
+        95: "Thunderstorm",
+        96: "Thunderstorm",
+        99: "Severe storm",
+      };
+
+      async function loadWeather() {
+        try {
+          const r = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${CFG.lat}&longitude=${CFG.lon}&current=temperature_2m,weather_code,is_day&timezone=auto`,
+          );
+          const d = await r.json();
+          const temp = Math.round(d.current.temperature_2m);
+          const code = d.current.weather_code;
+          const isDay = d.current.is_day === 1;
+          applyTheme(isDay);
+          document.getElementById("wx-temp").textContent = `${temp}°C`;
+          document.getElementById("wx-meta").innerHTML =
+            `Toronto, ON<br>${WX_DESC[code] || "Variable"}`;
+          let k = "sunny";
+          if (!isDay && code === 0) k = "moon";
+          else if (code <= 3) k = "cloud";
+          else if (code >= 51 && code <= 82) k = "rain";
+          else if (code >= 71 && code <= 86) k = "snow";
+          else if (code >= 95) k = "storm";
+          document.getElementById("wx-icon").innerHTML = WX_SVG[k];
+          drawMoon(moonPhase(new Date()));
+        } catch {
+          document.getElementById("wx-meta").innerHTML =
+            "Toronto, ON<br>Unavailable";
+        }
+      }
+      loadWeather();
+
+      (function () {
+        const C = document.getElementById("bg-canvas");
+        const ctx = C.getContext("2d");
+        let W,
+          H,
+          t = 0;
+        const ORBS = Array.from({ length: 2 }, () => ({
+          xp: 0.1 + Math.random() * 0.8,
+          yp: 0.1 + Math.random() * 0.8,
+          rx: 0.15 + Math.random() * 0.22,
+          ry: 0.08 + Math.random() * 0.14,
+          sp: 0.00007 + Math.random() * 0.00013,
+          ph: Math.random() * Math.PI * 2,
+          ph2: Math.random() * Math.PI * 2,
+          rot: Math.random() * Math.PI,
+        }));
+        function resize() {
+          W = C.width = window.innerWidth;
+          H = C.height = window.innerHeight;
+        }
+        function frame() {
+          const isNight = document.documentElement.classList.contains("night");
+          ctx.clearRect(0, 0, W, H);
+
+          if (isNight) {
+            t++;
+            requestAnimationFrame(frame);
+            return;
+          }
+
+          const base = Math.min(W, H);
+          ORBS.forEach((o, i) => {
+            const x = (o.xp + Math.sin(t * o.sp + o.ph) * 0.11) * W;
+            const y = (o.yp + Math.cos(t * o.sp * 0.7 + o.ph2) * 0.09) * H;
+            const rx = o.rx * base,
+              ry = o.ry * base;
+            const rot = o.rot + t * o.sp * 0.2;
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rot);
+            const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+
+            if (isNight) {
+              const hues = [18, 200],
+                h = hues[i % hues.length];
+              g.addColorStop(0, `hsla(${h},40%,20%,0.09)`);
+              g.addColorStop(0.5, `hsla(${h},28%,12%,0.04)`);
+              g.addColorStop(1, `hsla(${h},20%,6%,0)`);
+            } else {
+              const hues = [40, 200],
+                h = hues[i % hues.length];
+              g.addColorStop(0, `hsla(${h},55%,80%,0.05)`);
+              g.addColorStop(0.5, `hsla(${h},40%,88%,0.02)`);
+              g.addColorStop(1, `hsla(${h},30%,95%,0)`);
+            }
+            ctx.beginPath();
+            ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+            ctx.fillStyle = g;
+            ctx.fill();
+            ctx.restore();
+          });
+          t++;
+          requestAnimationFrame(frame);
+        }
+        resize();
+        window.addEventListener("resize", resize);
+        frame();
+      })();
+
+      /* Solar System */
+      (function () {
+        const C = document.getElementById("system-canvas");
+        if (!C) return;
+        const ctx = C.getContext("2d");
+        let W,
+          H,
+          cx,
+          cy,
+          time = 0;
+
+        const PLANETS = [
+          { name: "Mercury", r: 40, spd: 0.012, sz: 1.5 },
+          { name: "Venus", r: 70, spd: 0.009, sz: 2.5 },
+          {
+            name: "Earth",
+            r: 105,
+            spd: 0.007,
+            sz: 2.5,
+            moons: [{ r: 10, spd: 0.05, sz: 0.8 }],
+          },
+          { name: "Mars", r: 140, spd: 0.005, sz: 2 },
+          {
+            name: "Jupiter",
+            r: 240,
+            spd: 0.002,
+            sz: 6,
+            moons: [
+              { r: 14, spd: 0.04, sz: 1 },
+              { r: 19, spd: 0.03, sz: 1.2 },
+              { r: 26, spd: 0.02, sz: 1.5 },
+              { r: 33, spd: 0.015, sz: 1 },
+            ],
+          },
+          {
+            name: "Saturn",
+            r: 330,
+            spd: 0.0012,
+            sz: 5,
+            rings: { inner: 9, outer: 16 },
+            moons: [{ r: 24, spd: 0.02, sz: 1.2 }],
+          },
+          { name: "Uranus", r: 410, spd: 0.0007, sz: 4 },
+          { name: "Neptune", r: 480, spd: 0.0004, sz: 4 },
+        ];
+
+        const ASTEROIDS = [];
+        for (let i = 0; i < 900; i++) {
+          ASTEROIDS.push({
+            angle: Math.random() * Math.PI * 2,
+            r: 180 + Math.random() * 30,
+            spd: 0.0015 + Math.random() * 0.001,
+            sz: Math.random() * 0.8,
+          });
+        }
+
+        function resize() {
+          W = C.width = window.innerWidth;
+          H = C.height = window.innerHeight;
+          cx = W / 2;
+          cy = H / 2;
+        }
+
+        function draw() {
+          if (document.documentElement.classList.contains("night")) {
+            requestAnimationFrame(draw);
+            return;
+          }
+          ctx.clearRect(0, 0, W, H);
+          const s = getComputedStyle(document.documentElement);
+          const ink = s.getPropertyValue("--ink").trim();
+          const border = s.getPropertyValue("--border").trim();
+          const accent = s.getPropertyValue("--accent").trim();
+          const base = Math.min(W, H) / 1100;
+
+          ctx.beginPath();
+          ctx.arc(cx, cy, 14 * base, 0, Math.PI * 2);
+          ctx.fillStyle = accent;
+          ctx.fill();
+
+          ctx.fillStyle = ink;
+          ctx.globalAlpha = 0.4;
+          ASTEROIDS.forEach((a) => {
+            a.angle += a.spd;
+            const ar = a.r * base,
+              ax = cx + Math.cos(a.angle) * ar,
+              ay = cy + Math.sin(a.angle) * ar;
+            ctx.beginPath();
+            ctx.arc(ax, ay, a.sz * base, 0, Math.PI * 2);
+            ctx.fill();
+          });
+          ctx.globalAlpha = 1.0;
+
+          PLANETS.forEach((p, i) => {
+            const pr = p.r * base,
+              angle = time * p.spd + i * 1.23;
+            const px = cx + Math.cos(angle) * pr,
+              py = cy + Math.sin(angle) * pr;
+            const psz = Math.max(1, p.sz * base);
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, pr, 0, Math.PI * 2);
+            ctx.strokeStyle = border;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+
+            if (p.rings) {
+              const rOuter = p.rings.outer * base;
+              ctx.beginPath();
+              ctx.ellipse(px, py, rOuter, rOuter * 0.35, angle, 0, Math.PI * 2);
+              ctx.strokeStyle = border;
+              ctx.lineWidth = 1.2;
+              ctx.stroke();
+            }
+
+            ctx.beginPath();
+            ctx.arc(px, py, psz, 0, Math.PI * 2);
+            ctx.fillStyle = ink;
+            ctx.fill();
+
+            if (p.moons) {
+              p.moons.forEach((m, mi) => {
+                const mr = m.r * base,
+                  mAngle = time * m.spd + mi * 2.1;
+                const mx = px + Math.cos(mAngle) * mr,
+                  my = py + Math.sin(mAngle) * mr;
+                const msz = Math.max(0.5, m.sz * base);
+                ctx.beginPath();
+                ctx.arc(px, py, mr, 0, Math.PI * 2);
+                ctx.strokeStyle = border;
+                ctx.globalAlpha = 0.3;
+                ctx.stroke();
+                ctx.globalAlpha = 1.0;
+                ctx.beginPath();
+                ctx.arc(mx, my, msz, 0, Math.PI * 2);
+                ctx.fillStyle = accent;
+                ctx.fill();
+              });
+            }
+          });
+
+          time++;
+          requestAnimationFrame(draw);
+        }
+        resize();
+        window.addEventListener("resize", resize);
+        draw();
+      })();
+
+      /* Comets (day only) */
+      (function () {
+        const C = document.getElementById("comet-canvas");
+        const ctx = C.getContext("2d");
+        let W,
+          H,
+          cometTime = 0;
+
+        const PLANET_DATA = [
+          { r: 40, spd: 0.012, sz: 1.5, mass: 0.3 },
+          { r: 70, spd: 0.009, sz: 2.5, mass: 5 },
+          { r: 105, spd: 0.007, sz: 2.5, mass: 6 },
+          { r: 140, spd: 0.005, sz: 2, mass: 3 },
+          { r: 240, spd: 0.002, sz: 6, mass: 100 },
+          { r: 330, spd: 0.0012, sz: 5, mass: 80 },
+          { r: 410, spd: 0.0007, sz: 4, mass: 40 },
+          { r: 480, spd: 0.0004, sz: 4, mass: 40 },
+        ];
+
+        const comets = [];
+        const debris = [];
+        let nextSpawn = newInterval();
+
+        function newInterval() {
+          return Math.floor((30 + Math.random() * 30) * 60);
+        }
+
+        function resize() {
+          W = C.width = window.innerWidth;
+          H = C.height = window.innerHeight;
+        }
+
+        function base() {
+          return Math.min(W, H) / 1100;
+        }
+
+        /* Compute where each planet is right now, matching the solar system IIFE's time counter */
+        function planetStates() {
+          const b = base(),
+            cx = W / 2,
+            cy = H / 2;
+          return PLANET_DATA.map((p, i) => {
+            const pr = p.r * b;
+            const angle = cometTime * p.spd + i * 1.23;
+            return {
+              x: cx + Math.cos(angle) * pr,
+              y: cy + Math.sin(angle) * pr,
+              mass: p.mass,
+              sz: Math.max(1, p.sz * b),
+            };
+          });
+        }
+
+        function spawnComet() {
+          const b = base(),
+            cx = W / 2,
+            cy = H / 2;
+          const edge = Math.floor(Math.random() * 4);
+          let x, y;
+          const mg = 60;
+          switch (edge) {
+            case 0:
+              x = Math.random() * W;
+              y = -mg;
+              break;
+            case 1:
+              x = W + mg;
+              y = Math.random() * H;
+              break;
+            case 2:
+              x = Math.random() * W;
+              y = H + mg;
+              break;
+            default:
+              x = -mg;
+              y = Math.random() * H;
+              break;
+          }
+          /* Aim toward inner solar system with jitter */
+          const jitter = 280 * b;
+          const tx = cx + (Math.random() - 0.5) * jitter;
+          const ty = cy + (Math.random() - 0.5) * jitter;
+          const dx = tx - x,
+            dy = ty - y,
+            d = Math.sqrt(dx * dx + dy * dy);
+          const spd = (1.2 + Math.random() * 1.6) * b;
+          comets.push({
+            x,
+            y,
+            vx: (dx / d) * spd,
+            vy: (dy / d) * spd,
+            tail: [],
+            age: 0,
+            alpha: 1,
+          });
+        }
+
+        function spawnDebris(x, y, isSun) {
+          const count = isSun ? 40 : 22;
+          for (let i = 0; i < count; i++) {
+            const ang = Math.random() * Math.PI * 2;
+            const spd = (isSun ? 1.5 : 0.5) + Math.random() * (isSun ? 5 : 3.5);
+            const warm = Math.random() > (isSun ? 0.3 : 0.5);
+            debris.push({
+              x,
+              y,
+              vx: Math.cos(ang) * spd,
+              vy: Math.sin(ang) * spd,
+              r: 0.6 + Math.random() * (isSun ? 3 : 2),
+              alpha: 0.8 + Math.random() * 0.2,
+              decay: 0.011 + Math.random() * 0.014,
+              warm,
+            });
+          }
+        }
+
+        function drawFrame() {
+          ctx.clearRect(0, 0, W, H);
+
+          if (document.documentElement.classList.contains("night")) {
+            requestAnimationFrame(drawFrame);
+            return;
+          }
+
+          const b = base();
+          const cx = W / 2,
+            cy = H / 2;
+          const sunSz = 14 * b;
+
+          /* Gravitational parameters */
+          const G_SUN = 880 * b * b;
+          const G_PLANET = 0.88 * b * b;
+          const MAX_SPD = 18 * b;
+
+          const planets = planetStates();
+
+          /* Spawn timer */
+          if (cometTime > 0 && cometTime % nextSpawn === 0) {
+            spawnComet();
+            nextSpawn = cometTime + newInterval();
+          }
+
+          /* Debris */
+          for (let i = debris.length - 1; i >= 0; i--) {
+            const d = debris[i];
+            d.x += d.vx;
+            d.y += d.vy;
+            d.vx *= 0.982;
+            d.vy *= 0.982;
+            d.alpha -= d.decay;
+            if (d.alpha <= 0) {
+              debris.splice(i, 1);
+              continue;
+            }
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+            const a = Math.max(0, d.alpha).toFixed(3);
+            ctx.fillStyle = d.warm
+              ? `rgba(255,200,90,${a})`
+              : `rgba(200,228,255,${a})`;
+            ctx.fill();
+          }
+
+          /* Actual Comets */
+          for (let i = comets.length - 1; i >= 0; i--) {
+            const c = comets[i];
+            c.age++;
+
+            /* fade in last 90 frames */
+            if (c.age > 900) {
+              comets.splice(i, 1);
+              continue;
+            }
+            c.alpha = c.age > 810 ? (900 - c.age) / 90 : 1;
+
+            /* Record tail */
+            c.tail.push({ x: c.x, y: c.y });
+            if (c.tail.length > 58) c.tail.shift();
+
+            /* Sun gravity */
+            const dsx = cx - c.x,
+              dsy = cy - c.y;
+            const distSun = Math.sqrt(dsx * dsx + dsy * dsy);
+            if (distSun > 0.5) {
+              const f = G_SUN / (distSun * distSun * distSun);
+              c.vx += f * dsx;
+              c.vy += f * dsy;
+            }
+
+            /* Planet gravity */
+            for (const p of planets) {
+              const dpx = p.x - c.x,
+                dpy = p.y - c.y;
+              const distP = Math.sqrt(dpx * dpx + dpy * dpy);
+              if (distP > 0.5) {
+                const f = (G_PLANET * p.mass) / (distP * distP * distP);
+                c.vx += f * dpx;
+                c.vy += f * dpy;
+              }
+            }
+
+            /* Speed cap */
+            const spd = Math.sqrt(c.vx * c.vx + c.vy * c.vy);
+            if (spd > MAX_SPD) {
+              const s = MAX_SPD / spd;
+              c.vx *= s;
+              c.vy *= s;
+            }
+
+            /* Move */
+            c.x += c.vx;
+            c.y += c.vy;
+
+            /* Sun collision */
+            const dsx2 = cx - c.x,
+              dsy2 = cy - c.y;
+            const distSun2 = Math.sqrt(dsx2 * dsx2 + dsy2 * dsy2);
+            if (distSun2 < sunSz + 4) {
+              spawnDebris(c.x, c.y, true);
+              comets.splice(i, 1);
+              continue;
+            }
+
+            /* Planet collision */
+            let hit = false;
+            for (const p of planets) {
+              const dpx = p.x - c.x,
+                dpy = p.y - c.y;
+              const distP = Math.sqrt(dpx * dpx + dpy * dpy);
+              if (distP < p.sz * 3.5 + 2) {
+                spawnDebris(c.x, c.y, false);
+                comets.splice(i, 1);
+                hit = true;
+                break;
+              }
+            }
+            if (hit) continue;
+
+            /* Off-screen ejection (after at least 1 second) */
+            if (c.age > 60) {
+              const mg = 180;
+              if (c.x < -mg || c.x > W + mg || c.y < -mg || c.y > H + mg) {
+                comets.splice(i, 1);
+                continue;
+              }
+            }
+
+            /* Tail */
+            const tLen = c.tail.length;
+            if (tLen > 1) {
+              /* Ion tail */
+              for (let t = 1; t < tLen; t++) {
+                const p1 = c.tail[t - 1],
+                  p2 = c.tail[t];
+                const prog = t / tLen;
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.strokeStyle = `rgba(255,210,140,${(prog * 0.72 * c.alpha).toFixed(3)})`;
+                ctx.lineWidth = Math.max(0.4, prog * 2.4 * b);
+                ctx.stroke();
+              }
+              /* Dust tail */
+              const dStart = Math.max(0, tLen - 28);
+              for (let t = dStart + 1; t < tLen; t++) {
+                const p1 = c.tail[t - 1],
+                  p2 = c.tail[t];
+                const prog = (t - dStart) / (tLen - dStart);
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.strokeStyle = `rgba(255,228,170,${(prog * 0.3 * c.alpha).toFixed(3)})`;
+                ctx.lineWidth = Math.max(0.3, prog * 1.6 * b);
+                ctx.stroke();
+              }
+            }
+
+            /*  Head glow */
+            const glowR = 13 * b;
+            const glow = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, glowR);
+            glow.addColorStop(
+              0,
+              `rgba(255,230,200,${(0.95 * c.alpha).toFixed(3)})`,
+            );
+            glow.addColorStop(
+              0.25,
+              `rgba(255,170,110,${(0.6 * c.alpha).toFixed(3)})`,
+            );
+            glow.addColorStop(
+              0.6,
+              `rgba(220,110,60,${(0.25 * c.alpha).toFixed(3)})`,
+            );
+            glow.addColorStop(1, `rgba(160,70,40,0)`);
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, glowR, 0, Math.PI * 2);
+            ctx.fillStyle = glow;
+            ctx.fill();
+
+            /*  Head core */
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, Math.max(1.2, 2.2 * b), 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(245,252,255,${c.alpha.toFixed(3)})`;
+            ctx.fill();
+          }
+
+          cometTime++;
+          requestAnimationFrame(drawFrame);
+        }
+
+        resize();
+        window.addEventListener("resize", resize);
+        drawFrame();
+      })();
+
+      /* Star field with Milky Way + time-based star count */
+      (function () {
+        const C = document.getElementById("starfield");
+        const ctx = C.getContext("2d");
+        let W,
+          H,
+          frame = 0,
+          mx = 0.5,
+          my = 0.5;
+        let stars = [],
+          shoot = null;
+        let milkyWayCache = null,
+          mwW = 0,
+          mwH = 0;
+
+        /*
+         * Star layers:
+         *   Base layers: ~290 stars, visible all night
+         *   Extra layers: ~470 stars, accumulate toward 2am
+         *   Total at peak: ~760 stars. At 8pm: ~310 visible.
+         */
+        const LAYERS = [
+          /* Base-- always visible in night mode */
+          {
+            n: 190,
+            rMin: 0.34,
+            rMax: 0.72,
+            op: 0.3,
+            spd: 0.1,
+            tBase: 0,
+            tRange: 0.08,
+          },
+          {
+            n: 68,
+            rMin: 0.74,
+            rMax: 1.28,
+            op: 0.52,
+            spd: 0.27,
+            tBase: 0,
+            tRange: 0.08,
+          },
+          {
+            n: 22,
+            rMin: 1.3,
+            rMax: 2.1,
+            op: 0.78,
+            spd: 0.56,
+            tBase: 0,
+            tRange: 0.08,
+          },
+          /* Extra — appear as night deepens */
+          {
+            n: 270,
+            rMin: 0.2,
+            rMax: 0.55,
+            op: 0.17,
+            spd: 0.07,
+            tBase: 0.08,
+            tRange: 0.52,
+          },
+          {
+            n: 140,
+            rMin: 0.45,
+            rMax: 0.95,
+            op: 0.36,
+            spd: 0.19,
+            tBase: 0.15,
+            tRange: 0.6,
+          },
+          {
+            n: 60,
+            rMin: 0.9,
+            rMax: 1.7,
+            op: 0.58,
+            spd: 0.38,
+            tBase: 0.35,
+            tRange: 0.65,
+          },
+        ];
+
+        function initStars() {
+          stars = [];
+          LAYERS.forEach((l) => {
+            for (let i = 0; i < l.n; i++) {
+              stars.push({
+                x: Math.random(),
+                y: Math.random(),
+                r: l.rMin + Math.random() * (l.rMax - l.rMin),
+                op: l.op * (0.5 + Math.random() * 0.5),
+                tw: 0.3 + Math.random() * 2.4,
+                to: Math.random() * Math.PI * 2,
+                spd: l.spd,
+                threshold: l.tBase + Math.random() * l.tRange,
+              });
+            }
+          });
+        }
+
+        function resize() {
+          W = C.width = window.innerWidth;
+          H = C.height = window.innerHeight;
+          milkyWayCache = null; /* force re-render on next frame */
+        }
+
+        document.addEventListener("mousemove", (e) => {
+          mx = e.clientX / W;
+          my = e.clientY / H;
+        });
+
+        /* Star count multiplier based on real time: */
+        function nightMultiplier() {
+          const now = new Date();
+          const h = now.getHours() + now.getMinutes() / 60;
+          if (h >= 2 && h < 6) {
+            /* 2am --> 6am */
+            return Math.max(0.12, 1.0 - 0.88 * ((h - 2) / 4));
+          } else if (h >= 20 || h < 2) {
+            /* Ramping: 8pm --> 2am (6 hours) */
+            const elapsed = h >= 20 ? h - 20 : h + 4;
+            return 0.12 + 0.88 * Math.min(1, elapsed / 6);
+          }
+          return 0.12; /* daytime it is invisible anyway */
+        }
+
+        function buildMilkyWay() {
+          const mw = document.createElement("canvas");
+          mw.width = W;
+          mw.height = H;
+          const mc = mw.getContext("2d");
+
+          const diagLen = Math.sqrt(W * W + H * H);
+          const angle = -Math.PI / 5.4;
+          // halfBand controls the thickness of the glow
+          const halfBand = diagLen * 0.19;
+
+          mc.save();
+          mc.translate(W * 0.5, H * 0.5);
+          mc.rotate(angle);
+
+          const stretch = 6.0;
+          mc.scale(1, stretch);
+          mc.globalCompositeOperation = "lighter";
+
+          const rOuter = halfBand;
+          const g1 = mc.createRadialGradient(0, 0, 0, 0, 0, rOuter);
+          g1.addColorStop(0, "rgba(90, 100, 165, 0.04)");
+          g1.addColorStop(0.5, "rgba(70, 80, 140, 0.01)");
+          g1.addColorStop(1, "rgba(70, 80, 140, 0)");
+          mc.fillStyle = g1;
+          mc.beginPath();
+          mc.arc(0, 0, rOuter, 0, Math.PI * 2);
+          mc.fill();
+
+          const rMid = halfBand * 0.55;
+          const g2 = mc.createRadialGradient(0, 0, 0, 0, 0, rMid);
+          g2.addColorStop(0, "rgba(180, 185, 228, 0.05)");
+          g2.addColorStop(0.5, "rgba(165, 172, 218, 0.02)");
+          g2.addColorStop(1, "rgba(155, 165, 210, 0)");
+          mc.fillStyle = g2;
+          mc.beginPath();
+          mc.arc(0, 0, rMid, 0, Math.PI * 2);
+          mc.fill();
+
+          const rCore = halfBand * 0.25;
+          const g3 = mc.createRadialGradient(0, 0, 0, 0, 0, rCore);
+          g3.addColorStop(0, "rgba(250, 240, 215, 0.08)");
+          g3.addColorStop(0.5, "rgba(238, 226, 200, 0.03)");
+          g3.addColorStop(1, "rgba(230, 218, 195, 0)");
+          mc.fillStyle = g3;
+          mc.beginPath();
+          mc.arc(0, 0, rCore, 0, Math.PI * 2);
+          mc.fill();
+
+          mc.scale(1, 1 / stretch);
+          mc.globalCompositeOperation = "source-over";
+
+          /* Draw dust particles */
+          for (let i = 0; i < 1900; i++) {
+            const u = Math.random();
+            const v = Math.random();
+            const gauss =
+              Math.sqrt(-2 * Math.log(Math.max(u, 0.001))) *
+              Math.cos(2 * Math.PI * v);
+
+            const bx = gauss * halfBand * (0.38 + Math.random() * 0.1);
+            const by = (Math.random() - 0.5) * diagLen * 2.5;
+
+            const xFrac = Math.abs(bx) / halfBand;
+            const yFrac = Math.abs(by) / (diagLen * 1.25);
+
+            if (xFrac > 1 || yFrac > 1) continue;
+
+            const opScale = Math.pow(1 - xFrac, 1.7) * Math.pow(1 - yFrac, 2.0);
+            const r = 0.15 + Math.random() * 0.65;
+            const warm = Math.random() > 0.52;
+
+            const alpha = (0.005 + Math.random() * 0.07) * opScale;
+
+            mc.beginPath();
+            mc.arc(bx, by, r, 0, Math.PI * 2);
+            mc.fillStyle = warm
+              ? `rgba(255,242,210,${alpha.toFixed(3)})`
+              : `rgba(185,205,255,${alpha.toFixed(3)})`;
+            mc.fill();
+          }
+
+          mc.restore();
+          milkyWayCache = mw;
+          mwW = W;
+          mwH = H;
+        }
+
+        function drawFrame() {
+          ctx.clearRect(0, 0, W, H);
+
+          if (!document.documentElement.classList.contains("night")) {
+            frame++;
+            requestAnimationFrame(drawFrame);
+            return;
+          }
+
+          /* Build or rebuild Milky Way cache */
+          if (!milkyWayCache || mwW !== W || mwH !== H) buildMilkyWay();
+
+          const mult = nightMultiplier();
+          const t = frame * 0.011;
+
+          /* Milky Way */
+          const mwAlpha = Math.max(
+            0,
+            Math.min(mult * mult, (mult - 0.25) / 0.75),
+          );
+
+          if (mwAlpha > 0) {
+            const MW_INTENSITY = 0.42;
+            ctx.globalAlpha = mwAlpha * MW_INTENSITY;
+            ctx.drawImage(milkyWayCache, 0, 0);
+            ctx.globalAlpha = 1;
+          }
+
+          /* Stars */
+          stars.forEach((s) => {
+            if (mult < s.threshold) return;
+            const fade = Math.min(1, (mult - s.threshold) / 0.1);
+            const tw = 0.45 + 0.55 * Math.sin(t * s.tw + s.to);
+            const al = s.op * (0.3 + 0.7 * tw) * fade;
+
+            const x = (((s.x * W + (mx - 0.5) * s.spd * 78) % W) + W) % W;
+            const y = (((s.y * H + (my - 0.5) * s.spd * 60) % H) + H) % H;
+
+            ctx.beginPath();
+            ctx.arc(x, y, s.r, 0, Math.PI * 2);
+
+            ctx.fillStyle = `rgba(235,225,210,${al.toFixed(3)})`;
+            ctx.fill();
+
+            if (s.r > 1.38) {
+              const cr = s.r * 3;
+              ctx.strokeStyle = `rgba(226,210,182,${(al * 0.18).toFixed(3)})`;
+              ctx.lineWidth = 0.48;
+              ctx.beginPath();
+              ctx.moveTo(x - cr, y);
+              ctx.lineTo(x + cr, y);
+              ctx.moveTo(x, y - cr);
+              ctx.lineTo(x, y + cr);
+              ctx.stroke();
+            }
+          });
+
+          /* Shooting stars NOT commets -- could be satellites, starlink garbage or actual comets */
+          if (!shoot && frame % 400 === 0)
+            shoot = { x: Math.random() * W, y: Math.random() * H * 0.4, t: 0 };
+
+          if (shoot) {
+            shoot.t++;
+            const prog = shoot.t / 55;
+            if (prog >= 1) {
+              shoot = null;
+            } else {
+              const ex = shoot.x + 210 * prog,
+                ey = shoot.y + 110 * prog;
+              const ang = Math.atan2(110, 210),
+                len = 129.6 * (1 - prog);
+              const sx = ex - len * Math.cos(ang),
+                sy = ey - len * Math.sin(ang);
+              const g = ctx.createLinearGradient(sx, sy, ex, ey);
+              g.addColorStop(0, "rgba(226,210,182,0)");
+              g.addColorStop(
+                1,
+                `rgba(226,210,182,${((1 - prog) * 0.62).toFixed(3)})`,
+              );
+              ctx.beginPath();
+              ctx.strokeStyle = g;
+              ctx.lineWidth = 1.32;
+              ctx.moveTo(sx, sy);
+              ctx.lineTo(ex, ey);
+              ctx.stroke();
+            }
+          }
+
+          frame++;
+          requestAnimationFrame(drawFrame);
+        }
+
+        resize();
+        initStars();
+        drawFrame();
+        window.addEventListener("resize", () => {
+          resize();
+          initStars();
+        });
+      })();
+
+      /* Iink splash */
+      (function () {
+        const C = document.getElementById("ink-canvas");
+        const ctx = C.getContext("2d");
+        let W,
+          H,
+          parts = [];
+        function resize() {
+          W = C.width = window.innerWidth;
+          H = C.height = window.innerHeight;
+        }
+        document.addEventListener("mousedown", (e) => {
+          if (e.target.tagName === "INPUT" || e.target.closest("a")) return;
+          const s = getComputedStyle(document.documentElement);
+          const ac = s.getPropertyValue("--accent").trim();
+          const ink = s.getPropertyValue("--ink").trim();
+          for (let i = 0; i < 20; i++) {
+            const ang = Math.random() * Math.PI * 2,
+              spd = 0.3 + Math.random() * 3.6;
+            parts.push({
+              x: e.clientX,
+              y: e.clientY,
+              vx: Math.cos(ang) * spd,
+              vy: Math.sin(ang) * spd - (0.42 + Math.random()),
+              r: 0.72 + Math.random() * 2.88,
+              a: 0.42 + Math.random() * 0.5,
+              c: Math.random() > 0.3 ? ink : ac,
+              d: 0.01 + Math.random() * 0.015,
+              g: 0.04 + Math.random() * 0.045,
+            });
+          }
+        });
+        function anim() {
+          ctx.clearRect(0, 0, W, H);
+          parts = parts.filter((p) => p.a > 0.008);
+          parts.forEach((p) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += p.g;
+            p.a -= p.d;
+            const hex = Math.round(p.a * 255)
+              .toString(16)
+              .padStart(2, "0");
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = p.c + hex;
+            ctx.fill();
+          });
+          requestAnimationFrame(anim);
+        }
+        resize();
+        anim();
+        window.addEventListener("resize", resize);
+      })();
+    </script>
+  </body>
+</html>

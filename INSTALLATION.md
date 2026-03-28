@@ -5,7 +5,7 @@ The installer is a GUI app written in Rust + Tauri.
 The source code is in `.source_codes/installer_src`.
 
 <div align="center">
-    <img src="installer.png" height=500 alt="screenshot" />
+    <img src="media/screenshots/installer.png" height=500 alt="screenshot" />
 </div>
 
 ---

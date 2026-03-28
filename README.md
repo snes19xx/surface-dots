@@ -9,7 +9,6 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 
 - [Screenshots](#screenshots)
 - [Dependencies](#dependencies)
-- [Installation](#installation)
 - [Hyprland](#hyprland)
 - [Shaders](#shaders)
 - [Desktop Layouts](#desktop-layouts)
@@ -118,47 +117,6 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 
 > [!CAUTION]
 > Layout geometry is hardcoded for 3:2 high-resolution display. Deviation in aspect ratio or pixel density will result in misalignment or things looking too big or small. Please reconfigure values accordingly.
-
-## Installation
-
-A GUI installer is included for installing surface-dots.
-
-Installer [source code](./.source_codes/installer_src) and [documentation](./.source_codes/installer_src/installer_readme.md)
-
-> [!IMPORTANT]
->
-> - If the installer fails to launch, you may need the WebKitGTK runtime libraries
-> - You must have a polkit authentication agent installed and running before you run the installer to prompt you for your sudo password
-
-```bash
-# arch:
-sudo pacman -S webkit2gtk-4.1
-# debian:
-sudo apt install libwebkit2gtk-4.1-0
-# fedora:
-sudo dnf install webkit2gtk4.1
-```
-
-##### Installation Steps
-
-1. Clone the repository
-2. Make the precompiled installer executable
-3. Launch the installer
-
-```bash
-git clone https://github.com/snes19xx/surface-dots
-cd surface-dots
-chmod +x surface-dots-installer
-./surface-dots-installer
-```
-
-##### Note
-
-- The installer does **not** install dependencies. Install any required packages through your distribution’s package manager before running it.
-
-- Some files from `.config` are intentionally skipped by the installer. If you need anything not included in the automated install, please manually copy the files from git clone.
-
-- The installer has only been tested on Arch Linux with the glibc versions used by Arch. Compatibility with other distributions is unknown. If you test it on another distribution, feel free to report whether it works or fails.
 
 ## Hyprland
 
@@ -679,14 +637,42 @@ The installer installs the theme and writes to conf.d automatically. It will how
 
 ## Firefox Customizations
 
-- [Custom Firefox start page](https://github.com/snes19xx/custom-firefox-start)
-- [usercss](https://github.com/snes19xx/firefox-customizations)
+<div align="center">
+    <img src="media/screenshots/ff_home.png" height=500 alt="firefox" />
+</div>
+
+Included in this repo are `start.html`:
+
+- **`start.html` (Stellarium):** A local new tab page. It tracks real-time weather, lunar phases, and celestial data. The background shifts procedurally between a daytime solar system and a nighttime starfield based on your local time.
+- **`/chrome/userChrome.css`:** A custom stylesheet that overrides the default Firefox interface.
+  <i>(These customizations work in windows or other os as well)</i>
 
 Firefox doesn't really want you to use local html as a new tab page so
 
 - Move autoconfig.js to Firefox defaults/pref/ (e.g. /usr/lib/firefox/defaults/pref/)
 - Edit mozilla.cfg (repo path: .config/firefox/mozilla.cfg) and set your file path
 - Move mozilla.cfg to the Firefox install directory root (e.g. /usr/lib/firefox/)
+
+<details>
+<summary><strong>Expand for instructions to install custom usercss:</strong></summary>
+
+##### 1. Enable Stylesheets in Firefox
+
+1. Open Firefox and enter `about:config` in the URL bar.
+2. Accept the risk warning.
+3. Search for `toolkit.legacyUserProfileCustomizations.stylesheets`.
+4. Double-click to set the value to `true`.
+
+##### 2. Locate Your Active Profile
+
+1. `about:profiles`.
+2. Find the profile box that states: <i>"This is the profile in use and it cannot be deleted."</i>
+3. Copy the path listed under **Root Directory** (e.g., `/home/username/.mozilla/firefox/xxxxxxxx.default-release`).
+
+##### 3. Install the Files
+
+- copy the userChrome.css in the chrome folder (create it if it doesn't exist or move the chrome folder from the repo)
+</details>
 
 ## Utilities
 
