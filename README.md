@@ -680,11 +680,9 @@ The installer installs the theme and writes to conf.d automatically. It will how
 ## Firefox Customizations
 
 <div align="center">
-<div style="display:flex; justify-content:center; gap:10px;">
-  <img src="media/screenshots/ff1.gif" width="40%" />
-  <img src="media/screenshots/ff2.gif" width="40%" />
+    <img src="media/screenshots/ff2.gif" width=500 alt="firefox" />
 </div>
-</div>
+
 Included in this repo are `start.html`:
 
 - **`start.html` (Stellarium):** A local new tab page. It tracks real-time weather, lunar phases, and celestial data. The background shifts procedurally between a daytime solar system and a nighttime starfield based on your local time.
