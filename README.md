@@ -667,8 +667,8 @@ Firefox doesn't really want you to use local html as a new tab page, if you want
 - Edit `config/firefox/mozilla.cfg` (repo path: `.config/firefox/mozilla.cfg`) and set your file path
 - Move `mozilla.cfg` to the Firefox install directory root (e.g. /usr/lib/firefox/)
 
-> [!INFO]
-> I have a `.crx` file in codex-stellarium directory if you want to use it in a chromium based browser.
+> [!NOTE]
+> I have a `.crx` file in the codex-stellarium directory if you want to use it in a chromium-based browser.
 
 #### userChrome
 
