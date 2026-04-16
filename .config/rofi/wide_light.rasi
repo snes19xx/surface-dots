@@ -23,6 +23,11 @@ configuration {
     sorting-method:             "fzf";
     matching:                   "fuzzy";
 
+    /* MOUSE BEHAVIOR */
+    hover-select:               true;
+    me-select-entry:            "";
+    me-accept-entry:            "MousePrimary";
+
     /* KEYBINDINGS */
     kb-row-tab:                 "";
     kb-accept-alt:              "";
