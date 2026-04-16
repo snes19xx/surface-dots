@@ -1,0 +1,312 @@
+<!--
+codex-stellarium
+[part 1 of 3 -- HTML]
+codex-stellarium is my custom firefox newtab/homepage. 
+Use alongside my userChrome.css for best experience
+
+by snes19xx, https://github.com/snes19xx
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home</title>
+    <link rel="icon" type="image/png" href="icon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@400;500&family=Space+Mono:wght@400&family=Lora:ital,wght@0,400;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <script src="theme-init.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <canvas id="bg-canvas"></canvas>
+    <canvas id="starfield"></canvas>
+    <canvas id="system-canvas"></canvas>
+    <canvas id="comet-canvas"></canvas>
+
+    <div class="grain"></div>
+    <div class="vignette"></div>
+    <div class="spine"></div>
+
+    <main class="codex">
+      <hr class="rule-top" />
+
+      <div class="codex-body">
+        <div class="col-left">
+          <div class="clock-block">
+            <div class="clock-face">
+              <span id="ch">-</span><span class="clock-sep">:</span
+              ><span id="cm">-</span>
+            </div>
+            <div class="clock-sub">
+              <div class="clock-greeting" id="greeting">-</div>
+              <div class="clock-date" id="clock-date">-</div>
+              <div class="clock-sec" id="cs">00s</div>
+            </div>
+          </div>
+
+          <div class="orn"><span class="orn-g">✦</span></div>
+
+          <div class="wx-block">
+            <div class="section-label">Conditions</div>
+            <div class="wx-row">
+              <svg class="wx-icon" id="wx-icon" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+              <div class="wx-temp" id="wx-temp">-°C</div>
+              <div class="wx-meta" id="wx-meta">Loading…</div>
+            </div>
+          </div>
+
+          <div class="moon-block">
+            <svg id="moon-svg" viewBox="0 0 28 28"></svg>
+            <div class="moon-data">
+              ☽ <em id="moon-name">-</em><br />
+              LST <em id="sidereal">-</em> &nbsp;·&nbsp; elev
+              <em id="sun-elev">-</em>°
+            </div>
+          </div>
+        </div>
+
+        <div class="col-divider"></div>
+
+        <div class="col-right">
+          <div class="search-block">
+            <div class="section-label">Search</div>
+            <input
+              class="search-input"
+              id="search"
+              type="text"
+              placeholder=""
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
+
+          <div class="shortcuts-block">
+            <div class="section-label">Shortcuts</div>
+            <div class="shortcuts-grid" id="sc-grid"></div>
+          </div>
+
+          <div class="ephem-block">
+            <div class="ephem-text" id="ephem"></div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="rule-bot" />
+
+      <div class="footer-row">
+        <span class="footer-mono" id="footer-lst">LST -</span>
+        <span class="footer-mono" id="footer-utc">UTC -</span>
+      </div>
+    </main>
+
+    <button class="settings-btn" id="settings-btn">✦ settings</button>
+
+    <div class="sett-overlay" id="sett-overlay">
+      <div class="sett-panel">
+        <div class="sett-header">
+          <span class="sett-title">Settings</span>
+          <button class="sett-close" id="sett-close">×</button>
+        </div>
+
+        <div class="sett-body">
+          <div class="sett-col">
+            <div class="sett-section">
+              <div class="sett-section-label">Appearance</div>
+              <div class="sett-row">
+                <span class="sett-row-label">Theme</span>
+                <div class="sett-radios">
+                  <label class="sett-radio-label">
+                    <input type="radio" name="sett-theme" value="auto" /> auto
+                  </label>
+                  <label class="sett-radio-label">
+                    <input type="radio" name="sett-theme" value="light" /> light
+                  </label>
+                  <label class="sett-radio-label">
+                    <input type="radio" name="sett-theme" value="dark" /> dark
+                  </label>
+                </div>
+              </div>
+              <div class="sett-row">
+                <span class="sett-row-label">Size</span>
+                <div class="sett-radios">
+                  <label class="sett-radio-label">
+                    <input type="radio" name="sett-size" value="0.5" /> 0.5×
+                  </label>
+                  <label class="sett-radio-label">
+                    <input type="radio" name="sett-size" value="1" /> 1×
+                  </label>
+                  <label class="sett-radio-label">
+                    <input type="radio" name="sett-size" value="1.33" /> 1.33×
+                  </label>
+                  <label class="sett-radio-label">
+                    <input type="radio" name="sett-size" value="1.5" /> 1.5×
+                  </label>
+                  <label class="sett-radio-label">
+                    <input type="radio" name="sett-size" value="2" /> 2×
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="sett-section">
+              <div class="sett-section-label">Identity</div>
+              <div class="sett-row">
+                <span class="sett-row-label">Username</span>
+                <input
+                  type="text"
+                  class="sett-input"
+                  id="sett-username"
+                  placeholder="user"
+                />
+              </div>
+            </div>
+
+            <div class="sett-section">
+              <div class="sett-section-label">Location</div>
+              <div class="sett-row">
+                <span class="sett-row-label">City</span>
+                <input
+                  type="text"
+                  class="sett-input"
+                  id="sett-loc-input"
+                  placeholder="Toronto"
+                />
+                <button class="sett-btn-small" id="sett-loc-resolve">
+                  Resolve
+                </button>
+              </div>
+              <div class="sett-loc-status" id="sett-loc-status"></div>
+            </div>
+
+            <div class="sett-section">
+              <div class="sett-section-label">Display</div>
+              <div class="sett-toggles">
+                <label class="sett-toggle-row">
+                  <div class="sett-toggle">
+                    <input type="checkbox" id="sett-tog-clickComets" />
+                    <div class="sett-toggle-track"></div>
+                  </div>
+                  <span class="sett-toggle-label">Click comets</span>
+                </label>
+                <label class="sett-toggle-row">
+                  <div class="sett-toggle">
+                    <input type="checkbox" id="sett-tog-timerComets" />
+                    <div class="sett-toggle-track"></div>
+                  </div>
+                  <span class="sett-toggle-label">Timer comets</span>
+                </label>
+                <label class="sett-toggle-row">
+                  <div class="sett-toggle">
+                    <input type="checkbox" id="sett-tog-asteroidBelt" />
+                    <div class="sett-toggle-track"></div>
+                  </div>
+                  <span class="sett-toggle-label">Asteroid belt</span>
+                </label>
+                <label class="sett-toggle-row" id="sett-tog-row-planets">
+                  <div class="sett-toggle">
+                    <input type="checkbox" id="sett-tog-planets" />
+                    <div class="sett-toggle-track"></div>
+                  </div>
+                  <span class="sett-toggle-label">Planets</span>
+                </label>
+                <label
+                  class="sett-toggle-row"
+                  id="sett-tog-row-planetaryRotation"
+                >
+                  <div class="sett-toggle">
+                    <input type="checkbox" id="sett-tog-planetaryRotation" />
+                    <div class="sett-toggle-track"></div>
+                  </div>
+                  <span class="sett-toggle-label">Planetary rotation</span>
+                </label>
+                <label class="sett-toggle-row">
+                  <div class="sett-toggle">
+                    <input type="checkbox" id="sett-tog-parallax" />
+                    <div class="sett-toggle-track"></div>
+                  </div>
+                  <span class="sett-toggle-label">Parallax</span>
+                </label>
+                <label class="sett-toggle-row">
+                  <div class="sett-toggle">
+                    <input type="checkbox" id="sett-tog-milkyWay" />
+                    <div class="sett-toggle-track"></div>
+                  </div>
+                  <span class="sett-toggle-label">Milky Way</span>
+                </label>
+                <label class="sett-toggle-row">
+                  <div class="sett-toggle">
+                    <input type="checkbox" id="sett-tog-stars" />
+                    <div class="sett-toggle-track"></div>
+                  </div>
+                  <span class="sett-toggle-label">Stars</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="sett-col-divider"></div>
+
+          <div class="sett-col">
+            <div class="sett-section">
+              <div class="sett-section-label">Shortcuts</div>
+
+              <div class="sett-shortcuts-list" id="sett-shortcuts"></div>
+            </div>
+            <div class="sett-about">
+              <p>
+                <a href="https://en.wikipedia.org/wiki/Codex" target="_blank"
+                  >Codex</a
+                >
+                <a
+                  href="https://en.wikipedia.org/wiki/Stellarium"
+                  target="_blank"
+                  >Stellarium</a
+                >
+                by
+                <a href="https://github.com/snes19xx" target="_blank">snes</a>.
+              </p>
+              <p>
+                The codex (/koʊd.ɛks/; pl.: codices /koʊdɪˈsiːz/) was the
+                historical ancestor format of the modern book.
+              </p>
+              <p>
+                A stellarium (/stɛlˈlaː.ri.um/) is a three-dimensional map of
+                the stars, typically centered on Earth.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="sett-footer">
+          <a
+            href="https://github.com/snes19xx/surface-dots/issues"
+            target="_blank"
+            class="sett-link"
+            >✦ report bugs</a
+          >
+          <div class="sett-footer-actions">
+            <button class="sett-reset-btn" id="sett-reset">Reset</button>
+            <button class="sett-save-btn" id="sett-save">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

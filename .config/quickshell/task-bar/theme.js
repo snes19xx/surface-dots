@@ -1,5 +1,7 @@
 .pragma library
 
+// will be completely replaced by lib/ThemeEngine.qml soon
+
 // Everforest-ish
 var bgPanel = "rgba(20,23,25,0.88)"
 var bgCard  = "#1e2326"

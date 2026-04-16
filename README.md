@@ -16,9 +16,9 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - [Quickshell Hub](#quickshell-hub)
 - [Power menu](#power-menu)
 - [Wifi menu](#wifi-menu)
+- [Firefox Customizations](#firefox-customizations)
 - [Themes](#themes)
 - [Pixel sddm theme](#pixel-sddm-theme)
-- [Firefox Customizations](#firefox-customizations)
 - [Utilities](#utilities-1)
 - [Credits & acknowledgements](#credits--acknowledgements)
 - [Media sources](#media-sources)
@@ -85,10 +85,9 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - qt6ct
 - kvantum
 - papirus-icon-theme
-- ttf-manrope
 - ttf-nerd-fonts-symbols
-- Iosevka Nerd Font Mono
-- inter-font
+- ttf-iosevka-nerd
+- ttf-google-fonts-git
 - volantes_cursors
 
 </td>
@@ -642,6 +641,63 @@ Custom on-screen displays for:
 - Brightness
 - Various system modes (Dark, Light, Reading Mode, etc.)
 
+## Firefox Customizations
+
+#### Codex Stellarium <img src="media/screenshots/cs_icon.png" width="48" alt="" style="vertical-align: middle; margin-right: 6px;" />
+
+<div align="left">
+  <img src="media/screenshots/cs.gif" width="500" alt="Codex Stellarium preview on Firefox" />
+</div>
+
+##### Get it on Firefox [![Get Codex Stellarium](https://img.shields.io/badge/Firefox-Add--on-orange?logo=firefox&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/codex-stellarium/)
+
+_Codex Stellarium_ is an interactive, customizeable astronomy inspired custom new tab/homepage. Replaces the default new tab with an interactive starfield, planetary system, and comet simulator. Contains:
+
+- **Canvas Animations:** Interactive comets, planetary orbits, and a parallax starfield.
+- **Dynamic Theme:** Auto-switches between light and dark modes based on local time or weather conditions.
+- **Live Data:** Displays current weather (via Open-Meteo API), lunar phase, and sidereal time.
+- **Shortcuts:** Configurable quick links.
+
+##### Manual Installation
+
+`.config/firefox/codex-stellarium`
+Firefox doesn't really want you to use local html as a new tab page, if you want to isntall codex stellarium manually or use your own html as custom new tab:
+
+- Move `config/firefox/defaults/pref/autoconfig.js` to Firefox defaults/pref/ (e.g. /usr/lib/firefox/defaults/pref/)
+- Edit `config/firefox/mozilla.cfg` (repo path: `.config/firefox/mozilla.cfg`) and set your file path
+- Move `mozilla.cfg` to the Firefox install directory root (e.g. /usr/lib/firefox/)
+
+> [!INFO]
+> I have a `.crx` file in codex-stellarium directory if you want to use it in a chromium based browser.
+
+#### userChrome
+
+`/chrome/userChrome.css`: A custom stylesheet that overrides the default Firefox interface. (These customizations work in windows or other os as well)
+
+<details>
+<summary><strong>Expand for instructions to install custom usercss:</strong></summary>
+
+##### 1. Enable Stylesheets in Firefox
+
+1. Open Firefox and enter `about:config` in the URL bar.
+2. Accept the risk warning.
+3. Search for `toolkit.legacyUserProfileCustomizations.stylesheets`.
+4. Double-click to set the value to `true`.
+
+##### 2. Locate Your Active Profile
+
+1. Go to `about:profiles`.
+2. Find the profile box that states: <i>"This is the profile in use and it cannot be deleted."</i>
+3. Copy the path listed under **Root Directory**  
+   (e.g., `/home/username/.mozilla/firefox/xxxxxxxx.default-release`).
+
+##### 3. Install the Files
+
+- Copy the `userChrome.css` into the `chrome` folder  
+  (create it if it doesn't exist, or move the `chrome` folder from this repo)
+
+</details>
+
 ## Themes
 
 ##### GTK:
@@ -676,45 +732,6 @@ The installer installs the theme and writes to conf.d automatically. It will how
     sudo mkdir -p /etc/sddm.conf.d
     echo -e "[Theme]\nCurrent=pixel" | sudo tee /etc/sddm.conf.d/theme.conf
     ```
-
-## Firefox Customizations
-
-<div align="center">
-    <img src="media/screenshots/ff2.gif" width=500 alt="firefox" />
-</div>
-
-Included in this repo are `start.html`:
-
-- **`start.html` (Stellarium):** A local new tab page. It tracks real-time weather, lunar phases, and celestial data. The background shifts procedurally between a daytime solar system and a nighttime starfield based on your local time.
-- **`/chrome/userChrome.css`:** A custom stylesheet that overrides the default Firefox interface.
-  <i>(These customizations work in windows or other os as well)</i>
-
-Firefox doesn't really want you to use local html as a new tab page so
-
-- Move autoconfig.js to Firefox defaults/pref/ (e.g. /usr/lib/firefox/defaults/pref/)
-- Edit mozilla.cfg (repo path: .config/firefox/mozilla.cfg) and set your file path
-- Move mozilla.cfg to the Firefox install directory root (e.g. /usr/lib/firefox/)
-
-<details>
-<summary><strong>Expand for instructions to install custom usercss:</strong></summary>
-
-##### 1. Enable Stylesheets in Firefox
-
-1. Open Firefox and enter `about:config` in the URL bar.
-2. Accept the risk warning.
-3. Search for `toolkit.legacyUserProfileCustomizations.stylesheets`.
-4. Double-click to set the value to `true`.
-
-##### 2. Locate Your Active Profile
-
-1. `about:profiles`.
-2. Find the profile box that states: <i>"This is the profile in use and it cannot be deleted."</i>
-3. Copy the path listed under **Root Directory** (e.g., `/home/username/.mozilla/firefox/xxxxxxxx.default-release`).
-
-##### 3. Install the Files
-
-- copy the userChrome.css in the chrome folder (create it if it doesn't exist or move the chrome folder from the repo)
-</details>
 
 ## Utilities
 
@@ -752,7 +769,7 @@ Utilities include the following:
 8. Photo by Cedric Chambaz on [Flickr](https://www.flickr.com/photos/cchambaz/2391578535/in/gallery-195423583@N07-72157720611385337/)
 9. Photo by temo Berishvili on [Unsplash](https://www.pexels.com/photo/herd-of-animals-on-grass-field-near-mountains-1574843/)
 10. Photo by Lucas Pezeta on [Unsplash](https://www.pexels.com/photo/cows-grazing-on-field-2331478/)
-11. `media/wallpaper/surface_defaults` wallpapers are from microsoft
+11. Surface default wallpapers are from microsoft
 12. All Rofi pictures were pulled from Pinterest; I don’t know the original owners.
 
 [OC]
@@ -762,8 +779,6 @@ Collection of pictures taken by me, some edited/created by me and a bunch of the
 
 - Lucina wallpaper from [Fire Emblem Awekening Artbook](https://www.amazon.ca/Art-Fire-Emblem-Awakening-ebook/dp/B01J1XIC2O)
 - Final Fantasy logos: by [Yoshitaka Amano](https://en.yoshitaka-amano.com/#/)
-- Monogatari wallpapers are edited from the scans of [Monogatari Series 10th Anniversary Illustration Works Art Book](https://www.ebay.ca/itm/403993406564)
-- [15,16 and 17].png are from [AhogeDesu](https://imgur.com/gallery/utamonogatari-styled-heroines-DH4ca2m)
 - untitled.png from nanora on [artstation](https://www.artstation.com/nanora)
 
 #### <span style="color:#a41d1d">[Reuse Note:]</span>

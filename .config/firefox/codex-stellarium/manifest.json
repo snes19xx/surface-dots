@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Codex Stellarium",
+  "version": "1.0",
+  "description": "Astronomy inspired custom animated new tab page",
+  "author": "Sandesh Bhandari (snes)",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "codex-stellarium@snes19xx.github.io",
+      "strict_min_version": "109.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["*://*.open-meteo.com/*"],
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "icons": {
+    "32": "icon-32.png",
+    "64": "icon-64.png",
+    "128": "icon-128.png"
+  }
+}

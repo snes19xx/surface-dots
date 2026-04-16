@@ -1,10 +1,10 @@
 /* ========================================================================
-   SNES' FIREFOX USERCHROME
-   March 2026, @snes19xx
+   SNES' FIREFOX USERCHROME, @snes19xx
    ======================================================================== */
 
 /* Adaptive Tab Bar Colour integration */
 /* https://addons.mozilla.org/en-CA/firefox/addon/adaptive-tab-bar-colour/ */
+
 #main-window,
 body,
 :root {
