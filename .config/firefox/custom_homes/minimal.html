@@ -1,0 +1,93 @@
+<!--
+minimal.html (file 1 of 3)
+Use alongside my userChrome.css for best experience
+by snes19xx, https://github.com/snes19xx
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:ital@1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="minimal_style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  </head>
+  <body>
+    <div class="noise"></div>
+
+    <svg
+      class="math-bg"
+      viewBox="0 0 1000 1000"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="500" cy="500" r="450" stroke-dasharray="4 8" />
+      <circle cx="500" cy="500" r="300" opacity="0.5" />
+      <circle cx="500" cy="500" r="150" stroke-dasharray="2 6" />
+      <line x1="50" y1="500" x2="950" y2="500" opacity="0.3" />
+      <line x1="500" y1="50" x2="500" y2="950" opacity="0.3" />
+      <ellipse
+        cx="500"
+        cy="500"
+        rx="400"
+        ry="120"
+        transform="rotate(30 500 500)"
+      />
+      <ellipse
+        cx="500"
+        cy="500"
+        rx="400"
+        ry="120"
+        transform="rotate(-60 500 500)"
+      />
+      <ellipse
+        cx="500"
+        cy="500"
+        rx="400"
+        ry="120"
+        transform="rotate(75 500 500)"
+        stroke-dasharray="10 10"
+      />
+    </svg>
+
+    <div id="dynamic-effects"></div>
+    <canvas class="fireworks-canvas" id="fireworks-canvas"></canvas>
+
+    <main class="container">
+      <div class="header">
+        <div class="time" id="clock">00:00</div>
+        <div class="greeting" id="greeting">Welcome back, snes.</div>
+      </div>
+
+      <div class="search-wrapper">
+        <input
+          id="search"
+          class="search-input"
+          type="search"
+          placeholder="Search..."
+          autocomplete="off"
+          autofocus
+        />
+      </div>
+
+      <nav class="shortcuts" id="links"></nav>
+    </main>
+
+    <a
+      href="https://www.google.com/search?q=toronto+weather+14+day+forecast"
+      class="weather"
+      id="weather"
+      title="View 14-day forecast"
+    >
+      <span id="wx-emoji"></span>
+      <span id="wx-temp">--°</span>
+    </a>
+
+    <script src="minimal_script.js"></script>
+  </body>
+</html>

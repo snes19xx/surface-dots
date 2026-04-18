@@ -1,0 +1,317 @@
+<!--
+piplup.html 
+please download the gif from https://www.youtube.com/watch?v=bm0nLJuRNbw
+Use alongside my userChrome.css for best experience
+by snes19xx, https://github.com/snes19xx
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg-color: #69c0c5;
+        --ui-border: #111111;
+        --text-main: #111111;
+
+        --search-bg: rgba(255, 255, 255, 0.45);
+        --button-bg: rgba(255, 255, 255, 0.55);
+        --button-hover: rgba(244, 210, 89, 0.85);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Space Grotesk", sans-serif;
+        color: var(--text-main);
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        background-color: var(--bg-color);
+        background-image: url("pstep.gif");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 780px;
+        text-align: center;
+        padding: 19.2px;
+        z-index: 10;
+      }
+
+      h1 {
+        font-weight: 700;
+        font-size: clamp(28.8px, 4.8vw, 43.2px);
+        margin-bottom: 28.8px;
+        letter-spacing: -0.5px;
+        color: #ffffff;
+        -webkit-text-stroke: 1.8px var(--ui-border);
+        text-shadow: 3.6px 3.6px 0 var(--ui-border);
+      }
+
+      .search-wrapper {
+        margin-bottom: 36px;
+        width: 100%;
+        max-width: 540px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .search {
+        width: 100%;
+        padding: 14.4px 21.6px;
+        background: var(--search-bg);
+        background-clip: padding-box;
+        border: 2.4px solid var(--ui-border);
+        border-radius: 7.2px;
+        color: var(--text-main);
+        font-size: 19.2px;
+        font-family: inherit;
+        font-weight: 700;
+        text-align: center;
+        outline: none;
+        box-shadow: 4.8px 4.8px 0 var(--ui-border);
+        transition:
+          transform 0.1s,
+          box-shadow 0.1s;
+      }
+
+      .search::placeholder {
+        color: #777;
+        text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+        font-weight: 500;
+      }
+
+      .search:focus {
+        transform: translate(2.4px, 2.4px);
+        box-shadow: 2.4px 2.4px 0 var(--ui-border);
+      }
+
+      .links {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7.2px;
+        padding: 7.2px 12px;
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 15.6px;
+        font-weight: 700;
+        background: var(--button-bg);
+        background-clip: padding-box;
+        border: 2.4px solid var(--ui-border);
+        border-radius: 7.2px;
+        box-shadow: 2.4px 2.4px 0 var(--ui-border);
+        transition:
+          transform 0.1s,
+          box-shadow 0.1s,
+          background-color 0.1s;
+        white-space: nowrap;
+      }
+
+      .link:hover {
+        background-color: var(--button-hover);
+        transform: translate(1.2px, 1.2px);
+        box-shadow: 1.2px 1.2px 0 var(--ui-border);
+      }
+
+      .icon {
+        width: 16.8px;
+        height: 16.8px;
+        stroke: currentColor;
+        stroke-width: 3;
+      }
+
+      .weather {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-main);
+        background: var(--button-bg);
+        background-clip: padding-box;
+        padding: 8px 16px;
+        border: 2px solid var(--ui-border);
+        border-radius: 6px;
+        box-shadow: 3px 3px 0 var(--ui-border);
+      }
+
+      .weather svg {
+        width: 24px;
+        height: 24px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <h1 id="welcome">Loading...</h1>
+
+      <div class="search-wrapper">
+        <input
+          id="search"
+          class="search"
+          type="search"
+          placeholder="Type to search..."
+          autocomplete="off"
+          autofocus
+        />
+      </div>
+
+      <nav class="links" id="links">
+        <a href="https://q.utoronto.ca/" class="link">
+          <svg class="icon" viewBox="0 0 24 24" fill="none">
+            <path d="M12 3l9 4.5-9 4.5-9-4.5z" />
+            <path d="M5 9v6c0 3 7 3 7 3s7 0 7-3V9" />
+            <path d="M19 10v4" />
+            <circle cx="19" cy="15" r="1" />
+          </svg>
+          <span>Quercus</span>
+        </a>
+        <a href="https://acorn.utoronto.ca/" class="link">
+          <svg class="icon" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 2c-2.5 0-4.5 1.5-5.5 3.5S4 10 4 12c0 3 2.5 5 5 5h6c2.5 0 5-2 5-5 0-2-1.5-4.5-2.5-6.5S14.5 2 12 2z"
+            />
+            <path d="M12 17v5" />
+            <path d="M9 22h6" />
+          </svg>
+          <span>Acorn</span>
+        </a>
+        <a href="https://youtube.com" class="link">
+          <svg class="icon" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M21.8 8s-.2-1.4-.8-2c-.7-.8-1.5-.8-1.9-.9C16.5 5 12 5 12 5h0s-4.5 0-7.1.2c-.4 0-1.2.1-1.9.9-.6.6-.8 2-.8 2S2 9.6 2 11.2v1.6c0 1.6.2 3.2.2 3.2s.2 1.4.8 2c.7.8 1.6.8 2 .9 1.5.1 7 .2 7 .2s4.5 0 7.1-.2c.4 0 1.2-.1 1.9-.9.6-.6.8-2 .8-2s.2-1.6.2-3.2v-1.6c0-1.6-.2-3.2-.2-3.2z"
+            />
+            <path d="M10 15l5-3-5-3v6z" />
+          </svg>
+          <span>YouTube</span>
+        </a>
+        <a href="https://wiki.archlinux.org/" class="link">
+          <svg class="icon" viewBox="0 0 24 24" fill="none">
+            <path d="M8 9l3 3-3 3M13 17h4" />
+            <rect x="3" y="4" width="18" height="16" rx="2" ry="2" />
+          </svg>
+          <span>Archwiki</span>
+        </a>
+        <a href="https://outlook.office.com" class="link">
+          <svg class="icon" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="5" width="18" height="14" rx="2" ry="2" />
+            <path d="M3 7l9 6 9-6" />
+          </svg>
+          <span>Outlook</span>
+        </a>
+      </nav>
+    </main>
+
+    <div class="weather" id="weather">
+      <span id="wx-icon"></span>
+      <span id="wx-temp">--°C</span>
+    </div>
+
+    <script>
+      function updateGreeting() {
+        const date = new Date();
+        const hour = date.getHours();
+        const day = date.getDay();
+        const welcomeEl = document.getElementById("welcome");
+
+        if (day === 5 && hour >= 16) {
+          welcomeEl.textContent = "Happy Friday, snes.";
+          return;
+        }
+
+        if (hour < 5) {
+          welcomeEl.textContent = "One more tab...";
+        } else if (hour < 12) {
+          welcomeEl.textContent = "Good morning, snes.";
+        } else if (hour < 18) {
+          welcomeEl.textContent = "Good afternoon, snes.";
+        } else {
+          welcomeEl.textContent = "Good evening, snes.";
+        }
+      }
+      updateGreeting();
+      setInterval(updateGreeting, 60000);
+
+      const searchInput = document.getElementById("search");
+      searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && searchInput.value.trim()) {
+          window.location.href = `https://www.google.com/search?q=${encodeURIComponent(searchInput.value.trim())}`;
+        }
+      });
+
+      const wxIcons = {
+        sun: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
+        moon: `<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
+        cloud: `<svg viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>`,
+        rain: `<svg viewBox="0 0 24 24"><line x1="16" y1="13" x2="16" y2="21"/><line x1="8" y1="13" x2="8" y2="21"/><line x1="12" y1="15" x2="12" y2="23"/><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/></svg>`,
+        snow: `<svg viewBox="0 0 24 24"><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/></svg>`,
+        thunder: `<svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+      };
+
+      function getIcon(code, isDay) {
+        if (code === 0) return isDay ? wxIcons.sun : wxIcons.moon;
+        if (code >= 1 && code <= 3) return wxIcons.cloud;
+        if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82))
+          return wxIcons.rain;
+        if (code >= 71 && code <= 86) return wxIcons.snow;
+        if (code >= 95) return wxIcons.thunder;
+        return wxIcons.cloud;
+      }
+
+      async function loadWeather() {
+        try {
+          const res = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=43.654&longitude=-79.383&current=temperature_2m,weather_code,is_day&timezone=auto`,
+          );
+          const data = await res.json();
+
+          const temp = Math.round(data.current.temperature_2m);
+          const code = data.current.weather_code;
+          const isDay = data.current.is_day === 1;
+
+          document.getElementById("wx-temp").textContent = `${temp}°C`;
+          document.getElementById("wx-icon").innerHTML = getIcon(code, isDay);
+        } catch (e) {
+          document.getElementById("wx-temp").textContent = "Offline";
+          document.getElementById("wx-icon").innerHTML = wxIcons.cloud;
+        }
+      }
+      loadWeather();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,461 @@
+/* file 2 of 3 (minimal) */
+
+html {
+  font-size: 20px;
+}
+
+:root {
+  --bg-base: #f4f1ea;
+  --bg-card: rgba(244, 241, 234, 0.4);
+  --text-main: #2b2a27;
+  --text-muted: #76736a;
+  --border: #dfdcd3;
+  --border-hover: #b5b2a9;
+  --accent: #45744d;
+}
+
+:root.dark-theme {
+  --bg-base: #1e1e1e;
+  --bg-card: rgba(30, 30, 30, 0.4);
+  --text-main: #e4e2de;
+  --text-muted: #8b8985;
+  --border: #383838;
+  --border-hover: #5e5e5e;
+  --accent: #45744d;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background-color 0.8s ease,
+    color 0.8s ease;
+}
+
+/* Paper Texture */
+.noise {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.07;
+  mix-blend-mode: multiply;
+}
+:root.dark-theme .noise {
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+}
+
+.math-bg {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120vmin;
+  height: 120vmin;
+  z-index: -4;
+  pointer-events: none;
+  opacity: 0.08;
+  animation: slowSpin 180s linear infinite;
+}
+:root.dark-theme .math-bg {
+  opacity: 0.05;
+}
+.math-bg circle,
+.math-bg ellipse,
+.math-bg line {
+  stroke: var(--text-main);
+  fill: none;
+  stroke-width: 1px;
+  transition: stroke 0.8s ease;
+}
+@keyframes slowSpin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+#dynamic-effects {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.meteor {
+  position: absolute;
+  width: 100px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--text-main), transparent);
+  opacity: 0;
+  transform: rotate(-45deg);
+  animation: shootingStar 15s linear infinite backwards;
+}
+.comet {
+  position: absolute;
+  width: 200px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  border-radius: 50%;
+  filter: blur(1px);
+  opacity: 0;
+  transform: rotate(-30deg);
+  animation: shootingStar 25s linear infinite backwards;
+}
+@keyframes shootingStar {
+  0% {
+    transform: translateX(100vw) translateY(-50vh) rotate(-45deg);
+    opacity: 1;
+  }
+  10% {
+    transform: translateX(-50vw) translateY(100vh) rotate(-45deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(-50vw) translateY(100vh) rotate(-45deg);
+    opacity: 0;
+  }
+}
+.floating-obj {
+  position: absolute;
+  stroke: var(--text-main);
+  fill: none;
+  stroke-width: 1.5;
+  opacity: 0.15;
+  animation: floatObj 20s ease-in-out infinite alternate;
+}
+@keyframes floatObj {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    transform: translateY(-50px) rotate(15deg);
+  }
+}
+
+/* Weather */
+.rain-drop {
+  position: absolute;
+  width: 1px;
+  height: 40px;
+  background: var(--text-main);
+  opacity: 0.2;
+  animation: fallRain linear infinite backwards;
+}
+@keyframes fallRain {
+  0% {
+    transform: translateY(-10vh);
+  }
+  100% {
+    transform: translateY(110vh);
+  }
+}
+.snow-flake {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--text-main);
+  border-radius: 50%;
+  opacity: 0.4;
+  animation: fallSnow linear infinite backwards;
+}
+@keyframes fallSnow {
+  0% {
+    transform: translateY(-10vh);
+  }
+  100% {
+    transform: translateY(110vh);
+  }
+}
+.cloud {
+  position: absolute;
+  background: var(--text-muted);
+  border-radius: 50px;
+  opacity: 0.05;
+  filter: blur(10px);
+  animation: driftCloud linear infinite;
+}
+@keyframes driftCloud {
+  from {
+    transform: translateX(-20vw);
+  }
+  to {
+    transform: translateX(120vw);
+  }
+}
+.thunder {
+  position: absolute;
+  inset: 0;
+  background: var(--text-main);
+  opacity: 0;
+  animation: flash 10s infinite;
+}
+@keyframes flash {
+  0%,
+  95%,
+  98%,
+  100% {
+    opacity: 0;
+  }
+  96%,
+  99% {
+    opacity: 0.1;
+  }
+}
+
+/* Festive Elements */
+.xmas-light {
+  position: absolute;
+  bottom: 20px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.4;
+  animation: twinkle 1s infinite alternate;
+}
+@keyframes twinkle {
+  0% {
+    opacity: 0.2;
+    transform: scale(0.9);
+    box-shadow: 0 0 5px var(--accent);
+  }
+  100% {
+    opacity: 0.8;
+    transform: scale(1.1);
+    box-shadow: 0 0 15px var(--accent);
+  }
+}
+.xmas-tree {
+  position: absolute;
+  bottom: 0;
+  right: 10%;
+  width: 150px;
+  opacity: 0.6;
+}
+.bat {
+  position: absolute;
+  width: 60px;
+  fill: var(--text-main);
+  opacity: 0.15;
+  animation: flyBat 15s linear infinite;
+}
+@keyframes flyBat {
+  0% {
+    transform: translate(-10vw, 80vh) scale(0.5) rotate(15deg);
+  }
+  50% {
+    transform: translate(50vw, 20vh) scale(1) rotate(-10deg);
+  }
+  100% {
+    transform: translate(110vw, 50vh) scale(0.5) rotate(5deg);
+  }
+}
+.halloween-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent, #ff7b0022);
+  z-index: -3;
+}
+
+.fireworks-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+}
+
+/* Layout Container */
+.container {
+  width: 100%;
+  max-width: 900px;
+  padding: 2rem;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(15px);
+}
+
+.time {
+  font-size: 4.5rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.greeting {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: -0.01em;
+}
+
+.search-wrapper {
+  width: 100%;
+  max-width: 700px;
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+  opacity: 0;
+  transform: translateY(15px);
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 1rem 0;
+  font-size: 1.25rem;
+  font-family: "Lora", serif;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--text-main);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--border);
+  outline: none;
+  text-align: center;
+  transition: border-color 0.3s ease;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.search-input:focus {
+  border-bottom-color: var(--accent);
+}
+
+/* Shortcuts */
+.shortcuts {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.shortcut {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: var(--text-main);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 0.75rem 1.1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+  transform: translateY(15px);
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  backdrop-filter: blur(4px);
+}
+
+.shortcut:nth-child(1) {
+  animation-delay: 0.15s;
+}
+.shortcut:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.shortcut:nth-child(3) {
+  animation-delay: 0.25s;
+}
+.shortcut:nth-child(4) {
+  animation-delay: 0.3s;
+}
+.shortcut:nth-child(5) {
+  animation-delay: 0.35s;
+}
+
+.shortcut:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-hover);
+  color: var(--accent);
+}
+
+.shortcut svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: currentColor;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.shortcut:hover svg {
+  transform: scale(1.1);
+}
+
+/* Weather Link */
+.weather {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid transparent;
+  font-weight: 600;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  text-decoration: none;
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+  opacity: 0;
+  transform: translateY(15px);
+  transition: all 0.3s ease;
+}
+
+.weather:hover {
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+}
+
+.weather svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: currentColor;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
