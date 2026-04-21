@@ -1,4 +1,3 @@
-.config/quickshell/top-bar/hub/** linguist-vendored=true
-.config/quickshell/top-bar/bar/** linguist-vendored=true
+.config/quickshell/top-bar/** linguist-vendored=true
 .config/ags/** linguist-vendored=true
 .config/firefox/custom_homes/** linguist-vendored=true
