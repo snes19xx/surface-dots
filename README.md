@@ -69,6 +69,7 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - sddm
 - networkmanager
 - bluez, blueman
+- webkit2gtk-4.1
 
 </td>
 <td valign="top">
@@ -116,7 +117,7 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 ---
 
 > [!CAUTION]
-> Layout geometry is hardcoded for 3:2 high-resolution display. Deviation in aspect ratio or pixel density will result in misalignment or things looking too big or small. Please reconfigure values accordingly.
+> Some layout geometry is hardcoded for 3:2 high-resolution display. Deviation in aspect ratio or pixel density will result in misalignment or things looking too big or small. Please follow instructions in the FAQs below to reconfigure values accordingl or start an issue if you require further assistance.
 
 ## Installation
 
@@ -126,17 +127,12 @@ Installer [source code](./.source_codes/installer_src) and [documentation](./.so
 
 > [!IMPORTANT]
 >
-> - If the installer fails to launch, you may need the WebKitGTK runtime libraries
-> - You must have a polkit authentication agent installed and running before you run the installer to prompt you for your sudo password
-
-```bash
-# arch:
-sudo pacman -S webkit2gtk-4.1
-# debian:
-sudo apt install libwebkit2gtk-4.1-0
-# fedora:
-sudo dnf install webkit2gtk4.1
-```
+> - The installer does **not** install dependencies. Install any required packages through your distribution’s package manager before running it.
+> - Some files from `.config` are intentionally skipped by the installer. If you need anything not included in the automated install, please manually copy the files from git clone.
+> - The installer has only been tested on Arch Linux with the glibc versions used by Arch. Compatibility with other distributions is unknown. If you test it on another distribution, feel free to report whether it works or fails.
+> - If the installer fails to launch, you may need the `WebKitGTK runtime libraries`. If it still crashes on launch try:
+>   `WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_GPU_PROCESS=1 ./surface-dots-installer`
+> - You **must** have a polkit authentication agent installed and running before you run the installer to prompt you for your sudo password
 
 ##### Installation Steps
 
@@ -150,14 +146,6 @@ cd surface-dots
 chmod +x surface-dots-installer
 ./surface-dots-installer
 ```
-
-##### Note
-
-- The installer does **not** install dependencies. Install any required packages through your distribution’s package manager before running it.
-
-- Some files from `.config` are intentionally skipped by the installer. If you need anything not included in the automated install, please manually copy the files from git clone.
-
-- The installer has only been tested on Arch Linux with the glibc versions used by Arch. Compatibility with other distributions is unknown. If you test it on another distribution, feel free to report whether it works or fails.
 
 ## Hyprland
 
@@ -286,8 +274,6 @@ qs -c task-bar
 
 Both layouts (mostly) reuse the same core components but behave differently depending on mode.
 
-> _The layouts are implemented as separate shells rather than a single unified shell. The project originally started as a simple calendar widget for my Google Calendar events. As more components were added over time, it evolved without a strict overall layout plan. Consolidating everything into a single shell would require significant code edits which I don't want to do atm_
-
 #### Taskbar Mode Behavior
 
 Taskbar mode has additional desktop components and layout changes:
@@ -314,7 +300,7 @@ As soon as a window opens:
 
 ##### Other taskbar-specific changes
 
-- The rofi (start) menu is wider and contains `shaders`(inspired by windows 10 start menu)
+- The rofi (start) menu is wider and contains `shaders`
 - The Hub media card derives its background colors from album art palette colors, instead of using blurred album artwork.
 - Upcoming events are no longer displayed inside `CalendarsWeatherCard.qml` and have a dedicated card
   `hub/Events.qml`. By default, the next upcoming event is shown until it ends. Multiple events can be added to the list by increasing the loop count in the file.
@@ -661,8 +647,9 @@ _Codex Stellarium_ is an interactive, customizeable astronomy inspired custom ne
 ##### Manual Installation
 
 > [!NOTE]
-> I have a `.crx` file in the codex-stellarium directory if you want to use it in a chromium-based browser.
-> I also have other custom home/newtab pages in `.config/firefox/custom_homes` that can be installed with this method
+>
+> - I have a `.crx` file in the codex-stellarium directory if you want to use it in a chromium-based browser. <br>
+> - I also have other custom home/newtab pages in `.config/firefox/custom_homes` that can be installed with this method
 
 `.config/firefox/codex-stellarium`
 Firefox doesn't really want you to use local html as a new tab page, if you want to isntall codex stellarium manually or use your own html as custom new tab:
@@ -711,8 +698,9 @@ Kvantum theme files are located in:
 `.config/Kvantum`
 
 Additional related configuration files:
-.config/qt6ct  
-.config/color-schemes
+
+- `.config/qt6ct  `
+- `.config/color-schemes`
 
 Use _Kvantum Manager_ to install and apply the Kvantum theme.
 
@@ -756,7 +744,7 @@ Utilities include the following:
 - Most svgs are from [https://www.svgrepo.com/](https://www.svgrepo.com/) , I made some myself
 - linux-surface project: https://github.com/linux-surface/linux-surface
 - Thorium: https://thorium.rocks/ for the background visualizations in firefox custom new tab
-- My design inspiration comes mainly from : [Microsoft design](https://microsoft.design/), [Material design](https://m3.material.io/blog/building-with-m3-expressive) and [calla](https://github.com/Stardust-kyun/calla). The typography and UI design used in the installer are my own original work, which I’ve also used in several of my other projects, including my website.
+- My design inspiration comes mainly from : [Microsoft design](https://microsoft.design/), [Material design](https://m3.material.io/blog/building-with-m3-expressive) and [calla](https://github.com/Stardust-kyun/calla). The typography and UI design used in the installer are my own original work, which I’ve also used in several of my other projects, including my website and the firefox extension.
 
 ## Media Sources
 
@@ -770,13 +758,14 @@ Utilities include the following:
 8. Photo by Cedric Chambaz on [Flickr](https://www.flickr.com/photos/cchambaz/2391578535/in/gallery-195423583@N07-72157720611385337/)
 9. Photo by temo Berishvili on [Unsplash](https://www.pexels.com/photo/herd-of-animals-on-grass-field-near-mountains-1574843/)
 10. Photo by Lucas Pezeta on [Unsplash](https://www.pexels.com/photo/cows-grazing-on-field-2331478/)
-11. Surface default wallpapers are from microsoft
-12. All Rofi pictures were pulled from Pinterest; I don’t know the original owners.
+11. Photo by Andreas Strandman on [Unsplash](https://unsplash.com/photos/green-trees-near-body-of-water-during-daytime-sa5kZts9PGA)
+12. Surface default wallpapers are from microsoft
+13. All Rofi pictures were pulled from Pinterest; I don’t know the original owners.
 
-[OC]
+<b>[OC]</b>
 
 `media/wallpaper`
-Collection of pictures taken by me, some edited/created by me and a bunch of them are just screencaps from the monogatari series:
+Collection of pictures taken by me, some edited/created by me:
 
 - Lucina wallpaper from [Fire Emblem Awekening Artbook](https://www.amazon.ca/Art-Fire-Emblem-Awakening-ebook/dp/B01J1XIC2O)
 - Final Fantasy logos: by [Yoshitaka Amano](https://en.yoshitaka-amano.com/#/)
@@ -802,6 +791,9 @@ _A: It assumes the authentication was successful by default. You may need to adj
 
 **Q: Why are there multiple app drawers (including the top-bar Rofi drawers)?**<br>
 _A: I am currently experimenting with different designs and layouts. My plan is to write a custom app drawer from scratch in rust with live tiles similar to Windows 10. I want it to feel distinctly native to Linux rather than acting as a cheap copy of the Windows Metro UI._
+
+**Q: Why are the desktop layouts two different shells instead of one unified shell with two options?**<br>
+_A: The project originally started as a simple calendar widget for my Google Calendar events. As more components were added over time, it evolved without a strict overall layout plan. Consolidating everything into a single shell would require significant code edits which I don't want to do atm_
 
 **Q: How do I enable or disable screen borders?** <br>
 _A: (Only in taskbar mode) follow the instruction in shell.qml_

@@ -110,6 +110,19 @@ Rectangle {
     property string lastGoodArtUrl: ""         // sticky
     property string effectiveArtUrl: (root.artUrl && root.artUrl.length > 0) ? root.artUrl : root.lastGoodArtUrl
 
+    // Firefox Fallback Process
+    Process {
+        id: firefoxFallbackProc
+        command: ["bash", "-c", "LATEST=$(ls -1t $HOME/.mozilla/firefox/firefox-mpris/* 2>/dev/null | head -n 1); if [ -n \"$LATEST\" ]; then cp \"$LATEST\" /tmp/now_playing_firefox.png; fi"]
+        running: false
+        onRunningChanged: {
+            if (!running) {
+                // Cache 
+                root.artUrl = "file:///tmp/now_playing_firefox.png?t=" + Date.now()
+            }
+        }
+    }
+
     function syncMetadata(force) {
         if (!root.player) {
             root.title = "Not Playing"
@@ -125,8 +138,20 @@ Rectangle {
         if (force || nt !== root.title) root.title = nt
         if (force || na !== root.artist) root.artist = na
 
-        // Update raw artUrl
-        if (force || nu !== root.artUrl) root.artUrl = nu
+        var pName = (root.player.name || "") + " " + (root.player.identity || "")
+        var isFirefox = pName.toLowerCase().indexOf("firefox") !== -1
+
+        if (nu !== "" || !isFirefox) {
+            // Normal update: Use the player's URL
+            if (force || nu !== root.artUrl) root.artUrl = nu
+        } else {
+            // Firefox is reporting an empty URL.
+            // Only trigger the fallback on a forced update
+            if (force) {
+                firefoxFallbackProc.running = false
+                firefoxFallbackProc.running = true
+            }
+        }
     }
 
     onArtUrlChanged: {
@@ -478,7 +503,7 @@ Rectangle {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-            Quickshell.execDetached(["bash", "-lc", "/home/snes/.config/quickshell/snes-hub/now_playing/now_playing"])
+            Quickshell.execDetached(["bash", "-lc", "/home/snes/.config/quickshell/top-bar/now_playing/now_playing"])
             root.closeRequested()
         }
     }

@@ -85,7 +85,7 @@ Rectangle {
         if (root.player && root.player.isPlaying) root.lastPlayingMs = Date.now()
         root.prevRawPos = -1
         root.resetTimeFromPlayer(true)
-        root.syncMetadata(true)
+        root.syncMetadata()
     }
 
     onIsPlayingChanged: {
@@ -108,7 +108,20 @@ Rectangle {
     property string lastGoodArtUrl: ""         // sticky
     property string effectiveArtUrl: (root.artUrl && root.artUrl.length > 0) ? root.artUrl : root.lastGoodArtUrl
 
-    function syncMetadata(force) {
+    // Firefox Fallback Process
+    Process {
+        id: firefoxFallbackProc
+        command: ["bash", "-c", "LATEST=$(ls -1t $HOME/.mozilla/firefox/firefox-mpris/* 2>/dev/null | head -n 1); if [ -n \"$LATEST\" ]; then cp \"$LATEST\" /tmp/now_playing_firefox.png; fi"]
+        running: false
+        onRunningChanged: {
+            if (!running) {
+                // Cache
+                root.artUrl = "file:///tmp/now_playing_firefox.png?t=" + Date.now()
+            }
+        }
+    }
+
+    function syncMetadata() {
         if (!root.player) {
             root.title = "Not Playing"
             root.artist = "System Audio"
@@ -116,15 +129,21 @@ Rectangle {
             return
         }
 
-        var nt = root.player.trackTitle || "Not Playing"
-        var na = root.player.trackArtist || "System Audio"
+        root.title = root.player.trackTitle || "Not Playing"
+        root.artist = root.player.trackArtist || "System Audio"
+
         var nu = root.player.trackArtUrl || ""
+        var pName = (root.player.name || "") + " " + (root.player.identity || "")
+        var isFirefox = pName.toLowerCase().indexOf("firefox") !== -1
 
-        if (force || nt !== root.title) root.title = nt
-        if (force || na !== root.artist) root.artist = na
-
-        // Update raw artUrl
-        if (force || nu !== root.artUrl) root.artUrl = nu
+        if (nu !== "") {
+            root.artUrl = nu
+        } else if (isFirefox) {
+            firefoxFallbackProc.running = false
+            firefoxFallbackProc.running = true
+        } else {
+            root.artUrl = ""
+        }
     }
 
     onArtUrlChanged: {
@@ -155,9 +174,9 @@ Rectangle {
             }
         }
 
-        function onTrackTitleChanged()  { root.syncMetadata(true); root.resetTimeFromPlayer(true) }
-        function onTrackArtistChanged() { root.syncMetadata(true); root.resetTimeFromPlayer(true) }
-        function onTrackArtUrlChanged() { root.syncMetadata(true) }
+        function onTrackTitleChanged()  { root.syncMetadata(); root.resetTimeFromPlayer(true) }
+        function onTrackArtistChanged() { root.syncMetadata(); root.resetTimeFromPlayer(true) }
+        function onTrackArtUrlChanged() { root.syncMetadata() }
 
         function onLengthChanged() { root.resetTimeFromPlayer(true) }
         function onPositionChanged() { /* no-op*/ }
@@ -289,11 +308,11 @@ Rectangle {
         return raw / root.posDiv
     }
 
-    // Smooth updates timer
+    // Smooth updates timer 
     Timer {
         interval: 300
         repeat: true
-        running: root.visible && root.hasPlayer   // NOTHING runs when hidden
+        running: root.visible && root.hasPlayer
         triggeredOnStart: true
         onTriggered: {
             if (!root.player) {
@@ -303,9 +322,6 @@ Rectangle {
                 root.prevRawPos = -1
                 return
             }
-
-            // keep metadata fresh
-            root.syncMetadata(false)
 
             if (root.player.isPlaying) root.lastPlayingMs = Date.now()
 
@@ -333,7 +349,7 @@ Rectangle {
             }
             root.prevRawPos = rawPos
 
-            // Update inferred length)
+            // Update inferred length
             if (rawLen > 0) {
                 var newLenDiv = root.pickTimeDiv(rawLen)
                 var newLenSec = rawLen / newLenDiv
@@ -430,19 +446,16 @@ Rectangle {
             
             // Check cache first
             if (root.colorCache[imageUrl]) {
-                console.log("Using cached color for:", imageUrl)
                 var cached = root.colorCache[imageUrl]
                 root.dominantColor = cached.dominant
                 root.lastExtractedUrl = imageUrl
                 return
             }
             
-            console.log("Canvas loading new image:", imageUrl)
             loadImage(imageUrl)
         }
         
         onImageLoaded: {
-            console.log("Canvas image loaded, extracting colors...")
             requestPaint()
         }
         
@@ -451,10 +464,7 @@ Rectangle {
             if (root.colorCache[imageUrl]) return  // Already cached
             
             var ctx = getContext("2d")
-            if (!ctx) {
-                console.log("Failed to get canvas context")
-                return
-            }
+            if (!ctx) return
             
             // Draw the image
             ctx.drawImage(imageUrl, 0, 0, width, height)
@@ -480,7 +490,6 @@ Rectangle {
             
             if (n > 0) {
                 var avg = Qt.rgba(r/n, g/n, b/n, 1)
-                console.log("Extracted dominant color - R:", avg.r.toFixed(3), "G:", avg.g.toFixed(3), "B:", avg.b.toFixed(3))
                 
                 // Update State 
                 root.dominantColor = avg
@@ -490,10 +499,6 @@ Rectangle {
                 cache[imageUrl] = { dominant: avg }
                 root.colorCache = cache
                 root.lastExtractedUrl = imageUrl
-                
-                console.log("Color cached for:", imageUrl)
-            } else {
-                console.log("No pixels sampled")
             }
         }
         
@@ -507,7 +512,6 @@ Rectangle {
     
     onEffectiveArtUrlChanged: {
         if (root.effectiveArtUrl && root.effectiveArtUrl !== "" && root.effectiveArtUrl !== root.lastExtractedUrl) {
-            console.log("Art URL changed to:", root.effectiveArtUrl)
             colorCanvas.imageUrl = root.effectiveArtUrl
         } else if (root.effectiveArtUrl && root.effectiveArtUrl !== "" && root.colorCache[root.effectiveArtUrl]) {
             // Restore from cache if URL is the same but colors got reset
@@ -550,7 +554,7 @@ Rectangle {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-            Quickshell.execDetached(["bash", "-lc", "/home/snes/.config/quickshell/task-bar/now_playing/now_playing"])   //change this !!!!!!!
+            Quickshell.execDetached(["bash", "-lc", "/home/snes/.config/quickshell/task-bar/now_playing/now_playing"])
             root.closeRequested()
         }
     }
