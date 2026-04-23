@@ -5,7 +5,7 @@
 # echo "DEBUG: Cache dir: $CACHE_DIR" >&2
 
 # --- CONFIG ---
-SCRIPT_DIR="$HOME/.config/quickshell/preview/dock"
+SCRIPT_DIR="$HOME/.config/quickshell/task-bar/dock"
 CACHE_DIR="$HOME/.config/quickshell/.cache"
 CACHE_FILE="$CACHE_DIR/applist.cache"
 BLACKLIST_FILE="$CACHE_DIR/blacklist.txt"
@@ -120,7 +120,6 @@ find_icon() {
     # Return empty if not found 
     echo ""
 }
-pass
 # --- CACHE CHECK ---
 needs_refresh() {
     # Create cache dir if needed

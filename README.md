@@ -215,7 +215,7 @@ chmod +x surface-dots-installer
 
 Shaders are integral part of my setup, I find them fun.
 
-- All shaders located at `~/.config/hypr/shaders/` and use [hyprshade](https://github.com/loqusion/hyprshade)
+- All shaders are located at `~/.config/hypr/shaders/` and use [hyprshade](https://github.com/loqusion/hyprshade)
 - shaders can be accessed and toggled through rofi start menu (only in taskbar mode)
 
 OR:
