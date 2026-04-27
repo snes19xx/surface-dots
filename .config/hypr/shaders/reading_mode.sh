@@ -7,7 +7,7 @@ shader_path="$home/.config/hypr/shaders/reading_mode.glsl"
 theme_script="$home/.config/quickshell/task-bar/utils/theme-mode.sh"
 current_theme_file="$home/.cache/quickshell/theme_mode"
 restore_file="$home/.cache/quickshell/reading_mode_restore"
-wallpaper_reading="$home/Pictures/desktop/WP/6.jpg"
+wallpaper_reading="$home/Pictures/dissidia_ff.jpg"
 wallpaper_dark="$home/Pictures/desktop/wpdark.jpg"
 wallpaper_light="$home/Pictures/desktop/wplight.jpg"
 
@@ -31,7 +31,7 @@ if [[ "$current_shader" == *"reading_mode"* ]]; then
     # Turn off shader (hyprctl reload usually turns it off anyways)
     # & restore theme
     hyprshade off &
-    $theme_script "$prev_theme" --quiet &
+    $theme_script "$prev_theme" --quiet --no-wallpaper &
     echo "off" > "$HOME/.cache/quickshell/reading_mode"
 
     if [[ "$prev_theme" == "light" ]]; then
@@ -44,9 +44,6 @@ if [[ "$current_shader" == *"reading_mode"* ]]; then
 
     # Cleanup
     rm -f "$restore_file"
-
-
-
 
 else
     # [[ ACTIVATE: TURN ON READING MODE ]] --
@@ -64,23 +61,23 @@ else
 
     # Enable Shader & Switch to Light Theme
     hyprshade on "$shader_path"
-    $theme_script light --quiet
+    $theme_script light --quiet --no-wallpaper
     echo "on" > "$HOME/.cache/quickshell/reading_mode"
 
-    # Set Wallpaper & Brightness
+    # Set Wallpaper & Brightness (Async)
     sleep 1
-    awww img "$wallpaper_reading" --transition-type none&
+    awww img "$wallpaper_reading" --transition-type none &
     brightnessctl set 37% &
 
     # Apply E-ink Overrides
-    # the batch string directly
+    # Constructing the batch string directly
     overrides="keyword animations:enabled 0;\
     keyword decoration:shadow:enabled 0;\
     keyword decoration:blur:enabled 0;\
     keyword decoration:rounding 0;\
     keyword general:gaps_in 0;\
     keyword general:gaps_out 0;\
-    keyword general:border_size 2;\
+    keyword general:border_size 1;\
     keyword general:col.active_border rgba(000000ff);\
     keyword general:col.inactive_border rgba(000000ff);\
     keyword decoration:dim_inactive 0"

@@ -9,6 +9,24 @@ set -e
 # - KDE Plasma (when used as backup WM)
 # - Kvantum themes
 # - Wallpapers
+
+
+
+
+
+
+
+
+
+
+
+'
+
+
+
+
+
+
 # - Dunst
 # - Kitty terminal
 # =============================================================================
@@ -33,6 +51,8 @@ KITTY_STATE="$HOME/.local/state/theme/kitty_theme.conf"
 DUNST_CONF="$HOME/.config/dunst/dunstrc"
 
 [[ "$*" == *"--quiet"* ]] && QUIET=1 || QUIET=0
+# Added --no-wallpaper flag so reading_mode can handle its own wallpapers
+[[ "$*" == *"--no-wallpaper"* ]] && NO_WALLPAPER=1 || NO_WALLPAPER=0
 
 # Create necessary directories if they don't exist
 # mkdir -p "$GTK3_CONF" "$GTK4_CONF" "$(dirname "$STATE_FILE")" "$(dirname "$KITTY_STATE")"
@@ -255,7 +275,10 @@ fi
   # ---------------------------------------------------------------------------
   # WALLPAPER
   # ---------------------------------------------------------------------------
-  command -v waypaper &>/dev/null && waypaper --wallpaper "$wallpaper" || true
+  # Respect the --no-wallpaper flag to avoid conflicts
+  if [[ "$NO_WALLPAPER" != "1" ]]; then
+    command -v waypaper &>/dev/null && waypaper --wallpaper "$wallpaper" || true
+  fi
   
   # ---------------------------------------------------------------------------
   # KITTY TERMINAL

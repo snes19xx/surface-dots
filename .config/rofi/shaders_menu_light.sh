@@ -8,7 +8,7 @@ declare -a SHADERS=(
     "Cinema|hyprshade off && hyprshade on cinema|$HOME/.config/rofi/icons/light/cinema.svg"
     "Soft|hyprshade off && hyprshade on soft|$HOME/.config/rofi/icons/light/soft.svg"
     "Matte|hyprshade off && hyprshade on matte|$HOME/.config/rofi/icons/light/matte.svg"
-    "IBM 5151|hyprshade off && hyprshade on IMB5151|$HOME/.config/rofi/icons/light/ibm.svg"
+    "IBM 5151|hyprshade off && hyprshade on IBM5151|$HOME/.config/rofi/icons/light/ibm.svg"
     "Fuji Acros|hyprshade off && hyprshade on fuji_acros|$HOME/.config/rofi/icons/light/fuji.svg"
     "VHS|hyprshade off && hyprshade on vhs|$HOME/.config/rofi/icons/light/vhs.svg"
     "Gameboy|hyprshade off && hyprshade on gameboy|$HOME/.config/rofi/icons/light/gameboy.svg"
