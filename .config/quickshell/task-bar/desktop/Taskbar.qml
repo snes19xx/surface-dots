@@ -847,7 +847,7 @@ PanelWindow {
                                         onPressed: wsContainer.pressedId = wsId
                                         onReleased: if (wsContainer.pressedId === wsId) wsContainer.pressedId = 0
                                         onCanceled: if (wsContainer.pressedId === wsId) wsContainer.pressedId = 0
-                                        onClicked: det("hyprctl dispatch workspace " + wsId)
+                                        onClicked: det("hyprctl dispatch 'hl.dsp.focus({ workspace = " + wsId + " })'")
                                     }
                                 }
                             }
