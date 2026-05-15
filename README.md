@@ -191,21 +191,20 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 
 ## Shaders
 
-> [!NOTE]
-> Shaders are broken after hyprland 0.55 update, I am still working on fixing the issue.
-
 Shaders are integral part of my setup, I find them fun.
 
-- All shaders are located at `~/.config/hypr/shaders/` and use [hyprshade](https://github.com/loqusion/hyprshade)
+- All shaders are located at `~/.config/hypr/shaders/`
 - shaders can be accessed and toggled through rofi start menu (only in taskbar mode)
 
 OR:
 
 ```bash
 # activate with:
-hyprshade on <shader_name.glsl>
-# deactivate with:
-hyprshade off
+hyprctl eval 'hl.config({ decoration = { screen_shader = "/<path to shader.glsl>" } })'
+
+# To turn off the screen shader, set the screen_shader value to an empty string.
+hyprctl eval 'hl.config({ decoration = { screen_shader = "" } })'
+
 ```
 
 #### Reading Mode
@@ -220,22 +219,21 @@ A shader-based reading mode to mimic an e-ink reader.
 
 #### Other shaders
 
-**Ranked from Useful to completely Useless:**
-
 1. **`main.glsl`** – _main shader to improve my display (activates on startup through hyprland exec)_
 2. **`night.glsl`** – _my main night-light mode shader_ (toggle with `SUPER + N`)
 3. **`outdoor.gls`** – _for maximum outdoor useability_
 4. **`cinema.glsl`** – _for media consumption_
-5. **`soft.glsl`** – _soft, muted textures_
-6. **`matte.glsl`** – _anti-glare, matte_
-7. **`IMB5151.glsl`** – _simulates vintage IBM 3278 / 5151 monitors_
+5. **`amano.glsl`** – _simulates Yoshitaka Amano artstyle_
+6. **`art_canvas.glsl`** – _smulates physical canvas geometry and pigment density_
+7. **`dither.glsl`** – _Simulates 4-bit graphics._
 8. **`fuji_acros.glsl`** – _simulates fujifilm acros_
 9. **`crt_mode.glsl`** – _simulates a crt monitor_
 10. **`vhs.glsl`** – _simulates vhs_
 11. **`gameboy.glsl`** – _simulates a gameboy screen_
-12. **`clarity_inefficient.glsl`** – _early version of my main shader inefficient but looks better_
-13. **`focus.glsl`** – _party trick_
-14. **`night_vision.glsl`** – _simulates night_vision_
+12. **`smart_invert.glsl`** – _eConverts RGB to HSL, inverts the Lightness channel, and converts back_
+13. **`silent_hill.glsl`** – _Pacific Northwest / Silent Hill Shader_
+14. **`greens.glsl`** – _Retains only green hues and desaturates all other colors to grayscale.
+    _
 
 ## Desktop Layouts
 

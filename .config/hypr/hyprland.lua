@@ -7,6 +7,9 @@ local alt     = "ALT"
 local home    = os.getenv("HOME") or "/home/snes"
 local scripts = home .. "/.config/hypr/scripts"
 
+-- Import Shader Manager and Inject Core
+local shader = require("shader")
+
 -- =========================================================================
 -- Monitors
 -- =========================================================================
@@ -14,7 +17,7 @@ hl.monitor({
     output   = "eDP-1",
     mode     = "2256x1504@60",
     position = "0x0",
-    scale    = 1.33,
+    scale    = 1,
     bitdepth = 10,
     icc      = home .. "/.config/hypr/SR4.icm"
 })
@@ -28,9 +31,9 @@ hl.monitor({
 -- =========================================================================
 -- Environment Variables
 -- =========================================================================
-hl.env("HYPRCURSOR_SIZE", "32")
+hl.env("HYPRCURSOR_SIZE", "48")
 hl.env("XCURSOR_THEME",   "volantes_cursors")
-hl.env("XCURSOR_SIZE",    "32")
+hl.env("XCURSOR_SIZE",    "48")
 hl.env("GDK_SCALE",       "2")
 hl.env("GDK_BACKEND",     "wayland,x11,*")
 hl.env("CLUTTER_BACKEND", "wayland")
@@ -44,7 +47,7 @@ hl.env("QT_QPA_PLATFORM",      "wayland;xcb")
 -- =========================================================================
 hl.on("hyprland.start", function()
     hl.exec_cmd("sleep 1 && mpv --no-video --volume=100 " .. home .. "/.config/hypr/sounds/startup.wav")
-    hl.exec_cmd("hyprctl eval 'hl.config({ decoration = { screen_shader = \"/home/snes/.config/hypr/shaders/main.glsl\" } })'")
+    shader.toggle("Main")
     hl.exec_cmd("dunst")
     hl.exec_cmd("blueman-applet")
     hl.exec_cmd("vdirsyncer sync")
@@ -54,9 +57,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("awww-daemon")
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
     hl.exec_cmd("hyprctl plugin load " .. home .. "/hyprselect/hyprselect.so")
-    hl.exec_cmd('grep -q "light" ~/.cache/quickshell/theme_mode'
-        .. ' && awww img -o eDP-1 ' .. home .. '/Pictures/desktop/wplight.jpg'
-        .. ' || awww img -o eDP-1 ' .. home .. '/Pictures/desktop/wpdark.jpg')
+    hl.exec_cmd("awww img -o eDP-1 " .. home .. "/Pictures/desktop/wpdark.jpg")
     hl.exec_cmd("awww img -o DP-2 " .. home .. "/Pictures/desktop/2.png")
 end)
 
@@ -70,11 +71,6 @@ for i = 6, 10 do hl.workspace_rule({ workspace = tostring(i), monitor = "DP-2"  
 -- Core Config
 -- =========================================================================
 hl.config({
-    render = {
-        cm_enabled  = true,
-        cm_auto_hdr = 1,
-        cm_sdr_eotf = 0
-    },
     general = {
         gaps_in               = 1,
         gaps_out              = 2,
@@ -163,9 +159,9 @@ hl.config({
         enable_swallow           = true,
         swallow_regex            = "^(kitty)$"
     },
-    layerrule = {
-        "animation slide bottom 1, rofi",
-        "animation popin 99%, power-menu",
+layerrule = {
+        "animation slide, rofi",
+        "animation popin, power-menu",
         "dim_around, power-menu"
     }
 })
@@ -173,46 +169,22 @@ hl.config({
 -- =========================================================================
 -- Animations
 -- =========================================================================
--- Curves
-
--- winOpen  :
 hl.curve("winOpen",  { type = "spring", mass = 1, stiffness = 200, dampening = 30 })
-
--- winClose : 
 hl.curve("winClose", { type = "spring", mass = 1, stiffness = 500, dampening = 46 })
-
--- winMove  : 
 hl.curve("winMove",  { type = "spring", mass = 1, stiffness = 250, dampening = 32 })
-
--- Bezier curves
 hl.curve("easeOutExpo",  { type = "bezier", points = { {0.16, 1.0}, {0.30, 1.0} } })
 hl.curve("easeOutQuint", { type = "bezier", points = { {0.22, 1.0}, {0.36, 1.0} } })
 hl.curve("easeInQuart",  { type = "bezier", points = { {0.50, 0.0}, {0.75, 0.0} } })
 
-
--- Windows
 hl.animation({ leaf = "windowsIn",   enabled = true, speed = 4, spring = "winOpen",  style = "popin 88%" })
 hl.animation({ leaf = "windowsOut",  enabled = true, speed = 2, spring = "winClose", style = "popin 95%" })
 hl.animation({ leaf = "windowsMove", enabled = true, speed = 4, spring = "winMove",  style = "slide" })
-
-
--- Fade
 hl.animation({ leaf = "fade",    enabled = true, speed = 3, bezier = "easeOutQuint" })
 hl.animation({ leaf = "fadeDim", enabled = true, speed = 4, bezier = "easeOutQuint" })
-
-
--- Workspaces 
 hl.animation({ leaf = "workspacesIn",  enabled = true, speed = 5, bezier = "easeOutExpo", style = "slidefade 20%" })
 hl.animation({ leaf = "workspacesOut", enabled = true, speed = 5, bezier = "easeOutExpo", style = "slidefade 20%" })
-
-
--- Scratchpad
 hl.animation({ leaf = "specialWorkspaceIn",  enabled = true, speed = 4, bezier = "easeOutQuint", style = "slide top" })
 hl.animation({ leaf = "specialWorkspaceOut", enabled = true, speed = 3, bezier = "easeInQuart",  style = "slide top" })
-
--- Layers
-hl.animation({ leaf = "layersIn",      enabled = true, speed = 3, bezier = "easeOutQuint", style = "slide" })
-hl.animation({ leaf = "layersOut",     enabled = true, speed = 2, bezier = "easeInQuart",  style = "fade" })
 hl.animation({ leaf = "fadeLayersIn",  enabled = true, speed = 2, bezier = "easeOutQuint" })
 hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 2, bezier = "easeInQuart"  })
 
@@ -228,9 +200,6 @@ hl.gesture({ fingers = 3, direction = "vertical",   action = "fullscreen" })
 
 -- Hub & Modes
 hl.bind(mod .. " + SPACE", hl.dsp.global("quickshell:hubToggle"))
-hl.bind(mod .. " + D", hl.dsp.exec_cmd("hyprctl eval 'hl.config({ decoration = { screen_shader = \"" .. home .. "/.config/hypr/shaders/reading_mode.glsl\" } })'"))
-hl.bind(mod .. " + N", hl.dsp.exec_cmd("hyprctl eval 'hl.config({ decoration = { screen_shader = \"" .. home .. "/.config/hypr/shaders/night.glsl\" } })'"))
-hl.bind(alt .. " + C", hl.dsp.exec_cmd("hyprctl eval 'hl.config({ decoration = { screen_shader = \"" .. home .. "/.config/hypr/shaders/crt_mode.glsl\" } })'"))
 
 -- Apps
 hl.bind(mod .. " + Q", hl.dsp.exec_cmd("kitty"))
@@ -253,37 +222,28 @@ hl.bind(mod .. " + DOWN", hl.dsp.layout("togglesplit"))
 hl.bind(mod .. " + UP",   hl.dsp.layout("togglesplit"))
 hl.bind(mod .. " + G",    hl.dsp.group.toggle())
 
--- Float + resize to 1440x1080
 hl.bind(mod .. " + L", function()
     hl.dispatch(hl.dsp.window.float({ action = "set" }))
     hl.dispatch(hl.dsp.window.resize_pixel({ exact = true, x = 1440, y = 1080 }))
 end)
 
--- Groups
 hl.bind(mod .. " + CTRL + left",  function() hl.dispatch(hl.dsp.group.change_active({ direction = "next" })) end)
 hl.bind(mod .. " + CTRL + right", function() hl.dispatch(hl.dsp.group.change_active({ direction = "prev" })) end)
 
--- Exit / Power
-hl.bind(mod .. " + " .. alt .. " + F4", hl.dsp.exec_cmd(
-    "hyprctl dispatch 'hl.dsp.exit()'"))
-hl.bind(alt .. " + F4", hl.dsp.exec_cmd(
-    "quickshell -p ~/.config/quickshell/task-bar/utils/PowerMenu.qml"))
+hl.bind(mod .. " + " .. alt .. " + F4", hl.dsp.exec_cmd("hyprctl dispatch 'hl.dsp.exit()'"))
+hl.bind(alt .. " + F4", hl.dsp.exec_cmd("quickshell -p ~/.config/quickshell/task-bar/utils/PowerMenu.qml"))
 
--- Focus (window)
 hl.bind(mod .. " + left",         hl.dsp.focus({ direction = "left" }))
 hl.bind(mod .. " + right",        hl.dsp.focus({ direction = "right" }))
 hl.bind(mod .. " + SHIFT + up",   hl.dsp.focus({ direction = "up" }))
 hl.bind(mod .. " + SHIFT + down", hl.dsp.focus({ direction = "down" }))
 
--- Scratchpad
 hl.bind(mod .. " + H",         hl.dsp.workspace.toggle_special("magic"))
 hl.bind(mod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
 
--- Mouse scroll workspace switching
 hl.bind(mod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
 
--- Media Keys
 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(scripts .. "/brightnesscontrol.sh d"))
 hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd(scripts .. "/brightnesscontrol.sh i"))
 hl.bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd(scripts .. "/audiocontrol.sh i"))
@@ -291,14 +251,13 @@ hl.bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd(scripts .. "/audiocontrol.sh d"
 hl.bind("XF86AudioMute",         hl.dsp.exec_cmd(scripts .. "/audiocontrol.sh m"))
 hl.bind("XF86AudioPlay",         hl.dsp.exec_cmd(scripts .. "/mediacontrol.sh"))
 
--- Screenshots
 hl.bind("Print",                    hl.dsp.exec_cmd(scripts .. "/screenshot.sh s"))
 hl.bind(mod .. " + Print",         hl.dsp.exec_cmd(scripts .. "/screenshot.sh p"))
 hl.bind(mod .. " + SHIFT + Print", hl.dsp.exec_cmd(scripts .. "/screenshot.sh sf"))
 hl.bind(mod .. " + O",             hl.dsp.exec_cmd(scripts .. "/screenshot.sh m"))
 
 -- =========================================================================
--- Workspace Binds (1-9, 0-->10)
+-- Workspace Binds
 -- =========================================================================
 for i = 1, 9 do
     hl.bind(mod .. " + " .. tostring(i),         hl.dsp.focus({ workspace = i }))
@@ -330,102 +289,37 @@ end, { locked = true })
 -- =========================================================================
 -- Window Rules
 -- =========================================================================
-hl.window_rule({ match = { class = "^kitty$" },
-    float = true, size = "700 400", center = true,
-    rounding = 8, opacity = "0.9 0.9" })
+hl.window_rule({ match = { class = "^kitty$" }, float = true, size = "700 400", center = true, rounding = 8, opacity = "0.9 0.9" })
+hl.window_rule({ match = { class = "^org.pwmt.zathura$" }, float = true, size = "750 1000" })
+hl.window_rule({ match = { class = "^blueman-manager$" }, float = true, size = "500 300", move = "1165 777", rounding = 10, opacity = "0.90 0.90", border_size = 1, border_color = "rgb(87b158) rgb(2D353B)", animation = "popin", dim_around = true })
+hl.window_rule({ match = { class = "^nm-connection-editor$" }, float = true, size = "500 600", center = true, rounding = 10, opacity = "0.95 0.95", border_color = "rgb(87b158)" })
+hl.window_rule({ match = { class = "^com.snes.evercal$" }, float = true, size = "1000 650", center = true, border_size = 1, rounding = 8 })
+hl.window_rule({ match = { class = "^org.gnome.Lollypop$" }, float = true, size = "900 600" })
+hl.window_rule({ match = { class = "^org.kde.plasma-systemmonitor$" }, float = true, size = "1000 700", rounding = 14 })
+hl.window_rule({ match = { class = "^lens$" }, float = true, center = true, size = "1000 700", rounding = 10, border_color = "rgb(374527)" })
+hl.window_rule({ match = { class = "^code$" }, opacity = "0.9 0.9" })
+hl.window_rule({ match = { class = "^thunar$" }, float = true, opacity = "0.9 0.9", size = "900 600", center = true })
+hl.window_rule({ match = { class = "^xdm-app$" }, float = true, size = "700 400", rounding = 10, opacity = "0.8 0.8", center = true })
+hl.window_rule({ match = { class = "^org.gnome.FileRoller$" }, float = true, size = "500 350", center = true, rounding = 10, border_color = "rgb(87b158)" })
+hl.window_rule({ match = { class = "^com.snes.nowplaying$" }, float = true, pin = true, border_size = 1, border_color = "rgb(1e2327)", animation = "slide", move = "1425 16", opacity = "0.9 0.9" })
+hl.window_rule({ match = { class = "^xdg-desktop-portal-gtk$" }, float = true, center = true, size = "700 400" })
 
-hl.window_rule({ match = { class = "^org.pwmt.zathura$" },
-    float = true, size = "750 1000" })
+local portals = { "^(xdg-desktop-portal-gtk|xdg-desktop-portal-kde|xdg-desktop-portal-hyprland|org.freedesktop.impl.portal.desktop.gtk|org.freedesktop.impl.portal.desktop.kde)$", "^(org.kde.polkit-kde-authentication-agent-1|polkit-gnome-authentication-agent-1|lxqt-policykit-agent|mate-polkit)$", "^(pinentry|pinentry-gtk-2|pinentry-gnome3|gcr-prompter)$", "^(ssh-askpass|sshaskpass)$" }
+for _, p in ipairs(portals) do hl.window_rule({ match = { class = p }, tag = "portal-ui" }) end
+hl.window_rule({ match = { tag = "portal-ui" }, float = true, center = true, rounding = 10, size = "1100 750", dim_around = true, opacity = "0.95 0.95" })
 
-hl.window_rule({ match = { class = "^blueman-manager$" },
-    float = true, size = "500 300", move = "1165 777",
-    rounding = 10, opacity = "0.90 0.90", border_size = 1,
-    border_color = "rgb(87b158) rgb(2D353B)",
-    animation = "popin", dim_around = true })
+local dialog_titles = { "^(Open File)(.*)$", "^(Select a File)(.*)$", "^(Choose wallpaper)(.*)$", "^(Open Folder)(.*)$", "^(Save As)(.*)$", "^(Library)(.*)$", "^(File Upload)(.*)$", "^(Extract archive)$", "^(Extract)(.*)$", "^(Extract to)$", "^(Confirm to replace files)$", "^(Rename)(.*)$", "^(Create New Folder)$", "^(Properties)$", "^(File Operation Progress)(.*)$" }
+for _, t in ipairs(dialog_titles) do hl.window_rule({ match = { title = t }, float = true, center = true }) end
 
-hl.window_rule({ match = { class = "^nm-connection-editor$" },
-    float = true, size = "500 600", center = true,
-    rounding = 10, opacity = "0.95 0.95",
-    border_color = "rgb(87b158)" })
+local dim_dialogs = { "^(Open File)(.*)$", "^(Save As)(.*)$", "^(Confirm to replace files)$" }
+for _, t in ipairs(dim_dialogs) do hl.window_rule({ match = { title = t }, dim_around = true }) end
 
-hl.window_rule({ match = { class = "^com.snes.evercal$" },
-    float = true, size = "1000 650", center = true,
-    border_size = 1, rounding = 8 })
-
-hl.window_rule({ match = { class = "^org.gnome.Lollypop$" },
-    float = true, size = "900 600" })
-
-hl.window_rule({ match = { class = "^org.kde.plasma-systemmonitor$" },
-    float = true, size = "1000 700", rounding = 14 })
-
-hl.window_rule({ match = { class = "^lens$" },
-    float = true, center = true, size = "1000 700",
-    rounding = 10, border_color = "rgb(374527)" })
-
-hl.window_rule({ match = { class = "^code$" },
-    opacity = "0.9 0.9" })
-
-hl.window_rule({ match = { class = "^thunar$" },
-    float = true, opacity = "0.9 0.9", size = "900 600", center = true })
-
-hl.window_rule({ match = { class = "^xdm-app$" },
-    float = true, size = "700 400", rounding = 10,
-    opacity = "0.8 0.8", center = true })
-
-hl.window_rule({ match = { class = "^org.gnome.FileRoller$" },
-    float = true, size = "500 350", center = true,
-    rounding = 10, border_color = "rgb(87b158)" })
-
-hl.window_rule({ match = { class = "^com.snes.nowplaying$" },
-    float = true, pin = true, border_size = 1,
-    border_color = "rgb(1e2327)", animation = "slide",
-    move = "1425 16", opacity = "0.9 0.9" })
-
-hl.window_rule({ match = { class = "^xdg-desktop-portal-gtk$" },
-    float = true, center = true, size = "700 400" })
-
--- Portal / Polkit / Pinentry
-local portals = {
-    "^(xdg-desktop-portal-gtk|xdg-desktop-portal-kde|xdg-desktop-portal-hyprland|org.freedesktop.impl.portal.desktop.gtk|org.freedesktop.impl.portal.desktop.kde)$",
-    "^(org.kde.polkit-kde-authentication-agent-1|polkit-gnome-authentication-agent-1|lxqt-policykit-agent|mate-polkit)$",
-    "^(pinentry|pinentry-gtk-2|pinentry-gnome3|gcr-prompter)$",
-    "^(ssh-askpass|sshaskpass)$"
-}
-for _, p in ipairs(portals) do
-    hl.window_rule({ match = { class = p }, tag = "portal-ui" })
-end
-hl.window_rule({ match = { tag = "portal-ui" },
-    float = true, center = true, rounding = 10,
-    size = "1100 750", dim_around = true, opacity = "0.95 0.95" })
-
--- Dialog Title Rules
-local dialog_titles = {
-    "^(Open File)(.*)$", "^(Select a File)(.*)$",
-    "^(Choose wallpaper)(.*)$", "^(Open Folder)(.*)$",
-    "^(Save As)(.*)$", "^(Library)(.*)$", "^(File Upload)(.*)$",
-    "^(Extract archive)$", "^(Extract)(.*)$", "^(Extract to)$",
-    "^(Confirm to replace files)$", "^(Rename)(.*)$",
-    "^(Create New Folder)$", "^(Properties)$",
-    "^(File Operation Progress)(.*)$"
-}
-for _, t in ipairs(dialog_titles) do
-    hl.window_rule({ match = { title = t }, float = true, center = true })
-end
-
-local dim_dialogs = {
-    "^(Open File)(.*)$", "^(Save As)(.*)$", "^(Confirm to replace files)$"
-}
-for _, t in ipairs(dim_dialogs) do
-    hl.window_rule({ match = { title = t }, dim_around = true })
-end
-
-hl.window_rule({ match = { title = "^(Open File)(.*)$" },            size = "900 600" })
-hl.window_rule({ match = { title = "^(Save As)(.*)$" },              size = "900 600" })
-hl.window_rule({ match = { title = "^(File Upload)(.*)$" },          size = "900 600" })
+hl.window_rule({ match = { title = "^(Open File)(.*)$" }, size = "900 600" })
+hl.window_rule({ match = { title = "^(Save As)(.*)$" }, size = "900 600" })
+hl.window_rule({ match = { title = "^(File Upload)(.*)$" }, size = "900 600" })
 hl.window_rule({ match = { title = "^(Confirm to replace files)$" }, size = "500 300" })
 hl.window_rule({ match = { title = "^(File Operation Progress)(.*)$" }, size = "500 300" })
-hl.window_rule({ match = { title = "^(Rename)(.*)$" },               size = "450 200" })
-hl.window_rule({ match = { title = "^(Create New Folder)$" },        size = "450 200" })
-hl.window_rule({ match = { title = "^(Properties)$" },               size = "500 600" })
-
+hl.window_rule({ match = { title = "^(Rename)(.*)$" }, size = "450 200" })
+hl.window_rule({ match = { title = "^(Create New Folder)$" }, size = "450 200" })
+hl.window_rule({ match = { title = "^(Properties)$" }, size = "500 600" })
 hl.window_rule({ match = { modal = true }, float = true, center = true, rounding = 10 })
