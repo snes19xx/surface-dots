@@ -153,7 +153,7 @@ Item {
 
     function avatarCandidate(i) {
         var u = username();
-        if (i === 0) return toFileUrl("/usr/share/sddm/faces/" + u + ".face.icon");
+        if (i === 0) return Qt.resolvedUrl("faces/" + u + ".face.icon");
         if (i === 1) return toFileUrl("/var/lib/AccountsService/icons/" + u);
         return "";
     }
@@ -422,15 +422,25 @@ Item {
                     anchors.fill: parent
                     radius: 80; color: "transparent"
                     property int tryIndex: 0; property bool ok: false
+
+                    property string trackedUser: userSelector.currentText
+                    onTrackedUserChanged: {
+                        avatarCircle.tryIndex = 0;
+                        avatarCircle.ok = false;
+                        avatarImage.source = avatarCandidate(0);
+                    }
+
                     Image {
+                        id: avatarImage
                         anchors.fill: parent; fillMode: Image.PreserveAspectCrop
                         source: avatarCandidate(avatarCircle.tryIndex)
                         layer.enabled: true
                         layer.effect: OpacityMask { maskSource: Rectangle { width: 160; height: 160; radius: 80 } }
                         onStatusChanged: {
                             if (status === Image.Ready) avatarCircle.ok = true;
-                            else if (status === Image.Error && avatarCircle.tryIndex < 2) {
-                                avatarCircle.tryIndex += 1; source = avatarCandidate(avatarCircle.tryIndex);
+                            else if (status === Image.Error && avatarCircle.tryIndex < 1) {
+                                avatarCircle.tryIndex += 1;
+                                avatarImage.source = avatarCandidate(avatarCircle.tryIndex);
                             }
                         }
                     }

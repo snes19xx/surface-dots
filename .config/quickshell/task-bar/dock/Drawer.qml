@@ -60,15 +60,21 @@ PanelWindow {
 
     //  ACTIONS 
     function launchApp(command, needsTerminal) {
-        drawerWin.close()
-        Qt.callLater(() => {
-            if (needsTerminal) {
-                Quickshell.execDetached(["hyprctl", "dispatch", "exec", "kitty -e " + command])
-            } else {
-                Quickshell.execDetached(["hyprctl", "dispatch", "exec", command])
-            }
-        })
-    }
+    drawerWin.close()
+    Qt.callLater(() => {
+        if (needsTerminal) {
+            Quickshell.execDetached([
+                "hyprctl", "dispatch",
+                "hl.dsp.exec_cmd(\"kitty -e " + command + "\")"
+            ])
+        } else {
+            Quickshell.execDetached([
+                "hyprctl", "dispatch",
+                "hl.dsp.exec_cmd(\"" + command + "\")"
+            ])
+        }
+    })
+}
 
     function blacklistApp(filename) {
         Quickshell.execDetached(["bash", "-c", "echo '" + filename + "' >> ~/.config/quickshell/.cache/blacklist.txt"])
@@ -261,10 +267,9 @@ PanelWindow {
                         focus: true
                         keyNavigationEnabled: false
                         
-                        flickDeceleration: 3000
-                        maximumFlickVelocity: 10000
-                        boundsBehavior: Flickable.StopAtBounds
-                        
+                    flickDeceleration: 10
+                    maximumFlickVelocity: 5500
+                    boundsBehavior: Flickable.DragAndOvershootBounds
                         
                         ScrollBar.vertical: ScrollBar {
                             id: scrollBar

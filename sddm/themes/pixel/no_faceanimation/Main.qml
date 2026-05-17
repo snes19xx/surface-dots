@@ -109,7 +109,7 @@ Item {
 
     function avatarCandidate(i) {
         var u = username();
-        if (i === 0) return toFileUrl("/usr/share/sddm/faces/" + u + ".face.icon");
+        if (i === 0) return Qt.resolvedUrl("faces/" + u + ".face.icon");
         if (i === 1) return toFileUrl("/var/lib/AccountsService/icons/" + u);
         return "";
     }
@@ -206,6 +206,7 @@ Item {
         onClicked: wake()
     }
 
+
     // 6. CLOCK
 
     Text {
@@ -226,7 +227,7 @@ Item {
         anchors.verticalCenterOffset: root.authOpen ? -300 : -50
         scale: root.authOpen ? 0.8 : 1.0
         opacity: root.authOpen ? 0.0 : 1.0
-        spacing: -87
+        spacing: -25
 
         Behavior on anchors.verticalCenterOffset { NumberAnimation { duration: 500; easing.type: Easing.OutExpo } }
         Behavior on scale { NumberAnimation { duration: 500; easing.type: Easing.OutExpo } }
@@ -236,14 +237,14 @@ Item {
             text: Qt.formatTime(root.now, "hh")
             color: root.cPrimary
             font.family: "Inter" 
-            font.pixelSize: 220; font.weight: Font.Medium
+            font.pixelSize: 160; font.weight: Font.Medium
             anchors.horizontalCenter: parent.horizontalCenter
         }
         Text {
             text: Qt.formatTime(root.now, "mm")
             color: root.cText
             font.family: "Inter"
-            font.pixelSize: 220; font.weight:Font.Medium
+            font.pixelSize: 160; font.weight:Font.Medium
             anchors.horizontalCenter: parent.horizontalCenter
         }
     }
@@ -353,15 +354,25 @@ Item {
                     anchors.fill: parent
                     radius: 80; color: "transparent"
                     property int tryIndex: 0; property bool ok: false
+
+                    property string trackedUser: userSelector.currentText
+                    onTrackedUserChanged: {
+                        avatarCircle.tryIndex = 0;
+                        avatarCircle.ok = false;
+                        avatarImage.source = avatarCandidate(0);
+                    }
+
                     Image {
+                        id: avatarImage
                         anchors.fill: parent; fillMode: Image.PreserveAspectCrop
                         source: avatarCandidate(avatarCircle.tryIndex)
                         layer.enabled: true
                         layer.effect: OpacityMask { maskSource: Rectangle { width: 160; height: 160; radius: 80 } }
                         onStatusChanged: {
                             if (status === Image.Ready) avatarCircle.ok = true;
-                            else if (status === Image.Error && avatarCircle.tryIndex < 2) {
-                                avatarCircle.tryIndex += 1; source = avatarCandidate(avatarCircle.tryIndex);
+                            else if (status === Image.Error && avatarCircle.tryIndex < 1) {
+                                avatarCircle.tryIndex += 1;
+                                avatarImage.source = avatarCandidate(avatarCircle.tryIndex);
                             }
                         }
                     }

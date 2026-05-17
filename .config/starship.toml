@@ -3,10 +3,17 @@ $username\
 $directory\
 $git_branch\
 $git_status\
-$python\
-$nodejs\
-$rust\
+$c\
+$cpp\
 $golang\
+$java\
+$nodejs\
+$php\
+$python\
+$ruby\
+$rust\
+$docker_context\
+$cmd_duration\
 $character"""
 
 # Speed settings
@@ -16,47 +23,82 @@ command_timeout = 1000
 
 [username]
 show_always = true
-style_user = "bg:#a7c080 fg:#2b3339"
-style_root = "bg:#e67e80 fg:#2b3339"
-format = '[](fg:#a7c080)[ $user ]($style)[](fg:#a7c080 bg:#414b50)'
+style_user = "bg:#4f7942 fg:#fdfbf7"
+style_root = "bg:#e67e80 fg:#cc534d"
+format = '[](fg:#4f7942)[ $user ]($style)[ ](fg:#4f7942)'
 
 [directory]
 style = "bg:#414b50 fg:#d3c6aa"
-format = "[ $path ]($style)[](fg:#414b50) "
+format = '[](fg:#414b50)[ $path ]($style)[ ](fg:#414b50)'
 truncation_length = 3
 truncation_symbol = "…/"
 
 [git_branch]
 symbol = ""
-style = "bg:#414b50 fg:#a7c080"
-format = '[](fg:#414b50)[$symbol $branch ]($style)[](fg:#414b50) '
+style = "bg:#414b50 fg:#4f7942"
+format = '[](fg:#414b50)[ $symbol $branch ]($style)[ ](fg:#414b50)'
 
 [git_status]
 style = "bg:#414b50 fg:#e67e80"
-format = '[](fg:#414b50)[$all_status$ahead_behind ]($style)[](fg:#414b50) '
+format = '[](fg:#414b50)[ $all_status$ahead_behind ]($style)[ ](fg:#414b50)'
 
-[python]
-symbol = " "
-style = "bg:#FFE873 fg:#306998"
-format = '[](fg:#FFE873)[$symbol$version]($style)[](fg:#FFE873)'
-detect_extensions = []
-detect_files = []
+[c]
+symbol = ""
+style = "bg:#83a598 fg:#2b3339"
+format = '[](fg:#83a598)[ $symbol ($version) ]($style)[ ](fg:#83a598)'
+
+[cpp]
+symbol = ""
+style = "bg:#83a598 fg:#2b3339"
+format = '[](fg:#83a598)[ $symbol ($version) ]($style)[ ](fg:#83a598)'
+
+[golang]
+symbol = ""
+style = "bg:#73daca fg:#2b3339"
+format = '[](fg:#73daca)[ $symbol ($version) ]($style)[ ](fg:#73daca)'
+
+[java]
+symbol = ""
+style = "bg:#e06c75 fg:#2b3339"
+format = '[](fg:#e06c75)[ $symbol ($version) ]($style)[ ](fg:#e06c75)'
 
 [nodejs]
 symbol = ""
-style = "bg:#414b50 fg:#dbbc7f"
-format = '[$symbol ($version) ]($style)'
+style = "bg:#dbbc7f fg:#2b3339"
+format = '[](fg:#dbbc7f)[ $symbol ($version) ]($style)[ ](fg:#dbbc7f)'
+
+[php]
+symbol = ""
+style = "bg:#b16286 fg:#2b3339"
+format = '[](fg:#b16286)[ $symbol ($version) ]($style)[ ](fg:#b16286)'
+
+[python]
+symbol = ""
+style = "bg:#FFE873 fg:#306998"
+format = '[](fg:#FFE873)[ $symbol ($version) ]($style)[ ](fg:#FFE873)'
+detect_extensions = []
+detect_files = []
+
+[ruby]
+symbol = ""
+style = "bg:#cc241d fg:#2b3339"
+format = '[](fg:#cc241d)[ $symbol ($version) ]($style)[ ](fg:#cc241d)'
 
 [rust]
 symbol = ""
-style = "bg:#414b50 fg:#dbbc7f"
-format = '[$symbol ($version) ]($style)'
+style = "bg:#e67e80 fg:#2b3339"
+format = '[](fg:#e67e80)[ $symbol ($version) ]($style)[ ](fg:#e67e80)'
 
-[golang]
-symbol = "ﳑ"
-style = "bg:#414b50 fg:#dbbc7f"
-format = '[$symbol ($version) ]($style)'
+[docker_context]
+symbol = ""
+style = "bg:#89b4fa fg:#2b3339"
+format = '[](fg:#89b4fa)[ $symbol $context ]($style)[ ](fg:#89b4fa)'
+
+[cmd_duration]
+min_time = 2000
+style = "bg:#d3869b fg:#2b3339"
+format = '[](fg:#d3869b)[ 󰔛 $duration ]($style)[ ](fg:#d3869b)'
 
 [character]
-success_symbol = "[❯](bold #a7c080)" 
+success_symbol = "[❯](bold #4f7942)" 
 error_symbol = "[❯](bold #e67e80)"
