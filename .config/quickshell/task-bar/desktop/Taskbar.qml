@@ -401,7 +401,7 @@ PanelWindow {
                     }
                     
                     DockAppIcon {
-                        iconName: "code"
+                        iconName: "vscode"
                         appName: "VS Code"
                         onClicked: det("code")
                     }

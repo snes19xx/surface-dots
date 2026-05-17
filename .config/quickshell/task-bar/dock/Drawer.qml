@@ -86,7 +86,7 @@ PanelWindow {
     Process {
         id: appLoader
         running: false
-        command: [Quickshell.env("HOME") + "/.config/quickshell/preview/dock/applist.sh"]
+        command: [Quickshell.env("HOME") + "/.config/quickshell/task-bar/dock/applist.sh"]
         
         stdout: SplitParser {
             onRead: data => {

@@ -261,7 +261,7 @@ PanelWindow {
         function run(cmd) {
             if (cmd === "lock") Quickshell.execDetached(["hyprlock"])
             if (cmd === "suspend") Quickshell.execDetached(["systemctl", "suspend"])
-            if (cmd === "logout") Quickshell.execDetached(["hyprctl", "dispatch", "exit"])
+            if (cmd === "logout") Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.exit()"])
             if (cmd === "reboot") Quickshell.execDetached(["systemctl", "reboot"])
             if (cmd === "shutdown") Quickshell.execDetached(["systemctl", "poweroff"])
             Qt.quit()

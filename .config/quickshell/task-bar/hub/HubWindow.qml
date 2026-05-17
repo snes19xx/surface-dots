@@ -91,7 +91,7 @@ PanelWindow {
                 case "reboot":    cmd = "systemctl reboot"; break;
                 case "hibernate": cmd = "systemctl hibernate"; break;
                 case "suspend":   cmd = "mpc -q pause; amixer set Master mute; systemctl suspend"; break;
-                case "logout":    cmd = "hyprctl dispatch exit"; break;
+                case "logout":    cmd = "hyprctl dispatch 'hl.dsp.exit()'"; break;
                 case "lock":
                     cmd = "if command -v hyprlock >/dev/null; then hyprlock; " +
                         "elif command -v betterlockscreen >/dev/null; then betterlockscreen -l; " +

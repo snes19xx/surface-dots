@@ -58,7 +58,7 @@ Item {
             model: root.cells.length
             delegate: Item {
                 Layout.preferredWidth: 28
-                Layout.preferredHeight: 17
+                Layout.preferredHeight: 14
                 property var cell: root.cells[index]
 
                 Text {

@@ -1,0 +1,5 @@
+No such key “gtk-application-prefer-dark-theme”
+error: invalid value '/home/snes/Pictures/desktop/wpdark.jpg' for '<IMAGE>': Path '/home/snes/Pictures/desktop/wpdark.jpg' does not exist
+
+For more information, try '--help'.
+ln: failed to create symbolic link '/home/snes/.local/state/theme/kitty_theme.conf': No such file or directory

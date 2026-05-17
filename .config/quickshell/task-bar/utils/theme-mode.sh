@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-
 # =============================================================================
 # GLOBAL THEME SWITCHER 
 # =============================================================================
@@ -9,38 +8,17 @@ set -e
 # - KDE Plasma (when used as backup WM)
 # - Kvantum themes
 # - Wallpapers
-
-
-
-
-
-
-
-
-
-
-
-'
-
-
-
-
-
-
 # - Dunst
 # - Kitty terminal
 # =============================================================================
-
 # THEMES
 THEME_DARK="green-dark"
 THEME_LIGHT="green-light"
 ICONS_DARK="Papirus-Dark"
 ICONS_LIGHT="Papirus-Light"
-
 # WALLPAPERS
-WALLPAPER_DARK="$HOME/Pictures/desktop/wpdark.jpg"
-WALLPAPER_LIGHT="$HOME/Pictures/desktop/wplight.jpg"
-
+WALLPAPER_DARK="$HOME/Pictures/ffx.png"
+WALLPAPER_LIGHT="$HOME/Pictures/dissidia_ff.jpg"
 # PATHS
 GTK3_CONF="$HOME/.config/gtk-3.0"
 GTK3_SETTINGS="$GTK3_CONF/settings.ini"
@@ -49,17 +27,12 @@ KDE_GLOBALS="$HOME/.config/kdeglobals"
 STATE_FILE="$HOME/.cache/quickshell/theme_mode"
 KITTY_STATE="$HOME/.local/state/theme/kitty_theme.conf"
 DUNST_CONF="$HOME/.config/dunst/dunstrc"
-
 [[ "$*" == *"--quiet"* ]] && QUIET=1 || QUIET=0
 # Added --no-wallpaper flag so reading_mode can handle its own wallpapers
 [[ "$*" == *"--no-wallpaper"* ]] && NO_WALLPAPER=1 || NO_WALLPAPER=0
-
 # Create necessary directories if they don't exist
 # mkdir -p "$GTK3_CONF" "$GTK4_CONF" "$(dirname "$STATE_FILE")" "$(dirname "$KITTY_STATE")"
-
-
 # HELPER FUNCTIONS
-
 # Make sure GTK3 settings file exists with proper structure
 ensure_gtk3_ini() {
   if [ ! -f "$GTK3_SETTINGS" ]; then
@@ -68,7 +41,6 @@ ensure_gtk3_ini() {
     sed -i '1i [Settings]' "$GTK3_SETTINGS"
   fi
 }
-
 # Update INI file
 update_ini_key() {
   local file="$1" 
@@ -83,7 +55,6 @@ update_ini_key() {
     sed -i "/^\[Settings\]/a ${key}=${value}" "$file"
   fi
 }
-
 # GTK4 uses symlinks to theme files instead of a config file
 update_gtk4_links() {
   local theme="$1"
@@ -97,7 +68,6 @@ update_gtk4_links() {
   ln -sf "$theme_path/gtk.css" "$GTK4_CONF/gtk.css"
   [ -f "$theme_path/gtk-dark.css" ] && ln -sf "$theme_path/gtk-dark.css" "$GTK4_CONF/gtk-dark.css"
 }
-
 # Update KDE icon theme
 update_kde_icons() {
   [ -f "$KDE_GLOBALS" ] || return 0
@@ -117,7 +87,6 @@ update_kde_icons() {
     qdbus org.kde.KWin /KWin reconfigure >/dev/null 2>&1 || true
   fi
 }
-
 # Update Kitty terminal theme
 update_kitty() {
   local source_conf="$1"
@@ -125,7 +94,6 @@ update_kitty() {
   # Reload Kitty config without restarting
   kill -SIGUSR1 $(pidof kitty) 2>/dev/null || true
 }
-
 # Update Dunst notification theme
 update_dunst() {
   local source_conf="$1"
@@ -142,16 +110,12 @@ update_dunst() {
     disown
   fi
 }
-
-
 # OPTIONAL: VS CODE THEME SWITCHING
-
 # NOTE: I prefer to handle VS Code themes natively using settings.json with:
 #   "workbench.preferredDarkColorTheme": "Everforest Dark",
 #   "workbench.preferredLightColorTheme": "Everforest Light"
 #
 # Uncomment the function below if that somehow didn't work or if you want the script to handle it instead:
-
 #set_vscode_theme() {
 #  local theme_name="$1"
 #  local VSCODE_SETTINGS="$HOME/.config/Code/User/settings.json"
@@ -166,10 +130,8 @@ update_dunst() {
 #    fi
 #  fi
 #}
-
 # OPTIONAL: XFCE/Thunar SYNC
 # If you don't use XFCE/Thunar, comment or remove this to sync Thunar themes:
-
 xfce_thunar_sync() {
   local theme="$1" 
   local icons="$2"
@@ -178,8 +140,6 @@ xfce_thunar_sync() {
     xfconf-query -c xsettings -p /Net/IconThemeName -s "$icons" >/dev/null 2>&1 || true
   fi
 }
-
-
 # MAIN THEME FUNCTION
 apply_theme() {
   local mode="$1"              # "light" or "dark"
@@ -208,7 +168,6 @@ fi
   # DUNST
   # ---------------------------------------------------------------------------
   update_dunst "$dunst_conf"
-
   # ---------------------------------------------------------------------------
   # GTK 3
   # ---------------------------------------------------------------------------
@@ -277,7 +236,11 @@ fi
   # ---------------------------------------------------------------------------
   # Respect the --no-wallpaper flag to avoid conflicts
   if [[ "$NO_WALLPAPER" != "1" ]]; then
-    command -v waypaper &>/dev/null && waypaper --wallpaper "$wallpaper" || true
+    command -v awww &>/dev/null && awww img "$wallpaper" \
+        --transition-type wipe \
+        --transition-pos center \
+        --transition-step 90 \
+        --transition-duration 1.2
   fi
   
   # ---------------------------------------------------------------------------
@@ -291,12 +254,8 @@ fi
   # Uncomment if needed:
   xfce_thunar_sync "$theme_gtk" "$theme_icon"
   # set_vscode_theme "Everforest $mode"
-
 }
-
-
 # SCRIPT EXECUTION
-
 if [ "$1" == "light" ]; then
   apply_theme "light" \
     "$THEME_LIGHT" \
