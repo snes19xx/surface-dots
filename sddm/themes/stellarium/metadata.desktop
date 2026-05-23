@@ -1,0 +1,10 @@
+[SddmGreeterTheme]
+Name=Celestial
+Description=A beautiful celestial-themed SDDM login screen ported from a React prototype.
+Author=snes
+Copyright=2026 snes
+License=MIT
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+ConfigFile=theme.conf

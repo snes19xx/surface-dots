@@ -17,8 +17,8 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - [Power menu](#power-menu)
 - [Wifi menu](#wifi-menu)
 - [Firefox Customizations](#firefox-customizations)
-- [Themes](#themes)
-- [Pixel sddm theme](#pixel-sddm-theme)
+- [SDDM](#sddm)
+- [GTK/QT Themes](#themes)
 - [Utilities](#utilities-1)
 - [Credits & acknowledgements](#credits--acknowledgements)
 - [Media sources](#media-sources)
@@ -683,22 +683,21 @@ Additional related configuration files:
 
 Use _Kvantum Manager_ to install and apply the Kvantum theme.
 
-## Pixel sddm theme
+## SDDM
 
-[Note: I am using qt5, you may need qt5 dependencies alongside qt6]
+I have two SDDM themes:
 
-```bash
-sudo pacman -S qt6-5compat qt6-svg qqc2-desktop-style inter-font ttf-nerd-fonts-symbols
-```
+- Stellarium SDDM theme (Astronomy inspired)
+- Pixel SDDM theme (Google Pixel inspired)
 
-The installer installs the theme and writes to conf.d automatically. It will however prompt you for password authorization via pkexec.
+The installer installs the themes and writes to conf.d automatically based on your choice. It will however prompt you for password authorization via pkexec.
 
 - For Manual install:
   - move the contents of sddm/theme folder to `/usr/share/sddm/themes/` (create the dir if it doesn't exist yet) and:
 
     ```bash
     sudo mkdir -p /etc/sddm.conf.d
-    echo -e "[Theme]\nCurrent=pixel" | sudo tee /etc/sddm.conf.d/theme.conf
+    echo -e "[Theme]\nCurrent=stellarium" | sudo tee /etc/sddm.conf.d/theme.conf
     ```
 
 ## Utilities
