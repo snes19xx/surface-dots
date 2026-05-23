@@ -685,6 +685,13 @@ Use _Kvantum Manager_ to install and apply the Kvantum theme.
 
 ## SDDM
 
+<div align="center">
+<div style="display:flex; justify-content:center; gap:10px;">
+  <img src="media/screenshots/stella.png" width="30%" />
+  <img src="media/screenshots/pixel.png" width="30%" />
+</div>
+</div>
+
 I have two SDDM themes:
 
 - Stellarium SDDM theme (Astronomy inspired)
@@ -739,15 +746,6 @@ Utilities include the following:
 11. Photo by Andreas Strandman on [Unsplash](https://unsplash.com/photos/green-trees-near-body-of-water-during-daytime-sa5kZts9PGA)
 12. Surface default wallpapers are from microsoft
 13. All Rofi pictures were pulled from Pinterest; I don’t know the original owners.
-
-<b>[OC]</b>
-
-`media/wallpaper`
-Collection of pictures taken by me, some edited/created by me:
-
-- Lucina wallpaper from [Fire Emblem Awekening Artbook](https://www.amazon.ca/Art-Fire-Emblem-Awakening-ebook/dp/B01J1XIC2O)
-- Final Fantasy logos: by [Yoshitaka Amano](https://en.yoshitaka-amano.com/#/)
-- untitled.png from nanora on [artstation](https://www.artstation.com/nanora)
 
 #### <span style="color:#a41d1d">[Reuse Note:]</span>
 
