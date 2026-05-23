@@ -687,8 +687,8 @@ Use _Kvantum Manager_ to install and apply the Kvantum theme.
 
 <div align="center">
 <div style="display:flex; justify-content:center; gap:10px;">
-  <img src="media/screenshots/stella.png" width="30%" />
-  <img src="media/screenshots/pixel.png" width="30%" />
+  <img src="media/screenshots/stella.png" width="400" />
+  <img src="media/screenshots/pixel.png" width="400" />
 </div>
 </div>
 
