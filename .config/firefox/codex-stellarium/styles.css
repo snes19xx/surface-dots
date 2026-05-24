@@ -6,909 +6,918 @@ Use alongside my userChrome.css for best experience
 
 by snes19xx, https://github.com/snes19xx
 */
-      :root {
-        --bg: #f4efe5;
-        --ink: #19140c;
-        --ink-2: #3c2e1c;
-        --muted: #887560;
-        --faint: #cab89a;
-        --accent: #7a2213;
-        --border: #c6b394;
-        --border-s: #8a7050;
-        --grain-op: 0.06;
-        --vignette: rgba(8, 4, 0, 0.2);
-        --ui-scale: 1;
-      }
-      :root.night {
-        --bg: #0b0a08;
-        --ink: #e8dec8;
-        --ink-2: #cbb98e;
-        --muted: #7a6e58;
-        --faint: #28221a;
-        --accent: #c24e28;
-        --border: #2e271d;
-        --border-s: #4e4232;
-        --grain-op: 0.06;
-        --vignette: rgba(0, 0, 0, 0.6);
-      }
+:root {
+  --bg: #f4efe5;
+  --ink: #19140c;
+  --ink-2: #3c2e1c;
+  --muted: #887560;
+  --faint: #cab89a;
+  --accent: #7a2213;
+  --border: #c6b394;
+  --border-s: #8a7050;
+  --grain-op: 0.06;
+  --vignette: rgba(8, 4, 0, 0.2);
+  --ui-scale: 1;
+}
+:root.night {
+  --bg: #0b0a08;
+  --ink: #e8dec8;
+  --ink-2: #cbb98e;
+  --muted: #7a6e58;
+  --faint: #28221a;
+  --accent: #c24e28;
+  --border: #2e271d;
+  --border-s: #4e4232;
+  --grain-op: 0.06;
+  --vignette: rgba(0, 0, 0, 0.6);
+}
 
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      html,
-      body {
-        height: 100%;
-      }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html,
+body {
+  height: 100%;
+}
 
-      body {
-        font-family: "EB Garamond", Georgia, serif;
-        background: var(--bg);
-        color: var(--ink);
-        height: 100vh;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition:
-          background 1.1s ease,
-          color 1.1s ease;
-        -webkit-font-smoothing: antialiased;
-        text-rendering: optimizeLegibility;
-      }
+body {
+  font-family: "EB Garamond", Georgia, serif;
+  background: var(--bg);
+  color: var(--ink);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.5s ease,
+    color 0.5s ease;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
 
-      #bg-canvas {
-        position: fixed;
-        inset: 0;
-        z-index: 0;
-        pointer-events: none;
-      }
-      #starfield {
-        position: fixed;
-        inset: 0;
-        z-index: 1;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 2s ease;
-      }
-      :root.night #starfield {
-        opacity: 1;
-      }
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+#starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+:root.night #starfield {
+  opacity: 1;
+}
 
-      #system-canvas {
-        position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: 1;
-        pointer-events: none;
-        opacity: 0.25;
-        transition: opacity 2s ease;
-      }
-      :root.night #system-canvas {
-        opacity: 0;
-      }
+#system-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.25;
+  transition: opacity 1.2s ease;
+}
+:root.night #system-canvas {
+  opacity: 0;
+}
 
-      #comet-canvas {
-        position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: 2;
-        pointer-events: none;
-        opacity: 1;
-        transition: opacity 2s ease;
-      }
-      :root.night #comet-canvas {
-        opacity: 0.8;
-      }
+#comet-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 1.2s ease;
+}
+:root.night #comet-canvas {
+  opacity: 0.8;
+}
 
-      .grain {
-        display: none;
-      }
+.grain {
+  display: none;
+}
 
-      .spine {
-        position: fixed;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 2.4px;
-        z-index: 20;
-        background: linear-gradient(
-          to bottom,
-          transparent,
-          var(--accent) 30%,
-          var(--accent) 70%,
-          transparent
-        );
-        opacity: 0.3;
-      }
-      :root.night .spine {
-        display: none;
-      }
+.spine {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2.4px;
+  z-index: 20;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--accent) 30%,
+    var(--accent) 70%,
+    transparent
+  );
+  opacity: 0.3;
+}
+:root.night .spine {
+  display: none;
+}
 
-      .codex {
-        position: relative;
-        z-index: 10;
-        width: 100%;
-        max-width: 960px;
-        padding: 0 3rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        transform: scale(var(--ui-scale, 1));
-        transform-origin: center center;
-      }
-      .codex::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        z-index: -1;
-        background: radial-gradient(
-          ellipse 72% 58% at 50% 50%,
-          rgba(0, 0, 0, 0.38) 0%,
-          transparent 100%
-        );
-        opacity: 0;
-        transition: opacity 2s ease;
-        pointer-events: none;
-      }
-      :root.night .codex::before {
-        opacity: 1;
-      }
+.codex {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 960px;
+  padding: 0 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: center center;
+}
+.codex::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(
+    ellipse 72% 58% at 50% 50%,
+    rgba(0, 0, 0, 0.38) 0%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  pointer-events: none;
+}
+:root.night .codex::before {
+  opacity: 1;
+}
 
-      .rule-top {
-        border: none;
-        border-top: 1.2px solid var(--border-s);
-        margin-bottom: 2.22rem;
-        opacity: 0;
-        animation: up 0.8s ease 0.05s forwards;
-      }
-      .rule-bot {
-        border: none;
-        border-top: 1.2px solid var(--border-s);
-        margin-top: 2.22rem;
-        opacity: 0;
-        animation: up 0.8s ease 0.72s forwards;
-      }
+.rule-top {
+  border: none;
+  border-top: 1.2px solid var(--border-s);
+  margin-bottom: 2.22rem;
+  opacity: 0;
+  animation: up 0.5s ease 0.05s forwards;
+}
+.rule-bot {
+  border: none;
+  border-top: 1.2px solid var(--border-s);
+  margin-top: 2.22rem;
+  opacity: 0;
+  animation: up 0.5s ease 0.45s forwards;
+}
 
-      .codex-body {
-        display: grid;
-        grid-template-columns: 1fr 1.2px 1.08fr;
-        gap: 0 3.36rem;
-        align-items: start;
-      }
-      .col-divider {
-        background: var(--border);
-        align-self: stretch;
-        margin: 0.72rem 0;
-        transition: background 1.1s;
-      }
+.codex-body {
+  display: grid;
+  grid-template-columns: 1fr 1.2px 1.08fr;
+  gap: 0 3.36rem;
+  align-items: start;
+}
+.col-divider {
+  background: var(--border);
+  align-self: stretch;
+  margin: 0.72rem 0;
+  transition: background 0.5s;
+}
 
-      .col-left {
-        display: flex;
-        flex-direction: column;
-        gap: 1.86rem;
-      }
+.col-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1.86rem;
+}
 
-      .clock-block {
-        opacity: 0;
-        animation: up 1s ease 0.18s forwards;
-      }
+.clock-block {
+  opacity: 0;
+  animation: up 0.6s ease 0.1s forwards;
+}
 
-      .clock-face {
-        font-family: "Cormorant Garamond", serif;
-        font-weight: 300;
-        font-size: clamp(4.56rem, 8.88vw, 6.72rem);
-        line-height: 1;
-        letter-spacing: -0.03em;
-        display: flex;
-        align-items: baseline;
-      }
-      .clock-sep {
-        color: var(--accent);
-        margin: 0 0.03em;
-        animation: blink 2s ease-in-out infinite;
-      }
-      @keyframes blink {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        45%,
-        55% {
-          opacity: 0.12;
-        }
-      }
+.clock-face {
+  font-family: "Cormorant Garamond", serif;
+  font-weight: 300;
+  font-size: clamp(4.56rem, 8.88vw, 6.72rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: baseline;
+}
+.clock-sep {
+  color: var(--accent);
+  margin: 0 0.03em;
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  45%,
+  55% {
+    opacity: 0.12;
+  }
+}
 
-      .clock-sub {
-        margin-top: 0.72rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.22rem;
-      }
-      .clock-greeting {
-        font-family: "Lora", serif;
-        font-style: italic;
-        font-size: 1rem;
-        line-height: 1.3;
-        color: var(--muted);
-      }
-      .clock-date {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 1.2rem;
-        color: var(--ink-2);
-        letter-spacing: 0.01em;
-      }
-      .clock-sec {
-        font-family: "Space Mono", monospace;
-        font-size: 0.7rem;
-        color: var(--accent);
-        letter-spacing: 0.06em;
-        margin-top: 0.12rem;
-      }
+.clock-sub {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+.clock-greeting {
+  font-family: "Lora", serif;
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.3;
+  color: var(--muted);
+}
+.clock-date {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.2rem;
+  color: var(--ink-2);
+  letter-spacing: 0.01em;
+}
+.clock-sec {
+  font-family: "Space Mono", monospace;
+  font-size: 0.7rem;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  margin-top: 0.12rem;
+}
 
-      .orn {
-        display: flex;
-        align-items: center;
-        gap: 0.78rem;
-        opacity: 0;
-        animation: up 0.8s ease 0.4s forwards;
-      }
-      .orn::before,
-      .orn::after {
-        content: "";
-        flex: 1;
-        height: 1.2px;
-        background: var(--border);
-        transition: background 1.1s;
-      }
-      .orn-g {
-        font-family: "EB Garamond", serif;
-        color: var(--accent);
-        font-size: 0.94rem;
-        line-height: 1;
-      }
+.orn {
+  display: flex;
+  align-items: center;
+  gap: 0.78rem;
+  opacity: 0;
+  animation: up 0.5s ease 0.25s forwards;
+}
+.orn::before,
+.orn::after {
+  content: "";
+  flex: 1;
+  height: 1.2px;
+  background: var(--border);
+  transition: background 0.5s;
+}
+.orn-g {
+  width: 0.94rem;
+  height: 0.94rem;
+  color: var(--accent);
+  display: block;
+}
 
-      .wx-block {
-        opacity: 0;
-        animation: up 0.9s ease 0.5s forwards;
-      }
-      .section-label {
-        font-family: "Cinzel", serif;
-        font-size: 0.66rem;
-        letter-spacing: 0.2em;
-        color: var(--muted);
-        text-transform: uppercase;
-        margin-bottom: 0.72rem;
-      }
-      .wx-row {
-        display: flex;
-        align-items: center;
-        gap: 1.02rem;
-      }
-      .wx-icon {
-        width: 21.6px;
-        height: 21.6px;
-        stroke: var(--muted);
-        fill: none;
-        flex-shrink: 0;
-        stroke-width: 1.8;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-      }
-      .wx-temp {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 2.22rem;
-        line-height: 1;
-      }
-      .wx-meta {
-        font-family: "Space Mono", monospace;
-        font-size: 0.68rem;
-        color: var(--muted);
-        line-height: 1.75;
-      }
+.wx-block {
+  opacity: 0;
+  animation: up 0.6s ease 0.35s forwards;
+}
+.section-label {
+  font-family: "Cinzel", serif;
+  font-size: 0.75rem;
+  font-weight: 200;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 0.72rem;
+}
+.wx-row {
+  display: flex;
+  align-items: center;
+  gap: 1.02rem;
+}
+.wx-icon {
+  width: 21.6px;
+  height: 21.6px;
+  stroke: var(--muted);
+  fill: none;
+  flex-shrink: 0;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.wx-temp {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 2.22rem;
+  line-height: 1;
+}
+.wx-meta {
+  font-family: "Space Mono", monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.75;
+}
 
-      .moon-block {
-        display: flex;
-        align-items: center;
-        gap: 1.02rem;
-        opacity: 0;
-        animation: up 0.9s ease 0.58s forwards;
-      }
-      #moon-svg {
-        width: 33.6px;
-        height: 33.6px;
-        flex-shrink: 0;
-      }
-      .moon-data {
-        font-family: "Space Mono", monospace;
-        font-size: 0.68rem;
-        color: var(--muted);
-        line-height: 1.8;
-      }
-      .moon-data em {
-        font-style: normal;
-        color: var(--ink-2);
-      }
+.moon-block {
+  display: flex;
+  align-items: center;
+  gap: 1.02rem;
+  opacity: 0;
+  animation: up 0.6s ease 0.4s forwards;
+}
+#moon-svg {
+  width: 33.6px;
+  height: 33.6px;
+  flex-shrink: 0;
+}
+.moon-data {
+  font-family: "Space Mono", monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.8;
+}
+.moon-data em {
+  font-style: normal;
+  color: var(--ink-2);
+}
 
-      .col-right {
-        display: flex;
-        flex-direction: column;
-        gap: 1.8rem;
-      }
+.col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+}
 
-      .search-block {
-        opacity: 0;
-        animation: up 1s ease 0.28s forwards;
-      }
-      .search-input {
-        width: 100%;
-        background: transparent;
-        border: none;
-        border-bottom: 1.2px solid var(--border);
-        padding: 0.36rem 0;
-        font-family: "Cormorant Garamond", serif;
-        font-style: italic;
-        font-size: 1.5rem;
-        color: var(--ink);
-        outline: none;
-        transition: border-color 0.3s;
-        caret-color: var(--accent);
-      }
-      .search-input::placeholder {
-        font-style: italic;
-        color: var(--faint);
-      }
-      .search-input:focus {
-        border-bottom-color: var(--accent);
-      }
+.search-block {
+  opacity: 0;
+  animation: up 0.6s ease 0.15s forwards;
+}
+.search-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1.2px solid var(--border);
+  padding: 0.36rem 0;
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-size: 1.5rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.3s;
+  caret-color: var(--accent);
+}
+.search-input::placeholder {
+  font-style: italic;
+  color: var(--faint);
+}
+.search-input:focus {
+  border-bottom-color: var(--accent);
+}
 
-      .shortcuts-block {
-        opacity: 0;
-        animation: up 0.9s ease 0.45s forwards;
-      }
-      .shortcuts-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.54rem 0.66rem;
-      }
-      .sc-link {
-        text-decoration: none;
-        color: var(--ink-2);
-        font-family: "EB Garamond", serif;
-        font-size: 1.08rem;
-        display: flex;
-        align-items: center;
-        gap: 0.46rem;
-        padding: 0.41rem 0.58rem;
-        border: 1.2px solid var(--border);
-        border-radius: 2.4px;
-        background: transparent;
-        transition:
-          color 0.22s,
-          border-color 0.22s,
-          background 0.22s;
-        position: relative;
-        overflow: hidden;
-      }
-      .sc-link::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: var(--accent);
-        opacity: 0;
-        transform: scaleX(0);
-        transform-origin: left;
-        transition:
-          transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-          opacity 0.28s;
-      }
-      .sc-link:hover::before {
-        transform: scaleX(1);
-        opacity: 0.07;
-      }
-      .sc-link:hover {
-        color: var(--accent);
-        border-color: var(--border-s);
-      }
-      .sc-icon {
-        font-size: 0.82rem;
-        opacity: 0.42;
-        flex-shrink: 0;
-        font-family: "Space Mono", monospace;
-      }
-      .sc-name {
-        position: relative;
-        z-index: 1;
-      }
+.shortcuts-block {
+  opacity: 0;
+  animation: up 0.6s ease 0.3s forwards;
+}
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.54rem 0.66rem;
+}
+.sc-link {
+  text-decoration: none;
+  color: var(--ink-2);
+  font-family: "EB Garamond", serif;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.46rem;
+  padding: 0.41rem 0.58rem;
+  border: 1.2px solid var(--border);
+  border-radius: 2.4px;
+  background: transparent;
+  transition:
+    color 0.22s,
+    border-color 0.22s,
+    background 0.22s;
+  position: relative;
+  overflow: hidden;
+}
+.sc-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition:
+    transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.28s;
+}
+.sc-link:hover::before {
+  transform: scaleX(1);
+  opacity: 0.07;
+}
+.sc-link:hover {
+  color: var(--accent);
+  border-color: var(--border-s);
+}
+.sc-icon {
+  font-size: 0.82rem;
+  opacity: 0.42;
+  flex-shrink: 0;
+  font-family: "Space Mono", monospace;
+}
+.sc-name {
+  position: relative;
+  z-index: 1;
+}
 
-      .ephem-block {
-        opacity: 0;
-        animation: up 0.9s ease 0.62s forwards;
-      }
-      .ephem-text {
-        font-family: "Space Mono", monospace;
-        font-size: 0.67rem;
-        color: var(--muted);
-        letter-spacing: 0.03em;
-        line-height: 2.1;
-      }
-      .ephem-text span {
-        color: var(--ink-2);
-      }
+.ephem-block {
+  opacity: 0;
+  animation: up 0.6s ease 0.45s forwards;
+}
+.ephem-text {
+  font-family: "Space Mono", monospace;
+  font-size: 0.67rem;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+  line-height: 2.1;
+}
+.ephem-text span {
+  color: var(--ink-2);
+}
 
-      .footer-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        opacity: 0;
-        animation: up 0.8s ease 0.78s forwards;
-      }
-      .footer-mono {
-        font-family: "Space Mono", monospace;
-        font-size: 0.66rem;
-        color: var(--muted);
-        letter-spacing: 0.06em;
-      }
+.footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  opacity: 0;
+  animation: up 0.5s ease 0.5s forwards;
+}
+.footer-mono {
+  font-family: "Space Mono", monospace;
+  font-size: 0.66rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
 
-      @keyframes up {
-        from {
-          opacity: 0;
-          transform: translateY(9.6px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
+@keyframes up {
+  from {
+    opacity: 0;
+    transform: translateY(9.6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-      @media (max-width: 600px) {
-        .codex-body {
-          grid-template-columns: 1fr;
-        }
-        .col-divider {
-          display: none;
-        }
-        .codex {
-          padding: 0 1.68rem;
-        }
-        .clock-face {
-          font-size: 4.56rem;
-        }
-        .shortcuts-grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
+@media (max-width: 600px) {
+  .codex-body {
+    grid-template-columns: 1fr;
+  }
+  .col-divider {
+    display: none;
+  }
+  .codex {
+    padding: 0 1.68rem;
+  }
+  .clock-face {
+    font-size: 4.56rem;
+  }
+  .shortcuts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 
-      .settings-btn {
-        position: fixed;
-        bottom: 1.1rem;
-        right: 1.6rem;
-        z-index: 50;
-        background: none;
-        border: 1px solid var(--border-s);
-        cursor: pointer;
-        font-family: "Space Mono", monospace;
-        font-size: 0.6rem;
-        color: var(--ink-2);
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        opacity: 0.72;
-        transition:
-          opacity 0.25s,
-          color 0.25s,
-          border-color 0.25s;
-        padding: 0.28rem 0.7rem;
-        user-select: none;
-        border-radius: 1px;
-      }
-      .settings-btn:hover {
-        opacity: 1;
-        color: var(--accent);
-        border-color: var(--accent);
-      }
+.settings-btn {
+  position: fixed;
+  bottom: 1.1rem;
+  right: 1.6rem;
+  z-index: 50;
+  background: none;
+  border: 1px solid var(--border-s);
+  cursor: pointer;
+  font-family: "Space Mono", monospace;
+  font-size: 0.6rem;
+  color: var(--ink-2);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  transition:
+    opacity 0.25s,
+    color 0.25s,
+    border-color 0.25s;
+  padding: 0.28rem 0.7rem;
+  user-select: none;
+  border-radius: 1px;
+}
+.settings-btn:hover {
+  opacity: 1;
+  color: var(--accent);
+  border-color: var(--accent);
+}
 
-      .sett-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 200;
-        background: rgba(0, 0, 0, 0.58);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.28s ease;
-      }
-      .sett-overlay.open {
-        opacity: 1;
-        pointer-events: all;
-      }
+.ui-star {
+  width: 0.8em;
+  height: 0.8em;
+  margin-right: 0.2em;
+  display: inline-block;
+  vertical-align: middle;
+  margin-top: -0.1em;
+}
 
-      .sett-panel {
-        background: var(--bg);
-        border: 1.2px solid var(--border-s);
-        width: min(960px, 94vw);
-        max-height: 90vh;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        transition: background 1.1s ease;
-      }
+.sett-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+}
+.sett-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
 
-      .sett-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        padding: 1.6rem 2.4rem 1.2rem;
-        border-bottom: 1.2px solid var(--border);
-        flex-shrink: 0;
-      }
-      .sett-title {
-        font-family: "Cinzel", serif;
-        font-size: 0.84rem;
-        letter-spacing: 0.28em;
-        color: var(--ink);
-        text-transform: uppercase;
-      }
-      .sett-close {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-family: "Space Mono", monospace;
-        font-size: 1rem;
-        color: var(--muted);
-        padding: 0;
-        line-height: 1;
-        transition: color 0.2s;
-      }
-      .sett-close:hover {
-        color: var(--accent);
-      }
+.sett-panel {
+  background: var(--bg);
+  border: 1.2px solid var(--border-s);
+  width: min(960px, 94vw);
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: background 0.5s ease;
+}
 
-      .sett-body {
-        display: grid;
-        grid-template-columns: 1fr 1.2px 1fr;
-        overflow: hidden;
-        flex: 1;
-      }
-      .sett-col {
-        padding: 1.6rem 2.4rem;
-        overflow-y: auto;
-        scrollbar-width: thin;
-        scrollbar-color: var(--border-s) transparent;
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-      }
-      .sett-col-divider {
-        background: var(--border);
-        flex-shrink: 0;
-      }
+.sett-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 1.6rem 2.4rem 1.2rem;
+  border-bottom: 1.2px solid var(--border);
+  flex-shrink: 0;
+}
+.sett-title {
+  font-family: "Cinzel", serif;
+  font-size: 0.84rem;
+  letter-spacing: 0.28em;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+.sett-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: "Space Mono", monospace;
+  font-size: 1rem;
+  color: var(--muted);
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.sett-close:hover {
+  color: var(--accent);
+}
 
-      .sett-section {
-        display: flex;
-        flex-direction: column;
-        gap: 0.72rem;
-      }
-      .sett-section-label {
-        font-family: "Cinzel", serif;
-        font-size: 0.65rem;
-        letter-spacing: 0.22em;
-        color: var(--muted);
-        text-transform: uppercase;
-        padding-bottom: 0.42rem;
-        border-bottom: 1px solid var(--border);
-      }
+.sett-body {
+  display: grid;
+  grid-template-columns: 1fr 1.2px 1fr;
+  overflow: hidden;
+  flex: 1;
+}
+.sett-col {
+  padding: 1.6rem 2.4rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-s) transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.sett-col-divider {
+  background: var(--border);
+  flex-shrink: 0;
+}
 
-      .sett-row {
-        display: flex;
-        align-items: center;
-        gap: 0.9rem;
-      }
-      .sett-row-label {
-        font-family: "EB Garamond", serif;
-        font-size: 1.07rem;
-        color: var(--ink-2);
-        min-width: 5rem;
-        flex-shrink: 0;
-      }
+.sett-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.72rem;
+}
+.sett-section-label {
+  font-family: "Cinzel", serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  color: var(--muted);
+  text-transform: uppercase;
+  padding-bottom: 0.42rem;
+  border-bottom: 1px solid var(--border);
+}
 
-      .sett-radios {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-      }
-      .sett-radio-label {
-        font-family: "Space Mono", monospace;
-        font-size: 0.71rem;
-        color: var(--muted);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 0.36rem;
-        letter-spacing: 0.04em;
-        transition: color 0.2s;
-      }
-      .sett-radio-label:has(input:checked) {
-        color: var(--ink);
-      }
-      .sett-radio-label input[type="radio"] {
-        accent-color: var(--accent);
-        cursor: pointer;
-      }
+.sett-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+.sett-row-label {
+  font-family: "EB Garamond", serif;
+  font-size: 1.07rem;
+  color: var(--ink-2);
+  min-width: 5rem;
+  flex-shrink: 0;
+}
 
-      .sett-input {
-        background: transparent;
-        border: none;
-        border-bottom: 1.2px solid var(--border);
-        padding: 0.26rem 0;
-        font-family: "Cormorant Garamond", serif;
-        font-style: italic;
-        font-size: 1.18rem;
-        color: var(--ink);
-        outline: none;
-        transition: border-color 0.3s;
-        caret-color: var(--accent);
-        min-width: 0;
-        flex: 1;
-      }
-      .sett-input:focus {
-        border-bottom-color: var(--accent);
-      }
-      .sett-input::placeholder {
-        color: var(--faint);
-        font-style: italic;
-      }
+.sett-radios {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.sett-radio-label {
+  font-family: "Space Mono", monospace;
+  font-size: 0.71rem;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.36rem;
+  letter-spacing: 0.04em;
+  transition: color 0.2s;
+}
+.sett-radio-label:has(input:checked) {
+  color: var(--ink);
+}
+.sett-radio-label input[type="radio"] {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
 
-      .sett-btn-small {
-        background: none;
-        border: 1.2px solid var(--border-s);
-        padding: 0.2rem 0.58rem;
-        font-family: "Space Mono", monospace;
-        font-size: 0.65rem;
-        color: var(--muted);
-        cursor: pointer;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        transition:
-          color 0.2s,
-          border-color 0.2s;
-        white-space: nowrap;
-        flex-shrink: 0;
-      }
-      .sett-btn-small:hover {
-        color: var(--accent);
-        border-color: var(--accent);
-      }
+.sett-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1.2px solid var(--border);
+  padding: 0.26rem 0;
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-size: 1.18rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.3s;
+  caret-color: var(--accent);
+  min-width: 0;
+  flex: 1;
+}
+.sett-input:focus {
+  border-bottom-color: var(--accent);
+}
+.sett-input::placeholder {
+  color: var(--faint);
+  font-style: italic;
+}
 
-      .sett-loc-status {
-        font-family: "Space Mono", monospace;
-        font-size: 0.67rem;
-        color: var(--muted);
-        letter-spacing: 0.04em;
-        min-height: 1rem;
-        padding-left: 5.9rem;
-      }
+.sett-btn-small {
+  background: none;
+  border: 1.2px solid var(--border-s);
+  padding: 0.2rem 0.58rem;
+  font-family: "Space Mono", monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.sett-btn-small:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
 
-      .sett-shortcuts-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.32rem;
-      }
-      .sett-sc-row {
-        display: flex;
-        align-items: center;
-        gap: 0.52rem;
-      }
-      .sett-sc-num {
-        font-family: "Space Mono", monospace;
-        font-size: 0.71rem;
-        color: var(--muted);
-        min-width: 1rem;
-        flex-shrink: 0;
-      }
-      .sett-sc-name-in {
-        flex: 0 0 96px;
-      }
-      .sett-sc-url-in {
-        flex: 1;
-      }
+.sett-loc-status {
+  font-family: "Space Mono", monospace;
+  font-size: 0.67rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  min-height: 1rem;
+  padding-left: 5.9rem;
+}
 
-      .sett-toggles {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.44rem 1.2rem;
-      }
-      .sett-toggle-row {
-        display: flex;
-        align-items: center;
-        gap: 0.72rem;
-        cursor: pointer;
-      }
-      .sett-toggle {
-        position: relative;
-        width: 30px;
-        height: 16px;
-        flex-shrink: 0;
-      }
-      .sett-toggle input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-        position: absolute;
-      }
-      .sett-toggle-track {
-        position: absolute;
-        inset: 0;
-        border: 1.2px solid var(--border-s);
-        cursor: pointer;
-        transition:
-          border-color 0.22s,
-          background 0.22s;
-      }
-      .sett-toggle input:checked + .sett-toggle-track {
-        border-color: var(--accent);
-        background: rgba(194, 78, 40, 0.1);
-      }
-      :root.night .sett-toggle input:checked + .sett-toggle-track {
-        background: rgba(194, 78, 40, 0.14);
-      }
-      .sett-toggle-track::after {
-        content: "";
-        position: absolute;
-        width: 8px;
-        height: 8px;
-        left: 3px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: var(--border-s);
-        transition:
-          left 0.22s,
-          background 0.22s;
-      }
-      .sett-toggle input:checked + .sett-toggle-track::after {
-        left: 17px;
-        background: var(--accent);
-      }
-      .sett-about {
-        margin-top: auto;
-        padding-top: 1.2rem;
-        border-top: 1px solid var(--border);
-        display: flex;
-        flex-direction: column;
-        gap: 0.52rem;
-      }
-      .sett-about p {
-        font-family: "EB Garamond", serif;
-        font-size: 0.88rem;
-        color: var(--muted);
-        line-height: 1.55;
-      }
-      .sett-about p:first-child {
-        font-family: "Cinzel", serif;
-        font-size: 0.68rem;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-      }
-      .sett-about a {
-        color: var(--ink-2);
-        text-decoration: none;
-        border-bottom: 1px solid var(--border);
-        transition:
-          color 0.2s,
-          border-color 0.2s;
-      }
-      .sett-about a:hover {
-        color: var(--accent);
-        border-color: var(--accent);
-      }
+.sett-shortcuts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.32rem;
+}
+.sett-sc-row {
+  display: flex;
+  align-items: center;
+  gap: 0.52rem;
+}
+.sett-sc-num {
+  font-family: "Space Mono", monospace;
+  font-size: 0.71rem;
+  color: var(--muted);
+  min-width: 1rem;
+  flex-shrink: 0;
+}
+.sett-sc-name-in {
+  flex: 0 0 96px;
+}
+.sett-sc-url-in {
+  flex: 1;
+}
 
-      .sett-toggle-row.sett-toggle-disabled {
-        opacity: 0.35;
-        pointer-events: none;
-        cursor: default;
-      }
-      .sett-toggle-label {
-        font-family: "EB Garamond", serif;
-        font-size: 1.04rem;
-        color: var(--ink-2);
-        user-select: none;
-      }
+.sett-toggles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.44rem 1.2rem;
+}
+.sett-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 0.72rem;
+  cursor: pointer;
+}
+.sett-toggle {
+  position: relative;
+  width: 30px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.sett-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.sett-toggle-track {
+  position: absolute;
+  inset: 0;
+  border: 1.2px solid var(--border-s);
+  cursor: pointer;
+  transition:
+    border-color 0.22s,
+    background 0.22s;
+}
+.sett-toggle input:checked + .sett-toggle-track {
+  border-color: var(--accent);
+  background: rgba(194, 78, 40, 0.1);
+}
+:root.night .sett-toggle input:checked + .sett-toggle-track {
+  background: rgba(194, 78, 40, 0.14);
+}
+.sett-toggle-track::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--border-s);
+  transition:
+    left 0.22s,
+    background 0.22s;
+}
+.sett-toggle input:checked + .sett-toggle-track::after {
+  left: 17px;
+  background: var(--accent);
+}
+.sett-about {
+  margin-top: auto;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.52rem;
+}
+.sett-about p {
+  font-family: "EB Garamond", serif;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.sett-about p:first-child {
+  font-family: "Cinzel", serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.sett-about a {
+  color: var(--ink-2);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+}
+.sett-about a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
 
-      .sett-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 2.4rem;
-        border-top: 1.2px solid var(--border);
-        flex-shrink: 0;
-        gap: 0.8rem;
-      }
-      .sett-footer-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.7rem;
-      }
-      .sett-link {
-        font-family: "Space Mono", monospace;
-        font-size: 0.67rem;
-        color: var(--muted);
-        text-decoration: none;
-        letter-spacing: 0.07em;
-        transition: color 0.2s;
-      }
-      .sett-link:hover {
-        color: var(--accent);
-      }
-      .sett-reset-btn {
-        background: none;
-        border: 1.2px solid var(--border-s);
-        padding: 0.34rem 1.1rem;
-        font-family: "Cinzel", serif;
-        font-size: 0.73rem;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--muted);
-        cursor: pointer;
-        transition:
-          color 0.2s,
-          border-color 0.2s,
-          background 0.2s;
-      }
-      .sett-reset-btn:hover {
-        color: var(--accent);
-        border-color: var(--accent);
-        background: rgba(194, 78, 40, 0.05);
-      }
-      .sett-save-btn {
-        background: none;
-        border: 1.2px solid var(--border-s);
-        padding: 0.34rem 1.1rem;
-        font-family: "Cinzel", serif;
-        font-size: 0.73rem;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--ink-2);
-        cursor: pointer;
-        transition:
-          color 0.2s,
-          border-color 0.2s,
-          background 0.2s;
-      }
-      .sett-save-btn:hover {
-        color: var(--accent);
-        border-color: var(--accent);
-        background: rgba(194, 78, 40, 0.05);
-      }
+.sett-toggle-row.sett-toggle-disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  cursor: default;
+}
+.sett-toggle-label {
+  font-family: "EB Garamond", serif;
+  font-size: 1.04rem;
+  color: var(--ink-2);
+  user-select: none;
+}
 
-      .sett-sc-name-in {
-        flex: 0 0 100px;
-        font-family: "Space Mono", monospace;
-        font-size: 0.75rem;
-        font-style: normal;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--muted);
-        border-bottom: 1px solid var(--border) !important;
-      }
+.sett-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2.4rem;
+  border-top: 1.2px solid var(--border);
+  flex-shrink: 0;
+  gap: 0.8rem;
+}
+.sett-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.sett-link {
+  font-family: "Space Mono", monospace;
+  font-size: 0.67rem;
+  color: var(--muted);
+  text-decoration: none;
+  letter-spacing: 0.07em;
+  transition: color 0.2s;
+}
+.sett-link:hover {
+  color: var(--accent);
+}
+.sett-reset-btn {
+  background: none;
+  border: 1.2px solid var(--border-s);
+  padding: 0.34rem 1.1rem;
+  font-family: "Cinzel", serif;
+  font-size: 0.73rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    background 0.2s;
+}
+.sett-reset-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(194, 78, 40, 0.05);
+}
+.sett-save-btn {
+  background: none;
+  border: 1.2px solid var(--border-s);
+  padding: 0.34rem 1.1rem;
+  font-family: "Cinzel", serif;
+  font-size: 0.73rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    background 0.2s;
+}
+.sett-save-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(194, 78, 40, 0.05);
+}
 
-      .sett-sc-url-in {
-        flex: 1;
-        font-family: "Lora", "EB Garamond", serif;
-        font-size: 0.7rem;
-        font-style: italic;
-        color: var(--ink-2);
-        opacity: 0.8;
-      }
+.sett-sc-name-in {
+  flex: 0 0 100px;
+  font-family: "Space Mono", monospace;
+  font-size: 0.75rem;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border) !important;
+}
 
-      .sett-sc-name-in:focus,
-      .sett-sc-url-in:focus {
-        color: var(--accent);
-        opacity: 1;
-      }
-    </style>
+.sett-sc-url-in {
+  flex: 1;
+  font-family: "Lora", "EB Garamond", serif;
+  font-size: 0.7rem;
+  font-style: italic;
+  color: var(--ink-2);
+  opacity: 0.8;
+}
+
+.sett-sc-name-in:focus,
+.sett-sc-url-in:focus {
+  color: var(--accent);
+  opacity: 1;
+}

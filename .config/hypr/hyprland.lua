@@ -169,24 +169,28 @@ layerrule = {
 -- =========================================================================
 -- Animations
 -- =========================================================================
-hl.curve("winOpen",  { type = "spring", mass = 1, stiffness = 200, dampening = 30 })
-hl.curve("winClose", { type = "spring", mass = 1, stiffness = 500, dampening = 46 })
-hl.curve("winMove",  { type = "spring", mass = 1, stiffness = 250, dampening = 32 })
-hl.curve("easeOutExpo",  { type = "bezier", points = { {0.16, 1.0}, {0.30, 1.0} } })
-hl.curve("easeOutQuint", { type = "bezier", points = { {0.22, 1.0}, {0.36, 1.0} } })
-hl.curve("easeInQuart",  { type = "bezier", points = { {0.50, 0.0}, {0.75, 0.0} } })
+hl.curve("md3_standard", { type = "bezier", points = { {0.2, 0.0}, {0, 1.0} } })
+hl.curve("md3_decel", { type = "bezier", points = { {0.05, 0.7}, {0.1, 1.0} } })
+hl.curve("md3_accel", { type = "bezier", points = { {0.3, 0.0}, {0.8, 0.15} } })
 
-hl.animation({ leaf = "windowsIn",   enabled = true, speed = 4, spring = "winOpen",  style = "popin 88%" })
-hl.animation({ leaf = "windowsOut",  enabled = true, speed = 2, spring = "winClose", style = "popin 95%" })
-hl.animation({ leaf = "windowsMove", enabled = true, speed = 4, spring = "winMove",  style = "slide" })
-hl.animation({ leaf = "fade",    enabled = true, speed = 3, bezier = "easeOutQuint" })
-hl.animation({ leaf = "fadeDim", enabled = true, speed = 4, bezier = "easeOutQuint" })
-hl.animation({ leaf = "workspacesIn",  enabled = true, speed = 5, bezier = "easeOutExpo", style = "slidefade 20%" })
-hl.animation({ leaf = "workspacesOut", enabled = true, speed = 5, bezier = "easeOutExpo", style = "slidefade 20%" })
-hl.animation({ leaf = "specialWorkspaceIn",  enabled = true, speed = 4, bezier = "easeOutQuint", style = "slide top" })
-hl.animation({ leaf = "specialWorkspaceOut", enabled = true, speed = 3, bezier = "easeInQuart",  style = "slide top" })
-hl.animation({ leaf = "fadeLayersIn",  enabled = true, speed = 2, bezier = "easeOutQuint" })
-hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 2, bezier = "easeInQuart"  })
+hl.curve("winIn", { type = "spring", mass = 1, stiffness = 350, dampening = 35 })
+hl.curve("winOut", { type = "spring", mass = 1, stiffness = 320, dampening = 32 })
+hl.curve("winMove", { type = "spring", mass = 1, stiffness = 300, dampening = 30 })
+
+hl.animation({ leaf = "windowsIn", enabled = true, speed = 3, spring = "winIn", style = "popin 85%" })
+hl.animation({ leaf = "windowsOut", enabled = true, speed = 3, spring = "winOut", style = "popin 85%" })
+hl.animation({ leaf = "windowsMove", enabled = true, speed = 3, spring = "winMove", style = "slide" })
+
+hl.animation({ leaf = "fade", enabled = true, speed = 2, bezier = "md3_standard" })
+hl.animation({ leaf = "fadeDim", enabled = true, speed = 2, bezier = "md3_standard" })
+
+hl.animation({ leaf = "workspacesIn", enabled = true, speed = 3, bezier = "md3_decel", style = "slidefade 15%" })
+hl.animation({ leaf = "workspacesOut", enabled = true, speed = 3, bezier = "md3_accel", style = "slidefade 15%" })
+hl.animation({ leaf = "specialWorkspaceIn", enabled = true, speed = 3, bezier = "md3_decel", style = "slide top" })
+hl.animation({ leaf = "specialWorkspaceOut", enabled = true, speed = 3, bezier = "md3_accel", style = "slide top" })
+
+hl.animation({ leaf = "fadeLayersIn", enabled = true, speed = 2, bezier = "md3_decel" })
+hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 2, bezier = "md3_accel" })
 
 -- =========================================================================
 -- Gestures

@@ -237,7 +237,7 @@ function siderealTime(lon, date) {
     280.46061837 + 360.98564736629 * (JD - 2451545) + T * T * 0.000387933;
   GMST = ((GMST % 360) + 360) % 360;
   const LST = (((GMST + lon) % 360) + 360) % 360;
-  return `${pad(Math.floor(LST / 15))}ʰ${pad(Math.floor(((LST / 15) % 1) * 60))}ᵐ`;
+  return `${pad(Math.floor(LST / 15))}h${pad(Math.floor(((LST / 15) % 1) * 60))}m`;
 }
 
 function sunElev(lat, lon, date) {
@@ -304,7 +304,7 @@ function renderShortcuts() {
     const a = document.createElement("a");
     a.className = "sc-link";
     a.href = url || "#";
-    a.style.cssText = `opacity:0; animation: up 0.7s ease ${0.5 + i * 0.04}s forwards`;
+    a.style.cssText = `opacity:0; animation: up 0.5s ease ${0.2 + i * 0.03}s forwards`;
 
     const spanIcon = document.createElement("span");
     spanIcon.className = "sc-icon";
@@ -598,6 +598,8 @@ const systemRenderer = (() => {
       }
 
       if (SETTINGS.toggles.planets) {
+        ctx.drawImage(orbitCache, 0, 0);
+        
         ctx.beginPath();
         ctx.arc(cx, cy, 17 * base, 0, Math.PI * 2);
         ctx.fillStyle = cssVars.accent;
@@ -610,12 +612,6 @@ const systemRenderer = (() => {
           const px = cx + Math.cos(angle) * pr;
           const py = cy + Math.sin(angle) * pr;
           const psz = Math.max(1, p.sz * base);
-
-          ctx.beginPath();
-          ctx.arc(cx, cy, pr, 0, Math.PI * 2);
-          ctx.strokeStyle = cssVars.border;
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
 
           if (p.rings) {
             const rOuter = p.rings.outer * base;
@@ -658,17 +654,21 @@ const systemRenderer = (() => {
       if (SETTINGS.toggles.asteroidBelt) {
         ctx.fillStyle = cssVars.ink;
         ctx.globalAlpha = 0.5;
-        ctx.beginPath();
         for (let i = 0; i < ASTEROIDS.length; i++) {
           const a = ASTEROIDS[i];
           a.angle += a.spd;
           const ar = a.r * base;
           const ax = cx + Math.cos(a.angle) * ar;
           const ay = cy + Math.sin(a.angle) * ar;
-          ctx.moveTo(ax + a.sz * base, ay);
-          ctx.arc(ax, ay, a.sz * base, 0, Math.PI * 2);
+          const asz = a.sz * base;
+          if (asz < 1.2) {
+            ctx.fillRect(ax - asz/2, ay - asz/2, asz, asz);
+          } else {
+            ctx.beginPath();
+            ctx.arc(ax, ay, asz, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
-        ctx.fill();
         ctx.globalAlpha = 1;
       } else {
         for (let i = 0; i < ASTEROIDS.length; i++) {

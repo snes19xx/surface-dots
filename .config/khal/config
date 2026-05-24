@@ -1,7 +1,11 @@
 [calendars]
-[[calendars]]
+
+[[google_calendar]]
 path = ~/.local/share/vdirsyncer/calendars/*
 type = discover
+
+[default]
+default_calendar = <my gmail acc>
 
 [locale]
 timeformat = %I:%M %p

@@ -1,19 +1,20 @@
 [general]
 status_path = "~/.config/vdirsyncer/status/"
 
-[pair google_cal]
-a = "google"
-b = "local"
-collections = ["from a", "from b"]
-metadata = ["color", "displayname"]
+[pair google_sync]
+a = "google_cloud"
+b = "local_dir"
+collections = ["emailemailemail@gmail.com"]
+conflict_resolution = "a wins"
+metadata = ["color"]
 
-[storage google]
+[storage google_cloud]
 type = "google_calendar"
-token_file = "~/.config/vdirsyncer/tokens/google_calendar"
-client_id = "xxxxxxxxxxxxxxxxx.apps.googleusercontent.com"
-client_secret = "xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+token_file = "~/.config/vdirsyncer/google_token"
+client_id = ""
+client_secret = ""
 
-[storage local]
+[storage local_dir]
 type = "filesystem"
 path = "~/.local/share/vdirsyncer/calendars/"
 fileext = ".ics"
