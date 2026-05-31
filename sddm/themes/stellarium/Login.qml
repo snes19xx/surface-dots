@@ -19,6 +19,10 @@ Item {
     property string authState: "idle"
     property string statusMessage: ""
 
+    property string passwordText: pwField.text
+    property alias sessionIndex: sessionSelector.sessionIndex
+    property bool fprintAttempt: false
+
     signal requestBack()
     signal authStateRequest(string state)
     signal loginAttempt(string user, string pass, int sessionIndex)
@@ -37,10 +41,11 @@ readonly property var shapeKeys: [
     ,"halo"
 ]
 
-    // Automatically focus when transitioning to login view
+    // Automatically focus and start fingerprint when transitioning to login view
     onCurrentViewChanged: {
         if (currentView === "login") {
             focusTimer.start()
+            fprintTimer.start()
         }
     }
 
@@ -48,6 +53,16 @@ readonly property var shapeKeys: [
         id: focusTimer
         interval: 720
         onTriggered: pwField.forceActiveFocus()
+    }
+
+    Timer {
+        id: fprintTimer
+        interval: 750
+        onTriggered: {
+            if (loginRoot.authState === "idle") {
+                loginRoot.loginAttempt(loginRoot.userName, "", sessionSelector.sessionIndex)
+            }
+        }
     }
 
     // Top Header
@@ -88,6 +103,48 @@ readonly property var shapeKeys: [
             anchors.centerIn: parent
             state: loginRoot.authState
             accent: root.accent
+        }
+    }
+
+    // Fingerprint recognition anim
+    Item {
+        id: fprintHint
+        anchors.top: header.bottom
+        anchors.topMargin: 8
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width
+        height: 36
+
+        opacity: loginRoot.fprintAttempt && loginRoot.authState === "auth" ? 1.0 : 0.0
+        Behavior on opacity { NumberAnimation { duration: 420; easing.type: Easing.OutCubic } }
+
+        Text {
+            id: phraseText
+            anchors.centerIn: parent
+            renderType: Text.NativeRendering
+            property int phraseIndex: 0
+            property var phrases: ["Looking for you…", "Hello there…", "Just a moment…"]
+            text: phrases[phraseIndex]
+            font.family: loginRoot.fItalic
+            font.italic: true
+            font.pixelSize: Math.max(18, Math.min(25, loginRoot.width * 0.017))
+            color: root.colInkSoft
+
+            SequentialAnimation {
+                id: cycleAnim
+                running: fprintHint.opacity > 0
+                loops: Animation.Infinite
+                onRunningChanged: {
+                    if (!running) {
+                        phraseText.opacity = 1
+                        phraseText.phraseIndex = 0
+                    }
+                }
+                PauseAnimation   { duration: 3000 }
+                NumberAnimation  { target: phraseText; property: "opacity"; to: 0; duration: 360; easing.type: Easing.OutCubic }
+                ScriptAction     { script: phraseText.phraseIndex = (phraseText.phraseIndex + 1) % phraseText.phrases.length }
+                NumberAnimation  { target: phraseText; property: "opacity"; to: 1; duration: 360; easing.type: Easing.InCubic }
+            }
         }
     }
 
