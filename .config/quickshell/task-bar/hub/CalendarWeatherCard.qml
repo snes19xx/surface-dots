@@ -92,7 +92,7 @@ Lib.Card {
         
         Text {
           text: weather.value ? weather.value.icon : "☁"
-          font.family: "Material Design Icons"
+          font.family: "Symbols Nerd Font"
           font.pixelSize: 32
           color: (root.theme && root.theme.isDarkMode) ? Theme.weatherd : Theme.weatherl
           Layout.alignment: Qt.AlignRight
