@@ -85,6 +85,17 @@ PanelWindow {
         onLoadFailed: root.applyAutoTheme("dark")
     }
 
+    // last-known connection info is cached to disk so the menu can paint instantly
+    readonly property string statusCachePath: Quickshell.env("HOME") + "/.cache/quickshell/wifi_status.json"
+
+    // seed the connection card from the cached status so it shows up without waiting for nmcli
+    FileView {
+        id: statusCache
+        path: root.statusCachePath
+        preload: true
+        onLoaded: root.applyStatusCache(text())
+    }
+
     // -------- Colors / Fonts --------
     readonly property color cBg:      isDarkMode ? "#6b3f443c" : "#F0ECE6"
     readonly property color cBgAlt:   isDarkMode ? '#6b3f443c' : '#cb97a382'
@@ -125,6 +136,11 @@ PanelWindow {
 
     property string statusLine: ""
     property color statusColor: cMuted
+
+    // true once a live nmcli status has landed, so the cache never overrides fresh data
+    property bool statusLoaded: false
+    // last json written to the cache, kept so we only touch disk on real changes
+    property string lastStatusCacheJson: ""
 
     property string targetSsid: ""
     property bool targetIsEnterprise: false
@@ -253,13 +269,15 @@ PanelWindow {
                     else if (key === "IP") ip = val
                 }
                 
+                statusLoaded = true
                 wifiEnabled = (wifi === "enabled")
-                
+
                 if (!wifiEnabled) {
                     currentSsid = "WiFi Off"
                     currentIp = ""
                     currentSignalVal = 0
                     activeConnectionUuid = ""
+                    writeStatusCache()
                     return
                 }
                 
@@ -279,12 +297,50 @@ PanelWindow {
                     currentIp = ""
                     currentSignalVal = 0
                 }
+
+                // persist the resolved state; skip the transient connecting state
+                if (state !== "activating") writeStatusCache()
             }
         }
     }
 
     function refreshStatus() {
         procStatus.running = true
+    }
+
+    function applyStatusCache(raw) {
+        // never let a stale cache clobber a live nmcli result
+        if (statusLoaded) return
+
+        let d
+        try { d = JSON.parse(raw) } catch (e) { return }
+        if (!d) return
+
+        if (typeof d.wifiEnabled === "boolean") wifiEnabled = d.wifiEnabled
+        if (typeof d.ssid === "string" && d.ssid.length > 0) currentSsid = d.ssid
+        if (typeof d.signal === "number") currentSignalVal = d.signal
+        if (typeof d.ip === "string") currentIp = d.ip
+        if (typeof d.uuid === "string") activeConnectionUuid = d.uuid
+    }
+
+    function writeStatusCache() {
+        const d = {
+            wifiEnabled: wifiEnabled,
+            ssid: currentSsid,
+            signal: currentSignalVal,
+            ip: currentIp,
+            uuid: activeConnectionUuid
+        }
+        const json = JSON.stringify(d)
+
+        // only touch disk when something actually changed
+        if (json === lastStatusCacheJson) return
+        lastStatusCacheJson = json
+
+        const dir = Quickshell.env("HOME") + "/.cache/quickshell"
+        Quickshell.execDetached(["bash", "-c",
+            "mkdir -p " + shellQuote(dir) +
+            " && printf '%s' " + shellQuote(json) + " > " + shellQuote(root.statusCachePath)])
     }
 
     // Saved networks
@@ -566,20 +622,27 @@ PanelWindow {
     }
 
     function connectNew(ssid, password, username, isEnterprise) {
-        if (savedBySsid[ssid] !== undefined) {
+        // saved psk profiles just get brought up; enterprise always gets rebuilt with fresh creds
+        if (!isEnterprise && savedBySsid[ssid] !== undefined) {
             connectSaved(savedBySsid[ssid].uuid, ssid)
             return
         }
 
         let cmd = ""
         if (isEnterprise) {
+            // "dev wifi connect" cannot take 802-1x.* props, so build the profile explicitly
+            // and put the secret in 802-1x.password (not the wpa-psk password field).
+            // drop any stale/half-made profile first so retries don't hit a name clash
             cmd =
-                "nmcli -w 20 dev wifi connect " + shellQuote(ssid) +
-                " password " + shellQuote(password) +
-                " wifi-sec.key-mgmt wpa-eap " +
-                " 802-1x.eap peap " +
-                " 802-1x.phase2-auth mschapv2 " +
-                " 802-1x.identity " + shellQuote(username)
+                "nmcli connection delete id " + shellQuote(ssid) + " 2>/dev/null; " +
+                "nmcli connection add type wifi con-name " + shellQuote(ssid) +
+                " ifname '*' ssid " + shellQuote(ssid) +
+                " wifi-sec.key-mgmt wpa-eap" +
+                " 802-1x.eap peap" +
+                " 802-1x.phase2-auth mschapv2" +
+                " 802-1x.identity " + shellQuote(username) +
+                " 802-1x.password " + shellQuote(password) +
+                " && nmcli -w 25 connection up id " + shellQuote(ssid)
         } else {
             cmd = "nmcli -w 20 dev wifi connect " + shellQuote(ssid)
             if (password && password.trim().length > 0)
@@ -1001,7 +1064,8 @@ PanelWindow {
                             enabled: !isBusy
                             onTextChanged: enteredPass = text
                             onAccepted: {
-                                if (pendingSavedUuid !== "") setSavedPskAndConnect(pendingSavedUuid, enteredPass)
+                                // enterprise needs the full 802-1x profile, never the psk-only path
+                                if (pendingSavedUuid !== "" && !targetIsEnterprise) setSavedPskAndConnect(pendingSavedUuid, enteredPass)
                                 else connectNew(targetSsid, enteredPass, enteredUser, targetIsEnterprise)
                             }
                         }
@@ -1030,7 +1094,8 @@ PanelWindow {
                                 kind: "primary"
                                 disabled: isBusy
                                 onClicked: {
-                                    if (pendingSavedUuid !== "") setSavedPskAndConnect(pendingSavedUuid, enteredPass)
+                                    // enterprise needs the full 802-1x profile, never the psk-only path
+                                    if (pendingSavedUuid !== "" && !targetIsEnterprise) setSavedPskAndConnect(pendingSavedUuid, enteredPass)
                                     else connectNew(targetSsid, enteredPass, enteredUser, targetIsEnterprise)
                                 }
                             }

@@ -74,7 +74,7 @@ Lib.Card {
         id: batteryPoll
         running: root.active && root.visible
         interval: 8000
-        command: ["bash", "-lc", "upower -i /org/freedesktop/UPower/devices/battery_BAT1 2>/dev/null || true"]
+        command: ["bash", "-lc", "upower -i /org/freedesktop/UPower/devices/battery_BAT0 2>/dev/null || true"]
         parse: function(out) {
             var info = { percentage: 0, capacity: 0, cycles: 0, state: "", time: "", energy: "" }
             var lines = String(out || "").split("\n")

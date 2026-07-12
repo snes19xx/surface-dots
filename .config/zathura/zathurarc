@@ -1,20 +1,56 @@
-# UI Settings
-set guioptions ""             # Removes the status bar/command bar
+# ×××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+# UI GENERAL SETTINGS
+# ×××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+set guioptions ""
 set window-title-basename true
+set page-padding 1
+set scrollbars false
+set selection-clipboard "clipboard"
+
+# Padding & Geometry
 set statusbar-h-padding 0
 set statusbar-v-padding 0
-set page-padding 1            # Minimal padding between pages
-set scrollbars false          # No visual scrollbar
 
-# High Contrast
-set recolor "true"
-set recolor-lightcolor "#ffffff" # Background
-set recolor-darkcolor "#000000"  # Text
+# ×××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+# COLOR PALETTE (Light / High Contrast White)
+# ×××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+# Default Page & Window Backgrounds
 set default-bg "#ffffff"
+set default-fg "#000000"
 
-# Navigation
-map i recolor                 # Toggle high contrast mode
+# Recolor / High Contrast Mode (Toggled via 'i')
+set recolor "false"
+set recolor-lightcolor "#ffffff"
+set recolor-darkcolor "#000000"
+
+# Status Bar & Input Bar
+set statusbar-bg "#ffffff"
+set statusbar-fg "#000000"
+set inputbar-bg "#ffffff"
+set inputbar-fg "#000000"
+
+# Completion Menu (Popup when typing commands)
+set completion-bg "#ffffff"
+set completion-fg "#000000"
+set completion-highlight-bg "#000000"
+set completion-highlight-fg "#ffffff"
+
+# Text Selection & Search Highlights
+set highlight-color "#41b25b36"
+set highlight-active-color "#759b61"
+set notification-bg "#ffffff"
+set notification-fg "#000000"
+set notification-error-bg "#ffffff"
+set notification-error-fg "#ff0000"
+
+# ×××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+# KEYBINDINGS
+# ×××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+# Navigation & View Modes
+map f toggle_fullscreen
+map i recolor
+map [normal] <BackSpace> navigate previous
+
+# Fullscreen Adjustment Behavior
 map [fullscreen] a adjust_window best-fit
 map [fullscreen] s adjust_window width
-map f toggle_fullscreen
-map [normal] <BackSpace> navigate previous

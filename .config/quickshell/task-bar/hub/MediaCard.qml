@@ -10,10 +10,10 @@ import "../lib" as Lib
 
 Rectangle {
     id: root
-    Lib.ThemeEngine { id: theme }
+    required property QtObject theme
 
     // Bind local state to the engine
-    property bool isDark: theme.isDarkMode 
+    property bool isDark: theme.isDarkMode
 
     // Sizing / visibility
     property int baseHeight: 120
@@ -60,7 +60,7 @@ Rectangle {
     Timer {
         interval: 1500
         repeat: true
-        running: true
+        running: Mpris.players.values.length > 0
         triggeredOnStart: true
         onTriggered: root.pickPlayer()
     }
@@ -107,18 +107,43 @@ Rectangle {
     property string artUrl: ""                 // raw from player
     property string lastGoodArtUrl: ""         // sticky
     property string effectiveArtUrl: (root.artUrl && root.artUrl.length > 0) ? root.artUrl : root.lastGoodArtUrl
+    property bool isYTThumb: root.effectiveArtUrl.indexOf("img.youtube.com") !== -1
 
-    // Firefox Fallback Process
+    // This thing has been the bane of my existence for a long time atp:
+    // Firefox art fallback: Firefox exposes no mpris:artUrl, but does expose xesam:url.
+    // For YouTube tabs I am grabbing the thumbnail from the video ID directly.
     Process {
-        id: firefoxFallbackProc
-        command: ["bash", "-c", "LATEST=$(ls -1t $HOME/.mozilla/firefox/firefox-mpris/* 2>/dev/null | head -n 1); if [ -n \"$LATEST\" ]; then cp \"$LATEST\" /tmp/now_playing_firefox.png; fi"]
+        id: firefoxArtProc
+        command: ["bash", "-c",
+            "URL=$(playerctl -p firefox metadata xesam:url 2>/dev/null);" +
+            "VID=$(echo \"$URL\" | grep -oP '(?<=[?&]v=)[^&]+');" +
+            "[ -n \"$VID\" ] && echo \"https://img.youtube.com/vi/$VID/mqdefault.jpg\""
+        ]
         running: false
-        onRunningChanged: {
-            if (!running) {
-                // Cache
-                root.artUrl = "file:///tmp/now_playing_firefox.png?t=" + Date.now()
+
+        stdout: SplitParser {
+            onRead: function(line) {
+                var url = line.trim()
+                if (url.startsWith("https://")) root.artUrl = url
             }
         }
+    }
+
+    // Small delay so the player has registered the new track before we query playerctl
+    Timer {
+        id: firefoxFallbackDelay
+        interval: 400
+        repeat: false
+        onTriggered: {
+            firefoxArtProc.running = false
+            firefoxArtProc.running = true
+        }
+    }
+
+    function isFirefoxPlayer() {
+        if (!root.player) return false
+        var pName = (root.player.name || "") + " " + (root.player.identity || "")
+        return pName.toLowerCase().indexOf("firefox") !== -1
     }
 
     function syncMetadata() {
@@ -133,14 +158,11 @@ Rectangle {
         root.artist = root.player.trackArtist || "System Audio"
 
         var nu = root.player.trackArtUrl || ""
-        var pName = (root.player.name || "") + " " + (root.player.identity || "")
-        var isFirefox = pName.toLowerCase().indexOf("firefox") !== -1
 
         if (nu !== "") {
             root.artUrl = nu
-        } else if (isFirefox) {
-            firefoxFallbackProc.running = false
-            firefoxFallbackProc.running = true
+        } else if (root.isFirefoxPlayer()) {
+            firefoxFallbackDelay.restart()
         } else {
             root.artUrl = ""
         }
@@ -308,7 +330,7 @@ Rectangle {
         return raw / root.posDiv
     }
 
-    // Smooth updates timer 
+    // Smooth updates timer (Progress Bar Only)
     Timer {
         interval: 300
         repeat: true
@@ -391,6 +413,18 @@ Rectangle {
 
     function fmtLen() { return (root.lenSec > 0.5) ? root.fmt(root.lenSec) : "--:--" }
 
+    // Seek to a fraction (0..1) of the track. Quickshell's MprisPlayer.position
+    function seekToFraction(frac) {
+        if (!root.player || !root.player.canSeek) return
+        if (!(root.lenSec > 0)) return
+        var f = Math.max(0, Math.min(1, frac))
+        var target = f * root.lenSec
+        root.player.position = target
+        root.displayPos = target   
+        root.prevRawPos = -1
+        if (root.player.isPlaying) root.lastPlayingMs = Date.now()
+    }
+
 
     // Palette sampling 
     // HELPER: Mix colors
@@ -427,7 +461,24 @@ Rectangle {
     
     // Color cache 
     property var colorCache: ({})
+    property var colorCacheKeys: []
+    readonly property int colorCacheMax: 40
     property string lastExtractedUrl: ""
+
+    function colorCacheSet(url, data) {
+        var cache = root.colorCache
+        var keys  = root.colorCacheKeys
+        if (!cache[url]) {
+            if (keys.length >= root.colorCacheMax) {
+                var oldest = keys.shift()
+                delete cache[oldest]
+            }
+            keys.push(url)
+            root.colorCacheKeys = keys
+        }
+        cache[url] = data
+        root.colorCache = cache
+    }
     
     Behavior on dominantColor { ColorAnimation { duration: 400 } }
 
@@ -490,14 +541,8 @@ Rectangle {
             
             if (n > 0) {
                 var avg = Qt.rgba(r/n, g/n, b/n, 1)
-                
-                // Update State 
                 root.dominantColor = avg
-                
-                // Cache the extracted color
-                var cache = root.colorCache
-                cache[imageUrl] = { dominant: avg }
-                root.colorCache = cache
+                root.colorCacheSet(imageUrl, { dominant: avg })
                 root.lastExtractedUrl = imageUrl
             }
         }
@@ -554,7 +599,7 @@ Rectangle {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-            Quickshell.execDetached(["bash", "-lc", "/home/snes/.config/quickshell/task-bar/now_playing/now_playing"])
+            Quickshell.execDetached(["bash", "-lc", Lib.Configuration.nowPlayingBin])
             root.closeRequested()
         }
     }
@@ -572,23 +617,33 @@ Rectangle {
             Layout.preferredHeight: 92
             Layout.alignment: Qt.AlignVCenter
 
-            Image {
-                id: visibleAlbumArt
+            // Rounded clip container -- 96×96 hard crpp
+            Item {
+                id: artContainer
                 anchors.centerIn: parent
                 width: 96
                 height: 96
-                source: root.effectiveArtUrl
-                fillMode: Image.PreserveAspectCrop
+                clip: true
 
-                // Mask only while visible and only if art exists
                 layer.enabled: root.visible && root.effectiveArtUrl !== ""
                 layer.smooth: true
-                layer.effect: OpacityMask { maskSource: Rectangle { width: 96; height: 96; radius: 8 } }
+                layer.effect: OpacityMask {
+                    maskSource: Rectangle { width: 96; height: 96; radius: 8 }
+                }
 
-                cache: true
-                asynchronous: true
-                sourceSize.width: 256
-                sourceSize.height: 256
+                Image {
+                    id: visibleAlbumArt
+                    anchors.centerIn: parent
+                    height: 96
+                    // mqdefault is 320×180 (16:9)
+                    width: root.isYTThumb ? 171 : 96
+                    source: root.effectiveArtUrl
+                    fillMode: Image.PreserveAspectCrop
+                    cache: true
+                    asynchronous: true
+                    sourceSize.width: 512
+                    sourceSize.height: 512
+                }
             }
         }
 
@@ -653,6 +708,12 @@ Rectangle {
                     
                     Layout.preferredHeight: 10
                     value: (root.lenSec > 0.5) ? (root.displayPos / root.lenSec) : 0
+
+                    // Click / drag / scroll to seek
+                    interactive: root.hasPlayer && root.player !== null && root.player.canSeek
+                    onSeekRequested: (frac) => root.seekToFraction(frac)
+                    onSeekStep: (dir) => root.seekToFraction(
+                        root.lenSec > 0 ? (root.displayPos + dir * 5) / root.lenSec : 0)
 
                     // Stop animation loop when hidden or paused
                     active: root.uiPlaying && root.visible

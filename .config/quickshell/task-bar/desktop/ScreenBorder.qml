@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import "../lib" as Lib
 
 PanelWindow {
     id: win
@@ -10,18 +11,20 @@ PanelWindow {
     required property QtObject theme
     property bool isDarkMode: theme.isDarkMode
 
-    //  DEFINED COLORS 
-    property color frameColor: isDarkMode ? '#141719' : '#F0ECE6'
+    //  DEFINED COLORS
+    property color frameColor: Lib.Configuration.borderUseCustomColor
+        ? Lib.Configuration.borderFrameColor
+        : (Lib.Configuration.taskbarCustomBg ? Lib.Configuration.taskbarCustomBgColor : win.theme.bgMain)
 
-    //  CONFIGURATION 
-    property int thickness: 7
+    //  CONFIGURATION
+    property int thickness:    Lib.Configuration.borderThickness
     property int bottomHeight: 40
     property int radius: 10
-    
+
     // Controls for border visibility
-    property bool forceAlwaysVisible: false // Testing switch (toggled from shell.qml)
+    property bool forceAlwaysVisible: Lib.Configuration.bordersForceVisible
     property bool showTopAndSides: true
-    property real borderOpacity: (showTopAndSides || forceAlwaysVisible) ? 1.0 : 0.0
+    property real borderOpacity: !Lib.Configuration.bordersEnabled ? 0.0 : (showTopAndSides || forceAlwaysVisible) ? 1.0 : 0.0
     
     // Pin to edges
     anchors { top: true; bottom: true; left: true; right: true }
@@ -55,8 +58,9 @@ PanelWindow {
     Rectangle {
         height: win.bottomHeight
         anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
-        color: win.frameColor
-        
+        color: Lib.Configuration.taskbarCustomBg
+            ? Lib.Configuration.taskbarCustomBgColor
+            : String(win.theme.bgMain)
         Behavior on color { ColorAnimation { duration: 200 } }
     }
 

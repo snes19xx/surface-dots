@@ -1,0 +1,7 @@
+<!-- Reworked from a contrast-based composite to single-color line-art so it recolors cleanly via ColorOverlay -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke="#1e2326" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M9 16 L11.5 12 H20.5 L23 16 H39 A3 3 0 0 1 42 19 V35 A3 3 0 0 1 39 38 H9 A3 3 0 0 1 6 35 V19 A3 3 0 0 1 9 16 Z"/>
+  <circle cx="24" cy="27.5" r="7"/>
+  <circle cx="24" cy="27.5" r="3" opacity=".5"/>
+  <circle cx="36.5" cy="21" r="1" fill="#1e2326" stroke="none"/>
+</svg>

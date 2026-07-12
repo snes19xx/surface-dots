@@ -77,7 +77,9 @@ Scope {
     // THEME VALUES (Colors)
     
     // Surfaces
-    readonly property color bgMain: isDarkMode ? '#141719' : '#F0ECE6'
+    readonly property color bgMain: Configuration.useCustomColors
+        ? Configuration.customBg
+        : (isDarkMode ? '#141719' : '#F0ECE6')
     readonly property color bgCard: isDarkMode ? "#1e2326" : '#E3DED6'
     readonly property color bgItem: isDarkMode ? "#2d353b" : Qt.rgba(0, 0, 0, 0.05)
     readonly property color bgItemHover: isDarkMode ? "#374145" : Qt.rgba(0, 0, 0, 0.08)
@@ -89,9 +91,13 @@ Scope {
     readonly property color textOnAccent: isDarkMode ? "#232a2e" : "#F0ECE6"
     readonly property color textOnAccent2: isDarkMode ? '#b0e5dfc5' : '#262420'
 
-    // Accents
-    readonly property color accent: isDarkMode ? "#99a7c080" : "#4A6B70"
-    readonly property color accentBlue: "#7AA1A6"
+    // Accents (custom color override when useCustomColors is set in Configuration)
+    readonly property color accent: Configuration.useCustomColors
+        ? Configuration.customAccent
+        : (isDarkMode ? "#99a7c080" : "#4A6B70")
+    readonly property color accentBlue: Configuration.useCustomColors
+        ? Configuration.customAccent
+        : "#7AA1A6"
     readonly property color accentRed: isDarkMode ? "#e67e80" : '#c74042'
     readonly property color accentSlider: isDarkMode ? "#83C092" : "#4F6B5B"
     readonly property color accentSlider2: isDarkMode ? "#f1af97" : '#d39984'

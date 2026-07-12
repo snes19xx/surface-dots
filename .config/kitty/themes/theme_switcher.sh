@@ -1,4 +1,8 @@
 #!/bin/bash
+###
+#  KITTY CONFIGURATION FILE 2 of 4
+#  https://github.com/snes19xx
+####
 
 # Paths
 THEME_DIR="$HOME/.config/kitty/themes"

@@ -267,11 +267,32 @@ PanelWindow {
                         focus: true
                         keyNavigationEnabled: false
                         
-                    flickDeceleration: 10
-                    maximumFlickVelocity: 5500
-                    boundsBehavior: Flickable.DragAndOvershootBounds
-                        
-                        ScrollBar.vertical: ScrollBar {
+                    flickDeceleration: 160
+                    maximumFlickVelocity: 1800
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    WheelHandler {
+                        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                        onWheel: (event) => {
+                            var base = wheelAnim.running ? wheelAnim.to : appGrid.contentY
+                            var step = Math.abs(event.angleDelta.y) * 1.1 + 24
+                            var newY = Math.max(-appGrid.topMargin, Math.min(
+                                base + (event.angleDelta.y > 0 ? -step : step),
+                                Math.max(0, appGrid.contentHeight - appGrid.height)
+                            ))
+                            wheelAnim.to = newY
+                            wheelAnim.restart()
+                            event.accepted = true
+                        }
+                    }
+
+                    NumberAnimation {
+                        id: wheelAnim
+                        target: appGrid; property: "contentY"
+                        duration: 520; easing.type: Easing.OutExpo
+                    }
+
+                    ScrollBar.vertical: ScrollBar {
                             id: scrollBar
                             policy: ScrollBar.AsNeeded
                             

@@ -145,7 +145,7 @@ Lib.Card {
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
     onClicked: {
-      Quickshell.execDetached(["bash", "-lc", "/opt/evercal/ever_cal"])
+      Quickshell.execDetached(["bash", "-lc", Lib.Configuration.evercalBin])
       root.closeRequested()
     }
   }

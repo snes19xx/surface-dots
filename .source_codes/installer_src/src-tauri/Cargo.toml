@@ -1,8 +1,8 @@
 [package]
 name = "surface-dots-installer"
 version = "0.1.0"
-edition = "2021"
-description = "Installer for surface-dots"
+edition = "2026"
+description = "Installer for surface-dots dotfiles"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

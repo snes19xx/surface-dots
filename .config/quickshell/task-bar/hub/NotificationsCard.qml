@@ -9,28 +9,27 @@ Lib.Card {
   Layout.fillWidth: true
   property bool active: true
 
-  // Theme
-  property var engine: root.theme
-
   // ---------- Color Mappings ----------
-  readonly property color cFgMain: engine.textPrimary
-  readonly property color cFgMuted: engine.textSecondary
-  readonly property color cBgItem: engine.bgItem
-  readonly property color cAccent: engine.accent
+  readonly property color cFgMain: theme.textPrimary
+  readonly property color cFgMuted: theme.textSecondary
+  readonly property color cBgItem: theme.bgItem
+  readonly property color cAccent: theme.accent
 
-  readonly property color cSoftBtn: engine.subtleFill
-  readonly property color cSoftBtnHover: engine.subtleFillHover
+  readonly property color cSoftBtn: theme.subtleFill
+  readonly property color cSoftBtnHover: theme.subtleFillHover
 
-  readonly property color cItemHoverOverlay: engine.hoverSpotlight
-  readonly property color cRipple: engine.hoverSpotlight
-  readonly property color cIconBg: engine.subtleFill
-  readonly property color cOvershoot: engine.hoverSpotlight
-  
-  readonly property color cAccentRed: engine.accentRed
+  readonly property color cItemHoverOverlay: theme.hoverSpotlight
+  readonly property color cRipple: theme.hoverSpotlight
+  readonly property color cIconBg: theme.subtleFill
+  readonly property color cOvershoot: theme.hoverSpotlight
+
+  readonly property color cAccentRed: theme.accentRed
 
   property bool compactMode: false
   property bool expanded: !compactMode
-  onCompactModeChanged: expanded = !compactMode
+  onCompactModeChanged: { expanded = !compactMode; overrideCollapse = false }
+  readonly property int notifCount: notifModel.count
+  property bool overrideCollapse: false
 
   // --- DND ---
   property bool dndActive: false
@@ -43,10 +42,9 @@ Lib.Card {
   property var dismissed: ({})
   property bool animationsEnabled: true
 
-  function sh(cmd) { return ["bash","-lc", cmd] }
-  function det(cmd) { Quickshell.execDetached(sh(cmd)) }
 
-  property var pollCommand: sh("dunstctl history 2>/dev/null || true")
+
+  property var pollCommand: Lib.Shell.sh("dunstctl history 2>/dev/null || true")
 
   property var pendingItems: null
   property bool hasPending: false
@@ -84,13 +82,12 @@ Lib.Card {
     }
   }
 
-  Timer {
-    interval: 1800
-    repeat: true
-    running: root.active && root.visible
-    triggeredOnStart: true
-    onTriggered: proc.exec(root.pollCommand)
-  }
+  // Refresh only when the hub opens. dunst stays the daemon, so there's nothing
+  // to gain from background polling.
+  //
+  // Trigger off `active` (bound to the hub window's visibility)
+  onActiveChanged: { if (active) proc.exec(root.pollCommand) }
+  onVisibleChanged: { if (visible && active) proc.exec(root.pollCommand) }
 
   function parseDunstToItems(raw) {
     if (!raw || raw.trim() === "") return []
@@ -142,7 +139,7 @@ Lib.Card {
   function dismissOne(index, id) {
     root.dismissed[id] = true
     notifModel.remove(index)
-    det("dunstctl close " + id + " >/dev/null 2>&1; dunstctl history-rm " + id + " >/dev/null 2>&1 || true")
+    Lib.Shell.det("dunstctl close " + id + " >/dev/null 2>&1; dunstctl history-rm " + id + " >/dev/null 2>&1 || true")
   }
 
   function triggerClearAll() {
@@ -162,7 +159,7 @@ Lib.Card {
           root.dismissed[notifModel.get(i).nId] = true
           notifModel.remove(i)
         }
-        det("dunstctl close-all >/dev/null 2>&1; dunstctl history-clear >/dev/null 2>&1 || true")
+        Lib.Shell.det("dunstctl close-all >/dev/null 2>&1; dunstctl history-clear >/dev/null 2>&1 || true")
       }
     }
     PropertyAction { target: list; property: "opacity"; value: 1 }
@@ -171,8 +168,7 @@ Lib.Card {
 
   // ---------- UI ----------
   ColumnLayout {
-    anchors.left: parent.left
-    anchors.right: parent.right
+    Layout.fillWidth: true
     spacing: 10
 
     // Header
@@ -182,7 +178,7 @@ Lib.Card {
 
       Text {
         text: "Notifications"
-        font.family: engine.textFont
+        font.family: theme.textFont
         font.pixelSize: 13
         font.weight: 900
         color: root.cFgMain
@@ -200,7 +196,7 @@ Lib.Card {
           id: countText
           anchors.centerIn: parent
           text: String(notifModel.count)
-          font.family: engine.textFont
+          font.family: theme.textFont
           font.pixelSize: 11
           font.weight: 900
           color: root.cFgMain
@@ -227,7 +223,7 @@ Lib.Card {
         Text {
           anchors.centerIn: parent
           text: ""
-          font.family: engine.iconFont
+          font.family: theme.iconFont
           font.pixelSize: 14
           color: root.cFgMain
           rotation: root.expanded ? 180 : 0
@@ -268,7 +264,7 @@ Lib.Card {
         Text {
           anchors.centerIn: parent
           text: "Clear"
-          font.family: engine.textFont
+          font.family: theme.textFont
           font.pixelSize: 10
           font.weight: 700
           color: root.cAccentRed
@@ -292,7 +288,7 @@ Lib.Card {
       visible: notifModel.count === 0 && (!root.compactMode || root.expanded)
       opacity: visible ? 1 : 0
       text: "No new notifications"
-      font.family: engine.textFont
+      font.family: theme.textFont
       font.pixelSize: 11
       font.italic: true
       color: root.cFgMuted
@@ -313,7 +309,7 @@ Lib.Card {
       property int compactMaxH: itemH * 3 + spacing * 2
       property int normalMaxH: 220
 
-      property int viewHeight: (!root.compactMode || root.expanded)
+      property int viewHeight: ((!root.compactMode || root.expanded) && !root.overrideCollapse)
         ? Math.min(list.contentHeight, root.compactMode ? compactMaxH : normalMaxH)
         : 0
 
@@ -364,7 +360,7 @@ Lib.Card {
           app: model.app
           summary: model.summary
           body: model.body !== undefined ? model.body : ""
-          theme: root.engine
+          theme: root.theme
           
           onClicked: root.dismissOne(index, model.nId)
         }

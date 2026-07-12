@@ -1,1 +1,7 @@
-/surface-dots-installer.config/vdirsyncer/google_token
+/surface-dots-installer
+.config/vdirsyncer/google_token
+
+.config/quickshell/**/.cache/
+.config/quickshell/**/usersettings.json
+.config/quickshell/**/errors.log
+.config/quickshell/weather_api.conf

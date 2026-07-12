@@ -1,10 +1,17 @@
 #!/bin/bash
-# ~/.config/quickshell/snes-hub/lib/weather.sh
+# ~/.config/quickshell/task-bar/lib/weather.sh
 
-# OpenWeatherMap API Configuration
+# OpenWeatherMap API Configuration (defaults; overridden by weather_api.conf if present)
 API_KEY="YOUR API KEY HERE"
-LAT="LATITUTE"   
+LAT="LATITUDE"
 LON="LONGITUDE"
+
+# Load user overrides written by the settings panel
+_WCONF="$HOME/.config/quickshell/weather_api.conf"
+[ -f "$_WCONF" ] && source "$_WCONF"
+
+# OpenWeatherMap API endpoint
+OWM_BASE_URL="https://api.openweathermap.org/data/2.5/weather"
 
 # Cache Configuration
 CACHE_FILE="$HOME/.config/quickshell/.cache/weather.json"
@@ -70,7 +77,7 @@ get_icon() {
 
 # Function to fetch weather from OpenWeatherMap
 fetch_weather() {
-    local url="https://api.openweathermap.org/data/2.5/weather?lat=${LAT}&lon=${LON}&units=metric&appid=${API_KEY}"
+    local url="${OWM_BASE_URL}?lat=${LAT}&lon=${LON}&units=metric&appid=${API_KEY}"
     
     # Fetch with 5 second timeout
     local response=$(curl -sf --max-time 5 "$url" 2>/dev/null)

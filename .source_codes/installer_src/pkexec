@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# tests without firing real polkit and writing on my actual root dirs
-
+# Fake pkexec for sandbox testing. Redirects the SDDM step's /usr and /etc writes
+# into /tmp/sandbox-root so the real system is never touched. Never prompts.
 SANDBOX_ROOT="/tmp/sandbox-root"
 
 mkdir -p "$SANDBOX_ROOT/usr/share/sddm/themes"
@@ -12,3 +12,6 @@ if [[ "$1" == "bash" && "$2" == "-c" ]]; then
     bash -c "$PATCHED_SCRIPT"
     exit $?
 fi
+
+echo "[fake-pkexec] unhandled args: $*" >&2
+exit 1

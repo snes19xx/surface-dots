@@ -36,7 +36,10 @@ PanelWindow {
     Lib.CommandPoll {
         id: sinkPoll
         interval: 6000
-        running: true
+        // Default sink rarely changes — only poll while the OSD is on screen.
+        // CommandPoll fires once on start (triggeredOnStart), so the headphone
+        // icon is correct the moment the OSD appears; zero work while hidden.
+        running: root.osdVisible
         command: ["bash", "-lc", "pactl get-default-sink 2>/dev/null || echo ''"]
         parse: function(o) {
             var s = String(o).trim().toLowerCase()

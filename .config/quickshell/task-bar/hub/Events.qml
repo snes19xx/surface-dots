@@ -3,6 +3,8 @@ import QtQuick.Layouts
 import Quickshell
 import "../lib" as Lib
 
+// maxEvents controlled via Lib.Configuration.maxEvents
+
 Lib.Card {
   id: root
   signal closeRequested()
@@ -13,14 +15,14 @@ Lib.Card {
     id: calEvent
     running: root.active
     interval: 60000
-    command: ["bash", "-lc", "khal list today 7d --format '{start-date}::{title}::{start-time}-{end-time}::{location}' 2>/dev/null || true"]
+    command: ["bash", "-lc", "khal list today 30d --format '{start-date}::{title}::{start-time}-{end-time}::{location}' 2>/dev/null || true"]
     parse: function(out) {
       var lines = String(out).split("\n")
       var events = []
       var now = new Date()
       
-      // Change the loop count to the number of events you want
-      for (var i = 0; i < lines.length && events.length < 1; i++) {
+      var maxEvts = Lib.Configuration.maxEvents || 1
+      for (var i = 0; i < lines.length && events.length < maxEvts; i++) {
         var line = lines[i].trim()
         if (line.indexOf("::") !== -1) {
           var parts = line.split("::")

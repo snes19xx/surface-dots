@@ -25,7 +25,6 @@ ShellRoot {
                 screen: v.modelData
                 visible: true
                 theme: screenTheme
-                forceAlwaysVisible: false  // <-- Change this to make borders always visible
             }
             
             // Taskbar
@@ -62,13 +61,25 @@ ShellRoot {
             // App Drawer (Dock Mode)
             Dock.Drawer {
                 id: appDrawer
-                isDarkMode: screenTheme.isDarkMode 
+                isDarkMode: screenTheme.isDarkMode
+            }
+
+            // Wide App Drawer (Workspace Mode) — rofi replacement
+            Dock.WideDrawer {
+                id: wideDrawer
+                theme: screenTheme
             }
             
             // Helper function to toggle the hub and manage focus
             function toggleHub() {
-                hubWindow.visible = !hubWindow.visible
-                if (hubWindow.visible) hubWindow.forceActiveFocus()
+                if (hubWindow.visible) {
+                    // Route through closeAll() so the exit animation plays before hiding
+                    hubWindow.closeAll()
+                } else {
+                    // HubWindow.onVisibleChanged grabs keyboard focus on its inner
+                    // Item; PanelWindow itself has no forceActiveFocus().
+                    hubWindow.visible = true
+                }
             }
 
             //  Global Shortcut listener for Hyprland bindings
@@ -76,6 +87,13 @@ ShellRoot {
                 name: "hubToggle"
                 description: "Toggle hub"
                 onPressed: toggleHub()
+            }
+
+            // Toggle the wide app drawer (bind SUPER+R in Hyprland)
+            GlobalShortcut {
+                name: "drawerToggle"
+                description: "Toggle app drawer"
+                onPressed: wideDrawer.toggle()
             }
             
             // Signal Connections
@@ -87,10 +105,7 @@ ShellRoot {
                     if (taskbar.isDockMode) {
                         appDrawer.toggle()
                     } else {
-                        Quickshell.execDetached(["bash", "-c", 
-                            "pkill -x rofi || " + (screenTheme.isDarkMode ? 
-                            "~/.config/rofi/wide.sh" : 
-                            "~/.config/rofi/wide_light.sh")])
+                        wideDrawer.toggle()
                     }
                 }
                 

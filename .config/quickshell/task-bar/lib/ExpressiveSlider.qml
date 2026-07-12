@@ -54,21 +54,25 @@ Item {
 
             // The Fill
             Rectangle {
-                width: root.orientation === Qt.Horizontal ? (slider.visualPosition * parent.width) : parent.width
-                height: root.orientation === Qt.Horizontal ? parent.height : (slider.visualPosition * parent.height)
-                
+                property real pos: slider.visualPosition
+                // Minimum fill always encloses the icon so it never looks disconnected
+                width: root.orientation === Qt.Horizontal
+                    ? Math.max(pos * parent.width, parent.height + 8)
+                    : parent.width
+                height: root.orientation === Qt.Horizontal
+                    ? parent.height
+                    : Math.max(pos * parent.height, parent.width + 8)
                 y: root.orientation === Qt.Horizontal ? 0 : parent.height - height
-                
                 radius: 16
                 color: root.accentColor
-                opacity: 0.2 + (slider.visualPosition * 0.6)
+                opacity: 0.45 + (pos * 0.45)
             }
 
             // Icon Container
             Item {
                 width: 18
                 height: 18
-                
+
                 // Horizontal Position (Left Center)
                 anchors.left: root.orientation === Qt.Horizontal ? parent.left : undefined
                 anchors.verticalCenter: root.orientation === Qt.Horizontal ? parent.verticalCenter : undefined
@@ -84,7 +88,7 @@ Item {
                     source: root.icon
                     sourceSize: Qt.size(width, height)
                     anchors.fill: parent
-                    visible: false 
+                    visible: false
                     smooth: true
                     mipmap: true
                 }
@@ -93,14 +97,8 @@ Item {
                     anchors.fill: iconImg
                     source: iconImg
                     cached: true
-                    
-                    // If slider covers icon (>15%), use Accent Text.
-                    color: slider.visualPosition > 0.15 
-                        ? (root.theme ? root.theme.textOnAccent : Theme.fgOnAccent) 
-                        : (root.theme ? root.theme.textSecondary : Theme.fgMuted)
-                    
-                    Behavior on color { ColorAnimation { duration: 200 } }
-                    
+                    // Fill always encloses icon, so always use on-accent color
+                    color: root.theme ? root.theme.textOnAccent : Theme.fgOnAccent
                     transformOrigin: Item.Center
                     scale: slider.hovered || slider.pressed ? 1.3 : 1.0
                     Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }

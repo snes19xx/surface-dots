@@ -11,8 +11,8 @@
       {
         "label": "main",
         "title": "surface-dots - installer",
-        "width": 720,
-        "height": 460,
+        "width": 740,
+        "height": 700,
         "resizable": true,
         "decorations": false,
         "transparent": true,

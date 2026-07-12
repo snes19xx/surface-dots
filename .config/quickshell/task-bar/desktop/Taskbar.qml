@@ -16,7 +16,7 @@ PanelWindow {
     height: 50
     margins { bottom: -14 }
     color: "transparent"    
-    WlrLayershell.exclusiveZone: 47
+    WlrLayershell.exclusiveZone: Lib.Configuration.taskbarExclusiveZone
 
 
     // -----------------------------------------------
@@ -28,13 +28,27 @@ PanelWindow {
     // -----------------------------------------------
     // STATE MANAGEMENT
     // -----------------------------------------------
-        property bool forceDockMode: false   // testing toggle   (switch to `true` if you always want it to be in dockmode for some reason)
+        property bool forceDockMode: Lib.Configuration.taskbarForceDockMode
 
-        property bool isDockMode: forceDockMode
-        //property bool isDockMode: truerue
+        property bool isDockMode: false
         property bool hasWindows: false
         property int activeWsId: Hyprland.focusedMonitor?.activeWorkspace?.id ?? 1
         property bool isDarkMode: theme.isDarkMode
+
+        // Shared clock state — one timer drives both dock and workspace displays
+        property string clockTime: Qt.formatDateTime(new Date(), "h:mm AP")
+        property string clockDate: Qt.formatDateTime(new Date(), "ddd, MMM d")
+
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: {
+            var now = new Date()
+            taskbar.clockTime = Qt.formatDateTime(now, "h:mm AP")
+            taskbar.clockDate = Qt.formatDateTime(now, "ddd, MMM d")
+        }
+    }
     
 
     // Instantiate the engine from ../lib/ThemeEngine.qml  
@@ -48,18 +62,21 @@ PanelWindow {
     
     QtObject {
         id: palette
-        property color bg: taskbar.isDarkMode ? '#c4242b23' : '#7e789867'
-        property color workspaces: taskbar.isDarkMode ? '#0e92b79d' : '#e3ded6'
-        property color textPrimary: taskbar.isDarkMode ? "#d5c9b2" : '#261e23'
-        property color textSecondary: taskbar.isDarkMode ? "#6a6f75" : '#060506'
+        // Surfaces + text drive from ThemeEngine (auto-switch with dark/light).
+        // Accent colours use their own taskbarAccent config key so the taskbar
+        // can have a different colour from the hub without losing theme reactivity.
+        property color bg:            Qt.rgba(theme.bgCard.r, theme.bgCard.g, theme.bgCard.b, 0.78)
+        property color workspaces:    Qt.rgba(theme.bgCard.r, theme.bgCard.g, theme.bgCard.b, 0.92)
+        property color textPrimary:   String(theme.textPrimary)
+        property color textSecondary: String(theme.textSecondary)
         property color textAlternate: taskbar.isDarkMode ? "#2b3033" : '#2b3033'
-        property color accent: taskbar.isDarkMode ? "#789867" : "#273018"
-        property color activePill: taskbar.isDarkMode ? "#789867" : "#87C080"
-        property color hoverSpotlight: taskbar.isDarkMode ? Qt.rgba(1,1,1,0.14) : Qt.rgba(0,0,0,0.10)
-        property color border: taskbar.isDarkMode ? Qt.rgba(1,1,1,0.08) : Qt.rgba(0,0,0,0.1)
-        property color hoverPillG0: taskbar.isDarkMode ? Qt.rgba(167/255, 192/255, 128/255, 0.15) : Qt.rgba(39/255, 48/255, 24/255, 0.14)
-        property color hoverPillG1: taskbar.isDarkMode ? Qt.rgba(230/255, 255/255, 200/255, 0.25) : Qt.rgba(39/255, 48/255, 24/255, 0.22)
-        property color hoverPillG2: taskbar.isDarkMode ? Qt.rgba(167/255, 192/255, 128/255, 0.15) : Qt.rgba(39/255, 48/255, 24/255, 0.14)
+        property color accent:        String(Lib.Configuration.taskbarAccent)
+        property color activePill:    String(Lib.Configuration.taskbarAccent)
+        property color hoverSpotlight:String(theme.hoverSpotlight)
+        property color border:        String(theme.outline)
+        property color hoverPillG0:   Qt.rgba(Lib.Configuration.taskbarAccent.r, Lib.Configuration.taskbarAccent.g, Lib.Configuration.taskbarAccent.b, 0.35)
+        property color hoverPillG1:   Qt.rgba(Lib.Configuration.taskbarAccent.r, Lib.Configuration.taskbarAccent.g, Lib.Configuration.taskbarAccent.b, 0.55)
+        property color hoverPillG2:   Qt.rgba(Lib.Configuration.taskbarAccent.r, Lib.Configuration.taskbarAccent.g, Lib.Configuration.taskbarAccent.b, 0.35)
     }
 
     // -----------------------------------------------
@@ -117,13 +134,14 @@ PanelWindow {
                 m[id].push(tl)
             }
             wsMap = m
-            
-            // Update hasWindows state
             taskbar.hasWindows = list.length > 0
-            // xxx remove this xxx this xxx here xxx
-            //taskbar.isDockMode = !taskbar.hasWindows
-            if (!taskbar.forceDockMode)
-    taskbar.isDockMode = !taskbar.hasWindows
+            if (Lib.Configuration.taskbarForceDockMode) {
+                taskbar.isDockMode = true
+            } else if (Lib.Configuration.taskbarForceWorkspaceMode) {
+                taskbar.isDockMode = false
+            } else {
+                taskbar.isDockMode = !taskbar.hasWindows
+            }
         }
 
         function scheduleRebuild() {
@@ -139,13 +157,7 @@ PanelWindow {
     }
 
     Timer {
-        interval: 500
-        running: true; repeat: false
-        onTriggered: hyCache.rebuild()
-    }
-
-    Timer {
-        interval: 2000
+        interval: 1500
         running: true; repeat: false
         onTriggered: hyCache.rebuild()
     }
@@ -161,6 +173,12 @@ PanelWindow {
             }
         }
     }
+
+    Connections {
+        target: Lib.Configuration
+        function onTaskbarForceDockModeChanged() { hyCache.scheduleRebuild() }
+        function onTaskbarForceWorkspaceModeChanged() { hyCache.scheduleRebuild() }
+    }
     
     // -----------------------------------------------
     // POLLERS
@@ -170,7 +188,7 @@ PanelWindow {
     Lib.CommandPoll {
         id: updates
         interval: updateProc.running ? 999999999 : 1800000
-        command: sh(`
+        command: Lib.Shell.sh(`
             if [ -e /var/lib/pacman/db.lck ]; then
                 cat /tmp/qs_updates_count 2>/dev/null || echo 0
                 exit 0
@@ -220,10 +238,10 @@ PanelWindow {
             }
             if (cap === 0) return
             if (cap <= 10 && !f10) {
-                det("notify-send -u critical 'Battery Critically Low' 'Please Plug in your Charger'")
+                Lib.Shell.det("notify-send -u critical 'Battery Critically Low' 'Please Plug in your Charger'")
                 f10 = true; f20 = true
             } else if (cap <= 20 && cap > 10 && !f20) {
-                det("notify-send 'Battery Low' 'Please Plug in your Charger'")
+                Lib.Shell.det("notify-send 'Battery Low' 'Please Plug in your Charger'")
                 f20 = true
             }
         }
@@ -244,8 +262,7 @@ PanelWindow {
     // ----------------------------------------------- 
     // UTILITIES
     // ----------------------------------------------- 
-    function sh(cmd) { return ["bash", "-c", cmd] }
-    function det(cmd) { Quickshell.execDetached(sh(cmd)) }
+
     
     // ICONS
     function getIcon(cls) {
@@ -308,6 +325,8 @@ PanelWindow {
         if (c.includes ("zathura")) return ""
         if (c.includes ("focuswriter")) return "󱞁"
         if (c.includes ("lollypop")) return "󰎆"
+        if (c.includes ("onlyoffice")) return ""
+        if (c.includes ("edge")) return ""
 
         return ""
     }
@@ -397,25 +416,25 @@ PanelWindow {
                     DockAppIcon {
                         iconName: "firefox"
                         appName: "Firefox"
-                        onClicked: det("firefox")
+                        onClicked: Lib.Shell.det("firefox")
                     }
                     
                     DockAppIcon {
                         iconName: "vscode"
                         appName: "VS Code"
-                        onClicked: det("code")
+                        onClicked: Lib.Shell.det("code")
                     }
                     
                     DockAppIcon {
                         iconName: "spotify"
                         appName: "Spotify"
-                        onClicked: det("spotify")
+                        onClicked: Lib.Shell.det("spotify")
                     }
                     
                     DockAppIcon {
                         iconName: "kitty"
                         appName: "Terminal"
-                        onClicked: det("kitty")
+                        onClicked: Lib.Shell.det("kitty")
                     }
                 }
 //-------------------------------------------------------------------------------------------------------------------------------------------
@@ -460,7 +479,7 @@ PanelWindow {
 
                                 Text {
                                     id: dockTimeText
-                                    text: Qt.formatDateTime(new Date(), "h:mm AP")
+                                    text: taskbar.clockTime
                                     font.pixelSize: 13
                                     font.bold: true
                                     color: palette.textPrimary
@@ -478,16 +497,6 @@ PanelWindow {
                                 */
                             }
 
-                            Timer {
-                                interval: 1000
-                                running: true
-                                repeat: true
-                                onTriggered: {
-                                    const now = new Date()
-                                    dockTimeText.text = Qt.formatDateTime(now, "h:mm AP")
-                                    //dockDateText.text = Qt.formatDateTime(now, "yyyy, MMM d")
-                                }
-                            }
                         }
                     }
                 }   
@@ -684,14 +693,17 @@ PanelWindow {
                             id: activePill
                             property int currentId: taskbar.activeWsId
                             property var targetItem: wsRepeater.itemAt(currentId - 1)
+                            // pillReady suppresses animation on the initial position set at load
+                            property bool pillReady: false
+                            Component.onCompleted: Qt.callLater(function() { pillReady = true })
                             x: targetItem ? (wsRow.x + targetItem.x) : 0
                             width: targetItem ? targetItem.width : 0
                             height: 22
                             anchors.verticalCenter: parent.verticalCenter
                             radius: 9
                             color: palette.activePill
-                            Behavior on x { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
-                            Behavior on width { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+                            Behavior on x { enabled: activePill.pillReady; NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+                            Behavior on width { enabled: activePill.pillReady; NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
                         }
 
                         Item {
@@ -782,7 +794,7 @@ PanelWindow {
                                         lineHeight: 0.8
                                         verticalAlignment: Text.AlignVCenter
                                         Behavior on color { ColorAnimation { duration: 140 } }
-                                        color: isActive ? "#2d353b" : (wsHover.hovered ? (taskbar.isDarkMode ? "#f2f2f2" : palette.accent) : (taskbar.isDarkMode ? "#d5c9b2" : "#5c6a72"))
+                                        color: isActive ? "#2d353b" : (wsHover.hovered ? (taskbar.isDarkMode ? "#f2f2f2" : "#2d353b") : (taskbar.isDarkMode ? "#d5c9b2" : "#5c6a72"))
                                     }
 
                                     Row {
@@ -833,7 +845,7 @@ PanelWindow {
                                                     Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.5 } }
                                                     color: wsDelegate.isActive ? '#2b3033' :
                                                            (modelData.urgent ? flashColor.val :
-                                                           (wsHover.hovered ? (taskbar.isDarkMode ? "#f2f2f2" : palette.accent) :
+                                                           (wsHover.hovered ? (taskbar.isDarkMode ? "#f2f2f2" : "#2d353b") :
                                                            (taskbar.isDarkMode ? "#d5c9b2" : "#1e2326")))
                                                 }
                                             }
@@ -847,7 +859,7 @@ PanelWindow {
                                         onPressed: wsContainer.pressedId = wsId
                                         onReleased: if (wsContainer.pressedId === wsId) wsContainer.pressedId = 0
                                         onCanceled: if (wsContainer.pressedId === wsId) wsContainer.pressedId = 0
-                                        onClicked: det("hyprctl dispatch 'hl.dsp.focus({ workspace = " + wsId + " })'")
+                                        onClicked: Lib.Shell.det("hyprctl dispatch 'hl.dsp.focus({ workspace = " + wsId + " })'")
                                     }
                                 }
                             }
@@ -1040,37 +1052,26 @@ PanelWindow {
                             
                             Text {
                                 id: dateText
-                                text: Qt.formatDateTime(new Date(), "ddd, MMM d")
+                                text: taskbar.clockDate
                                 font.family: theme.textFont
-                                font.pixelSize: 10
-                                font.weight: 600
+                                font.pixelSize: 11
+                                font.weight: 800
                                 color: palette.accent
                             }
-                            
+
                             Text {
                                 text: "•"
                                 font.pixelSize: 8
                                 color: palette.textSecondary
                             }
-                            
+
                             Text {
                                 id: timeText
-                                text: Qt.formatDateTime(new Date(), "h:mm AP")
+                                text: taskbar.clockTime
                                 font.family: theme.textFont
                                 font.pixelSize: 11
                                 font.weight: 800
                                 color: palette.textPrimary
-                            }
-                            
-                            Timer {
-                                interval: 1000
-                                running: true
-                                repeat: true
-                                onTriggered: {
-                                    var now = new Date()
-                                    dateText.text = Qt.formatDateTime(now, "ddd, MMM d")
-                                    timeText.text = Qt.formatDateTime(now, "h:mm AP")
-                                }
                             }
                         }
                         

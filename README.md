@@ -1,6 +1,6 @@
 # surface-dots
 
-Personal dotfiles + UI setup for my **Surface Laptop 4 (AMD)** running **Hyprland**.
+My personal linux dotfiles.
 Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/EverCal)
 
 ---
@@ -17,7 +17,7 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - [Power menu](#power-menu)
 - [Wifi menu](#wifi-menu)
 - [Firefox Customizations](#firefox-customizations)
-- [SDDM](#sddm)
+- [Lockscreens](#lockscreens)
 - [GTK/QT Themes](#themes)
 - [Utilities](#utilities-1)
 - [Credits & acknowledgements](#credits--acknowledgements)
@@ -39,7 +39,7 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 <br/>
 
 <div style="display:flex; justify-content:center; gap:10px;">
-  <img src="media/screenshots/A5.jpg" width="30%" />
+  <img src="media/screenshots/A5.png" width="30%" />
   <img src="media/screenshots/reading.png" width="30%" />
   <img src="media/screenshots/layers.jpg" width="30%" />
 </div>
@@ -59,7 +59,6 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - hyprland
 - hypridle
 - hyprlock
-- hyprshade
 - hyprland-plugins
 - xdg-utils
 - xdg-desktop-portal-hyprland
@@ -87,7 +86,7 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - kvantum
 - papirus-icon-theme
 - ttf-nerd-fonts-symbols
-- ttf-iosevka-nerd
+- ttf-cm-unicode
 - ttf-google-fonts-git
 - volantes_cursors
 
@@ -110,6 +109,7 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - curl, jq
 - auto-cpufreq
 - howdy-git (optional)
+- fprint (optional)
 </td>
 </tr>
 </table>
@@ -121,9 +121,19 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 
 ## Installation
 
+A GUI installer is included for installing surface-dots. Full instructions are in [installation.md](.source_codes/installer_src/installation.md) and if you want to learn more about how the installer was written check [installer_readme.md](.source_codes/installer_src/installer_readme.md), sources are in [`.source_codes/installer_src`](./.source_codes/installer_src).
+
+```bash
+git clone https://github.com/snes19xx/surface-dots
+cd surface-dots
+chmod +x surface-dots-installer
+./surface-dots-installer
+```
+
 > [!NOTE]
-> I've pulled the installer down because of the significant changes in hyprland 0.55. The only way to install surface-dots at the moment is manually copying files around.
-> I'll try to update the installer as soon as possible.
+> The installer does **not** install dependencies, install those yourself first. It's only been tested on Arch. You also need a polkit agent running before you launch it. If it won't start you probably need the WebKitGTK runtime libs, see installation.md for the workaround.
+>
+> You can always just clone the repo and copy the files around manually if you'd rather not use it.
 
 ## Hyprland
 
@@ -134,7 +144,7 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 
 - `SUPER + Q` → terminal (`kitty`)
 - `SUPER + E` → file manager (`thunar`)
-- `SUPER + R` → rofi
+- `SUPER + R` → app drawer (you need to reprogram it to rofi script in top-bar layout)
 - `SUPER + B` → firefox
 - `SUPER + D` → reading mode
 - `SUPER + N` → night light
@@ -232,8 +242,7 @@ A shader-based reading mode to mimic an e-ink reader.
 11. **`gameboy.glsl`** – _simulates a gameboy screen_
 12. **`smart_invert.glsl`** – _eConverts RGB to HSL, inverts the Lightness channel, and converts back_
 13. **`silent_hill.glsl`** – _Pacific Northwest / Silent Hill Shader_
-14. **`greens.glsl`** – _Retains only green hues and desaturates all other colors to grayscale.
-    _
+14. **`greens.glsl`** – _Retains only green hues and desaturates all other colors to grayscale._
 
 ## Desktop Layouts
 
@@ -275,11 +284,11 @@ As soon as a window opens:
 - ScreenBorders hide
 - The taskbar switches to workspace mode
   - The taskbar in this state behaves similarly to the regular bar used in top-bar mode, except it appears at the bottom of the screen.
-  - The launcher drawer switches to rofi instead of the Quickshell drawer.
+  - The launcher switches from the dock's app drawer (`dock/Drawer.qml`) to the workspace app drawer (`dock/WideDrawer.qml`). This is a custom quickshell app + shader launcher that replaces my rofi setup, toggled with `SUPER + R`.
 
 ##### Other taskbar-specific changes
 
-- The rofi (start) menu is wider and contains `shaders`
+- The appdrawer menu is wider and contains `shaders`
 - The Hub media card derives its background colors from album art palette colors, instead of using blurred album artwork.
 - Upcoming events are no longer displayed inside `CalendarsWeatherCard.qml` and have a dedicated card
   `hub/Events.qml`. By default, the next upcoming event is shown until it ends. Multiple events can be added to the list by increasing the loop count in the file.
@@ -389,6 +398,39 @@ If you want a lightweight fallback, an earlier **AGS** version is available in `
 - Screenshot button (runs capture script and closes the hub)
 - Power button
 - Theme toggle button (taskbar mode)
+- Settings button (taskbar mode)
+
+---
+
+### Settings Panel
+
+There's finally a settings panel (`hub/SettingsPanel.qml`) so you don't have to edit files for everything.
+
+Open it by:
+
+- Clicking the settings button in the Hub header
+- Pressing the `s` key while the hub is focused
+
+It swaps the hub content in place and lets you change:
+
+- Appearance (theme + accent/colors)
+- Weather API location
+- Power menu skin (Living Things or Cassini) and its accent
+- Layout & taskbar tweaks
+- Screen borders
+- Profile picture & events
+
+Not everything is wired through it yet, some styling still is in `lib/ThemeEngine.qml` and `theme.js`, but it covers most of the common stuff now.
+
+---
+
+### Wallpaper Panel
+
+`hub/WallpaperPanel.qml` is a wallpaper picker opened from the settings panel. It's backed by a small rust helper (`bin/papel`, source in `.source_codes/wallpaper_panel/`) that generates thumbnails and streams them into the grid over a socket.
+
+- Live thumbnail grid of your wallpaper folder
+- Refresh button re-scans the folder for newly added wallpapers
+- Pulls a color palette from the selected wallpaper, click a swatch to copy the hex
 
 ---
 
@@ -562,20 +604,21 @@ khal list now 7d
 
 ## Power menu
 
-<div align="center">
-  <table>
-    <tr>
-      <td>
-        <img src="media/screenshots/powermenu.png" height="200" alt="Quickshell Power Menu screenshot (Dark)" />
-      </td>
-      <td>
-        <img src="media/screenshots/powermenu_light.png" height="200" alt="Quickshell Power Menu screenshot (Light)" />
-      </td>
-    </tr>
-  </table>
-</div>
+<p align="center">
+
+  <img src="media/screenshots/cassini_light.png" height="220" alt="Cassini Light">
+  <img src="media/screenshots/powermenu.png" height="220" alt="Power Menu Dark">
+</p>
 
 wlr-layershell power menu overlay (separate from the hub header menu). Toggled with ALT+F4
+
+It comes in two skins (pick one in the settings panel):
+
+- **Living Things** — the original everforest power menu
+- **Cassini** — an editorial black & white look with a random Cassini photograph on the side
+
+Both share the same logic (`utils/PowerMenuController.qml`), the skins are just presentation.
+
 **Run**
 
 ```bash
@@ -596,7 +639,7 @@ Standalone network manager applet located at lib/WifiMenu.qml. With both (light/
 - or run: `quickshell -p ~/<pathto>lib/Wifimenu.qml`
 
 > [!WARNING]
-> You cannot connect to enterprise access points (for now), I haven't had the time to fix it yet
+> You should be able to connect to most enterprise access points now (PEAP/MSCHAPv2 only). That covers most corporate/campus networks (including eduroam), but if you ever hit an enterprise AP that requires EAP-TLS (client certificates) or EAP-TTLS, this menu won't handle it -- you'd need nmcli/nmtui directly for that.
 
 ## OSDs
 
@@ -683,7 +726,9 @@ Additional related configuration files:
 
 Use _Kvantum Manager_ to install and apply the Kvantum theme.
 
-## SDDM
+## Lockscreens
+
+### SDDM
 
 <div align="center">
 <div style="display:flex; justify-content:center; gap:10px;">
@@ -695,7 +740,7 @@ Use _Kvantum Manager_ to install and apply the Kvantum theme.
 I have two SDDM themes:
 
 - Stellarium SDDM theme (Astronomy inspired)
-- Pixel SDDM theme (Google Pixel inspired)
+- Pixel SDDM theme (Android inspired)
 
 The installer installs the themes and writes to conf.d automatically based on your choice. It will however prompt you for password authorization via pkexec.
 
@@ -706,6 +751,17 @@ The installer installs the themes and writes to conf.d automatically based on yo
     sudo mkdir -p /etc/sddm.conf.d
     echo -e "[Theme]\nCurrent=stellarium" | sudo tee /etc/sddm.conf.d/theme.conf
     ```
+
+### Hyprlock
+
+I have two hyprlock themes that are designed to look exactly like the SDDM themes above:
+
+<div align="center">
+    <img src="media/screenshots/hyprlock.png" height=350 alt="screenshot" />
+</div>
+
+- Stellarium hyprlock theme (Astronomy inspired)
+- Pixel hyprlock theme (Android inspired)
 
 ## Utilities
 
@@ -723,11 +779,9 @@ Utilities include the following:
 - `Pixeldots.qml` in sddm theme based on @mahaveergurjar's [Pixeldots](https://github.com/mahaveergurjar/sddm/tree/pixel)
 - Colors: Modified from https://github.com/sainnhe/everforest
 - VScode theme: Modified from Andrei Lucaci's [Everforest pro theme](https://marketplace.visualstudio.com/items?itemName=AndreiLucaci.everforest-pro)
-- [Hyprshade](https://github.com/loqusion/hyprshade)
 - Kvantum theme based on [materia-everforest-kvantum](https://github.com/binEpilo/materia-everforest-kvantum)
 - Dave Hoskins for [Hash without Sine](https://www.shadertoy.com/view/4djSRW)
-- Most svgs are from [https://www.svgrepo.com/](https://www.svgrepo.com/) , I made some myself
-- linux-surface project: https://github.com/linux-surface/linux-surface
+- Some svgs are from [https://www.svgrepo.com/](https://www.svgrepo.com/) , I made some myself
 - Thorium: https://thorium.rocks/ for the background visualizations in firefox custom new tab
 - My design inspiration comes mainly from : [Microsoft design](https://microsoft.design/), [Material design](https://m3.material.io/blog/building-with-m3-expressive) and [calla](https://github.com/Stardust-kyun/calla). The typography and UI design used in the installer are my own original work, which I’ve also used in several of my other projects, including my website and the firefox extension.
 
@@ -744,8 +798,7 @@ Utilities include the following:
 9. Photo by temo Berishvili on [Unsplash](https://www.pexels.com/photo/herd-of-animals-on-grass-field-near-mountains-1574843/)
 10. Photo by Lucas Pezeta on [Unsplash](https://www.pexels.com/photo/cows-grazing-on-field-2331478/)
 11. Photo by Andreas Strandman on [Unsplash](https://unsplash.com/photos/green-trees-near-body-of-water-during-daytime-sa5kZts9PGA)
-12. Surface default wallpapers are from microsoft
-13. All Rofi pictures were pulled from Pinterest; I don’t know the original owners.
+12. All Rofi pictures were pulled from Pinterest; I don’t know the original owners.
 
 #### <span style="color:#a41d1d">[Reuse Note:]</span>
 
@@ -766,7 +819,7 @@ _A: It was one of my first projects while learning Flutter, which explains the o
 _A: It assumes the authentication was successful by default. You may need to adjust the timer in `main.qml` to get the timing right for a realistic effect. It does properly recognize authentication failures and timeouts._
 
 **Q: Why are there multiple app drawers (including the top-bar Rofi drawers)?**<br>
-_A: I am currently experimenting with different designs and layouts. My plan is to write a custom app drawer from scratch in rust with live tiles similar to Windows 10. I want it to feel distinctly native to Linux rather than acting as a cheap copy of the Windows Metro UI._
+\_A: I am currently experimenting with different designs and layouts. Taskbar mode now has a custom quickshell app + shader drawer (`dock/WideDrawer.qml`) that replaces rofi, moving forward I will only update this.
 
 **Q: Why are the desktop layouts two different shells instead of one unified shell with two options?**<br>
 _A: The project originally started as a simple calendar widget for my Google Calendar events. As more components were added over time, it evolved without a strict overall layout plan. Consolidating everything into a single shell would require significant code edits which I don't want to do atm_
@@ -795,14 +848,26 @@ _A: Decrease the layer exclusive zone in `Taskbar.qml` or increase the gaps in H
     WlrLayershell.exclusiveZone: 47 // <-- change this
 ```
 
-**Q: Will you make a settings app to configure things instead of requiring file edits?** <br>
-_A: Yes, that is the plan. I do not have a strict timeline yet because there's so much spaghetti code_
-
 **Q: Can I use the top-bar Rofi on the taskbar, or vice versa?** <br>
 _A: Yes. You just need to edit the path to the launcher script in your Hyprland configuration and update the on-click action within the launcher component for the respective bars._
 
 **Q: The theme switcher is not applying my GTK or Qt themes. How do I fix it?** <br>
 _A: First, make sure the script has executable permissions. Next, verify the theme files exist and match the names referenced in the script. Finally, run the script directly from the terminal to check for specific error messages abd fix them one by one._
+
+**Q: The wallpaper panel is empty or won't apply anything. How do I fix it?** <br>
+_A: By default it reads from `~/Pictures/Wallpapers`, set `PAPEL_DIR` if yours live somewhere else. It also needs `awww` running to actually set the wallpaper, and `bin/papel` has to be executable. If you just added new wallpapers, hit the refresh button so it re-scans the folder._
+
+**Q: How do I switch the power menu skin?** <br>
+_A: Open the settings panel (taskbar mode) and go to the power menu section, you can pick between Living Things and Cassini there, and set a custom accent for each one._
+
+**Q: The weather is wrong or not showing up. How do I fix it?** <br>
+_A: Set your location in the weather section of the settings panel, or edit `lib/weather.sh` directly. It pulls from the Open-Meteo API so you need `curl` and `jq` installed and a working connection._
+
+**Q: I changed something in the settings panel but it didn't stick. Why?** <br>
+_A: Most settings are saved through `lib/Configuration.qml`, so make sure it can actually write to its config location. A few components still read their colors from `theme.js` or define them internally, so those bits still need a manual file edit for now._
+
+**Q: How do I add my own shader to the wide app drawer?** <br>
+_A: Drop the `.glsl` in `~/.config/hypr/shaders/`, then add a matching icon in `dock/shader-icons/` (and a light-mode version in `dock/shader-icons/light/`) so it shows up in the drawer's shader tab._
 
 <div style="text-align:center;">
   <i>If you have any other questions, please start an issue. I'd be more than happy to answer it for you.</i>

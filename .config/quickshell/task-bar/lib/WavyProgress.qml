@@ -16,6 +16,11 @@ Item {
     property real speed: 1.0
     property real gap: 10
 
+    // Seeking (opt-in). The host wires these to the player.
+    property bool interactive: false
+    signal seekRequested(real fraction)  // absolute 0..1 (click / drag)
+    signal seekStep(int dir)             // wheel: +1 forward, -1 back
+
     implicitHeight: 12
     implicitWidth: 200
     clip: true
@@ -91,5 +96,22 @@ Item {
                 ctx.restore()
             }
         }
+    }
+
+    // Seek interaction — disabled unless `interactive` is set by the host.
+    MouseArea {
+        anchors.fill: parent
+        // The drawn bar is only a few px tall; pad the hit area vertically.
+        anchors.topMargin: -8
+        anchors.bottomMargin: -8
+        enabled: root.interactive
+        visible: root.interactive
+        preventStealing: true
+        cursorShape: Qt.PointingHandCursor
+
+        function emitAt(mx) { root.seekRequested(root.clamp01(mx / Math.max(1, root.width))) }
+        onPressed: (m) => emitAt(m.x)
+        onPositionChanged: (m) => { if (pressed) emitAt(m.x) }
+        onWheel: (w) => root.seekStep(w.angleDelta.y > 0 ? 1 : -1)
     }
 }

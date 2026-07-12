@@ -14,8 +14,12 @@ Item {
   property string profileImage: Config.PROFILE_IMG
 
   property bool expanded: false
+  property bool settingsOpen: false
+  property bool batteryActive: false
   signal closeRequested()
   signal powerAction(string action, string label)
+  signal settingsRequested()
+  signal batteryToggleRequested()
 
   // --- Theme Bindings ---
   readonly property bool _isDark: theme.isDarkMode
@@ -54,7 +58,7 @@ Item {
     id: snapTimer
     interval: 320
     repeat: false
-    onTriggered: Quickshell.execDetached(["bash", "-c", "/home/snes/.config/hypr/screenshots/captureArea.sh"])
+    onTriggered: Quickshell.execDetached(["bash", "-lc", Lib.Configuration.screenshotScript])
   }
 
   ColumnLayout {
@@ -112,34 +116,61 @@ Item {
                 Layout.alignment: Qt.AlignRight
                 spacing: 7
 
-                // 1. Theme Toggle
+                // 0. Battery Stats
                 Rectangle {
-                    id: themeBtn
+                    id: statsBtn
                     width: 30; height: 30; radius: 12
-                    color: themeTap.pressed ? root._subtleFillHover
-                          : (themeHover.hovered ? root._subtleFillHover : root._subtleFill)
-                    border.width: 1; border.color: root._outline
-                    
-                    scale: themeTap.pressed ? 0.95 : 1.0
+                    color: statsTap.pressed ? root._subtleFillHover
+                          : (statsHover.hovered || root.batteryActive) ? root._subtleFillHover : root._subtleFill
+                    border.width: 1
+                    border.color: root.batteryActive ? theme.accent : root._outline
+                    scale: statsTap.pressed ? 0.95 : 1.0
                     Behavior on scale { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color  { ColorAnimation { duration: 150 } }
+                    Behavior on border.color { ColorAnimation { duration: 150 } }
 
-                    Text { 
+                    Text {
                         anchors.centerIn: parent
-                        text: root._isDark ? "󰛨" : "󰽥"
+                        text: ""
                         font.family: theme.iconFont
-                        font.pixelSize: 20
-                        color: root._textPrimary 
-                        topPadding: 1 
+                        font.pixelSize: 14
+                        color: root.batteryActive ? theme.accent : root._textPrimary
+                        topPadding: 1
+                        Behavior on color { ColorAnimation { duration: 150 } }
                     }
-                    
-                    HoverHandler { id: themeHover; cursorShape: Qt.PointingHandCursor }
-                    TapHandler { 
-                        id: themeTap
-                        onTapped: { 
-                           root.theme.toggle()
-                           
-                        } 
+                    HoverHandler { id: statsHover; cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        id: statsTap
+                        onTapped: root.batteryToggleRequested()
+                    }
+                }
+
+                // 1. Settings
+                Rectangle {
+                    id: settingsBtn
+                    width: 30; height: 30; radius: 12
+                    color: settingsTap.pressed ? root._subtleFillHover
+                          : (settingsHover.hovered || root.settingsOpen) ? root._subtleFillHover : root._subtleFill
+                    border.width: 1
+                    border.color: root.settingsOpen ? theme.accent : root._outline
+                    scale: settingsTap.pressed ? 0.95 : 1.0
+                    Behavior on scale { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
+                    Behavior on color  { ColorAnimation { duration: 150 } }
+                    Behavior on border.color { ColorAnimation { duration: 150 } }
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: ""
+                        font.family: theme.iconFont
+                        font.pixelSize: 16
+                        color: root.settingsOpen ? theme.accent : root._textPrimary
+                        topPadding: 1
+                        Behavior on color { ColorAnimation { duration: 150 } }
+                    }
+                    HoverHandler { id: settingsHover; cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        id: settingsTap
+                        onTapped: root.settingsRequested()
                     }
                 }
 

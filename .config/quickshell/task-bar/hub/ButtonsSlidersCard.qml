@@ -12,27 +12,26 @@ Lib.Card {
   property bool autoMode: true
   property bool dnd: false
   
-  Component.onCompleted: { if (root.autoMode) det("sudo auto-cpufreq --force=reset") }
-  function sh(cmd) { return ["bash","-lc", cmd] }
-  function det(cmd) { Quickshell.execDetached(sh(cmd)) }
+  Component.onCompleted: { if (root.autoMode) Lib.Shell.det("sudo auto-cpufreq --force=reset") }
+
 
   // --------------------------------------------------------------------------------------------------------------
   Lib.CommandPoll {
     id: wifiOn;
     running: root.active && root.visible; interval: 2500
-    command: sh("nmcli -t -f WIFI g 2>/dev/null | head -n1 || true")
+    command: Lib.Shell.sh("nmcli -t -f WIFI g 2>/dev/null | head -n1 || true")
     parse: function(o) { return String(o).trim() === "enabled" }
   }
 
   Lib.CommandPoll {
     id: wifiSSID;
     running: root.active && root.visible; interval: 5000
-    command: sh("nmcli -t -f ACTIVE,SSID dev wifi 2>/dev/null | awk -F: '$1==\"yes\"{print $2; exit}' || true")
+    command: Lib.Shell.sh("nmcli -t -f ACTIVE,SSID dev wifi 2>/dev/null | awk -F: '$1==\"yes\"{print $2; exit}' || true")
     parse: function(o) { var s = String(o).trim() ||
     "WiFi"; return s.length > 9 ? s.slice(0, 9) : s }
   }
 
-  function toggleWifi() { det("nmcli radio wifi " + (!Boolean(wifiOn.value) ? "on" : "off")) }
+  function toggleWifi() { Lib.Shell.det("nmcli radio wifi " + (!Boolean(wifiOn.value) ? "on" : "off")) }
   // --------------------------------------------------------------------------------------------------------------
   // BLUETOOTH 
   property bool _optBt: false       
@@ -43,7 +42,7 @@ Lib.Card {
   Lib.CommandPoll {
     id: btOn;
     running: root.active && root.visible; interval: 3000
-    command: sh("rfkill list bluetooth")
+    command: Lib.Shell.sh("rfkill list bluetooth")
     parse: function(o) { return String(o).includes("Soft blocked: no") }
     onUpdated: if (!root._toggling) root._optBt = value 
   }
@@ -52,7 +51,7 @@ Lib.Card {
   Lib.CommandPoll {
     id: btDev;
     running: root.active && root.visible; interval: 3500
-    command: sh("pactl list cards 2>/dev/null | grep -A 20 'bluez_card' | grep 'device.description' | head -n1 | cut -d'=' -f2 | tr -d '\"'")
+    command: Lib.Shell.sh("pactl list cards 2>/dev/null | grep -A 20 'bluez_card' | grep 'device.description' | head -n1 | cut -d'=' -f2 | tr -d '\"'")
     parse: function(o) {
       var d = String(o).trim();
       if (d.length > 0) return d.length > 9 ? d.slice(0, 9) : d
@@ -67,14 +66,14 @@ Lib.Card {
       root._optBt = !btOn.value;
       optTimer.restart();
       // 'rfkill unblock' forces the kernel to wake it up.
-      det("rfkill " + (root._optBt ? "unblock" : "block") + " bluetooth") 
+      Lib.Shell.det("rfkill " + (root._optBt ? "unblock" : "block") + " bluetooth") 
   }
   // --------------------------------------------------------------------------------------------------------------
   // Volume
   Lib.CommandPoll {
     id: volPoll;
     running: root.active && root.visible; interval: 1200
-    command: sh("pactl get-sink-volume @DEFAULT_SINK@ 2>/dev/null | grep -Po '\\d+(?=%)' | head -n1")
+    command: Lib.Shell.sh("pactl get-sink-volume @DEFAULT_SINK@ 2>/dev/null | grep -Po '\\d+(?=%)' | head -n1")
     parse: function(o) { var n = parseInt(String(o).trim());
     return isFinite(n) ? n : 0 }
     onUpdated: if (!volS.pressed) volS.value = value
@@ -84,7 +83,7 @@ Lib.Card {
   Lib.CommandPoll {
     id: briPoll;
     running: root.active && root.visible; interval: 1500
-    command: sh("brightnessctl -m 2>/dev/null | cut -d, -f4 | tr -d '% ' || true")
+    command: Lib.Shell.sh("brightnessctl -m 2>/dev/null | cut -d, -f4 | tr -d '% ' || true")
     parse: function(o) { var n = Number(String(o).trim());
     return isFinite(n) ? n : 50 }
     onUpdated: if (!briS.pressed) briS.value = value
@@ -96,7 +95,7 @@ Lib.Card {
   Lib.CommandPoll {
     id: perfPoll;
     running: root.active && root.visible && !root._isChanging; interval: 30000
-    command: sh("cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null || echo 'powersave'")
+    command: Lib.Shell.sh("cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null || echo 'powersave'")
     parse: function(o) { return String(o).trim() }
     onUpdated: root.cpuGov = value
   }
@@ -107,11 +106,11 @@ Lib.Card {
     root._isChanging = true;
     pollLockout.restart()
     if (root.autoMode) { root.autoMode = false; root.cpuGov = "performance";
-    det("sudo auto-cpufreq --force=performance") }
+    Lib.Shell.det("sudo auto-cpufreq --force=performance") }
     else if (root.cpuGov === "performance") { root.cpuGov = "powersave";
-    det("sudo auto-cpufreq --force=powersave") }
+    Lib.Shell.det("sudo auto-cpufreq --force=powersave") }
     else { root.autoMode = true;
-    det("sudo auto-cpufreq --force=reset") }
+    Lib.Shell.det("sudo auto-cpufreq --force=reset") }
   }
   function getPerfIcon() { return root.autoMode ?
   "cpu_auto.svg" : (root.cpuGov === "performance" ? "cpu_max.svg" : "cpu_powersave.svg") }
@@ -128,12 +127,12 @@ Lib.Card {
   Lib.CommandPoll {
     id: dndPoll;
     running: root.active && root.visible; interval: 4000
-    command: sh("makoctl mode 2>/dev/null || true")
-    parse: function(o) { return String(o).includes("do-not-disturb") }
+    command: Lib.Shell.sh("dunstctl is-paused 2>/dev/null || true")
+    parse: function(o) { return String(o).trim() === "true" }
     onUpdated: root.dnd = value
   }
   function toggleDnd() { var next = !root.dnd;
-  root.dnd = next; det("makoctl mode " + (next ? "-a" : "-r") + " do-not-disturb") }
+  root.dnd = next; Lib.Shell.det("dunstctl set-paused " + (next ? "true" : "false")) }
 
   // -------------------------------------------------------------------
   // UI LAYOUT
@@ -163,7 +162,7 @@ Lib.Card {
         active: Boolean(wifiOn.value)
         onClicked: toggleWifi()
         onRightClicked: { root.closeRequested();
-        det("quickshell -p ~/.config/quickshell/task-bar/lib/WifiMenu.qml") }
+        Lib.Shell.det("quickshell -p ~/.config/quickshell/task-bar/lib/WifiMenu.qml") }
       }
 
       // 2. Bluetooth 
@@ -181,7 +180,7 @@ Lib.Card {
         
         onClicked: toggleBt()
         onRightClicked: { root.closeRequested();
-        det("blueman-manager >/dev/null 2>&1 &") }
+        Lib.Shell.det("blueman-manager >/dev/null 2>&1 &") }
       }
 
       // 3. Performance
@@ -225,11 +224,11 @@ Lib.Card {
                 theme: root.theme
                 icon: { if (value < 40) return "bness_less40.svg";
                 if (value < 75) return "bness_40to75.svg"; return "bnessmax.svg" }
-                from: 0;
+                from: 1;
                 to: 100; value: 50
                 accentColor: (root.theme && !root.theme.isDarkMode) ?
                 root.theme.accentSlider : "#83C092"
-                onUserChanged: det("brightnessctl set " + Math.round(value) + "%")
+                onUserChanged: Lib.Shell.det("brightnessctl set " + Math.round(value) + "%")
             }
         }
 
@@ -250,7 +249,7 @@ Lib.Card {
                 to: 100; value: 0
                 accentColor: (root.theme && !root.theme.isDarkMode) ?
                 root.theme.accentSlider : "#83C092"
-                onUserChanged: det("pactl set-sink-volume @DEFAULT_SINK@ " + Math.round(value) + "%")
+                onUserChanged: Lib.Shell.det("pactl set-sink-volume @DEFAULT_SINK@ " + Math.round(value) + "%")
             } 
         }
     }

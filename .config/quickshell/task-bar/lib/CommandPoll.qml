@@ -19,12 +19,14 @@ QtObject {
     if (root.busy) return
     if (!command || command.length === 0) return
     root.busy = true
+    timeoutGuard.restart()
     proc.exec(command)
   }
 
   property Process proc: Process {
     stdout: StdioCollector {
       onStreamFinished: {
+        timeoutGuard.stop()
         root.text = this.text ?? ""
         var parsed = root.parse(root.text)
 
@@ -38,7 +40,14 @@ QtObject {
     }
 
     // In case a command fails silently, still clear busy
-    onExited: root.busy = false
+    onExited: { timeoutGuard.stop(); root.busy = false }
+  }
+
+  // If a command hangs, clear busy after 5 s so the poller isn't stuck forever
+  property Timer timeoutGuard: Timer {
+    interval: 5000
+    repeat: false
+    onTriggered: root.busy = false
   }
 
   property Timer timer: Timer {

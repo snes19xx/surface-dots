@@ -17,8 +17,8 @@ THEME_LIGHT="green-light"
 ICONS_DARK="Papirus-Dark"
 ICONS_LIGHT="Papirus-Light"
 # WALLPAPERS
-WALLPAPER_DARK="$HOME/Pictures/ffx.png"
-WALLPAPER_LIGHT="$HOME/Pictures/dissidia_ff.jpg"
+WALLPAPER_DARK="$HOME/Pictures/Wallpapers/ffx.png"
+WALLPAPER_LIGHT="$HOME/Pictures/Wallpapers/dissidia_ff.jpg"
 # PATHS
 GTK3_CONF="$HOME/.config/gtk-3.0"
 GTK3_SETTINGS="$GTK3_CONF/settings.ini"
