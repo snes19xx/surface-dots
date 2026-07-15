@@ -37,8 +37,8 @@ M.defaults = {
 
 M.ui_state = {
     theme           = "dark",
-    wallpaper_light = home .. "/Pictures/desktop/wplight.jpg",
-    wallpaper_dark  = home .. "/Pictures/desktop/wpdark.jpg",
+    wallpaper_light = home .. "/Pictures/Wallpapers/6.png",
+    wallpaper_dark  = home .. "/Pictures/Wallpapers/ffx.png",
 }
 
 -- Helpers
@@ -115,7 +115,7 @@ M.complex_modes = {
             switch_theme(rm_restore_file, "light")
             write_file(rm_state_file, "on")
 
-            hl.exec_cmd("sleep 1 && awww img " .. home .. "/Pictures/Camera/dissidia_ff.jpg --transition-type none")
+            hl.exec_cmd("sleep 1 && awww img " .. home .. "/Pictures/Wallpapers/bahamut.jpg --transition-type none")
             hl.exec_cmd("brightnessctl set 37%")
 
             hl.config({
@@ -264,4 +264,4 @@ hl.bind(mod .. " + N",       function() M.toggle("Night Light")  end, { descript
 hl.bind(alt .. " + C",       function() M.toggle("CRT Mode")     end, { description = "Toggle CRT Mode"        })
 hl.bind(mod .. " + ALT + S", function() M.turn_off_all()         end, { description = "Turn off all shaders"   })
 
-return M
+return 
