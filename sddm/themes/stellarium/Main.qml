@@ -40,7 +40,6 @@ Rectangle {
     // "idle" | "typing" | "auth" | "ok" | "wrong"
     property string authState: "idle"
     property string statusMessage: ""
-    property bool isFprintAttempt: false
 
     // Fonts 
     // Drop your .ttf/.otf into fonts/: names below are the family names Qt
@@ -133,7 +132,6 @@ Rectangle {
             currentView: root.currentView
             authState: root.authState
             statusMessage: root.statusMessage
-            fprintAttempt: root.isFprintAttempt
             userName: (typeof userModel !== "undefined" && userModel.lastUser) ? userModel.lastUser : "snes"
             y: root.currentView === "login" ? 0 : parent.height
             opacity: root.currentView === "login" ? 1 : 0
@@ -147,9 +145,10 @@ Rectangle {
             }
             onAuthStateRequest: function(s) { root.authState = s }
             onLoginAttempt: function(user, pass, sessionIndex) {
+                // Password-only auth: never submit an empty passphrase
+                if (pass === "") return
                 root.authState = "auth"
                 root.statusMessage = ""
-                root.isFprintAttempt = (pass === "")
                 if (typeof sddm !== "undefined") {
                     sddm.login(user, pass, sessionIndex)
                 } else {
@@ -190,14 +189,6 @@ Rectangle {
         }
         function onLoginFailed() {
             if (root.currentView !== "login") return
-            if (root.isFprintAttempt && loginPage.passwordText.length > 0) {
-                // Fingerprint failed but user already typed a password [auto-submit it]
-                root.isFprintAttempt = false
-                root.authState = "auth"
-                root.statusMessage = ""
-                sddm.login(loginPage.userName, loginPage.passwordText, loginPage.sessionIndex)
-                return
-            }
             root.authState = "wrong"
             if (root.statusMessage === "") root.statusMessage = "incorrect — try again"
             resetTimer.restart()

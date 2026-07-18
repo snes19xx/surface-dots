@@ -109,7 +109,6 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - curl, jq
 - auto-cpufreq
 - howdy-git (optional)
-- fprint (optional)
 </td>
 </tr>
 </table>
