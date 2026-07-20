@@ -63,12 +63,16 @@ body {
 #bg-canvas {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100vh;
   z-index: 0;
   pointer-events: none;
 }
 #starfield {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100vh;
   z-index: 1;
   pointer-events: none;
   opacity: 0;
@@ -200,13 +204,18 @@ body {
 }
 
 .clock-face {
-  font-family: "Cormorant Garamond", serif;
-  font-weight: 300;
+  font-family: "Fraunces", "Cormorant Garamond", serif;
+  font-weight: 340;
+  font-optical-sizing: auto;
+  font-variant-numeric: lining-nums;
   font-size: clamp(4.56rem, 8.88vw, 6.72rem);
   line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   display: flex;
   align-items: baseline;
+}
+:root.night .clock-face {
+  text-shadow: 0 0 28px rgba(232, 222, 200, 0.14);
 }
 .clock-sep {
   color: var(--accent);
@@ -280,7 +289,7 @@ body {
 .section-label {
   font-family: "Cinzel", serif;
   font-size: 0.75rem;
-  font-weight: 200;
+  font-weight: 400;
   letter-spacing: 0.15em;
   color: var(--muted);
   text-transform: uppercase;
@@ -302,7 +311,9 @@ body {
   stroke-linejoin: round;
 }
 .wx-temp {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Fraunces", "Cormorant Garamond", serif;
+  font-weight: 360;
+  font-optical-sizing: auto;
   font-size: 2.22rem;
   line-height: 1;
 }
@@ -722,13 +733,6 @@ body {
   min-width: 1rem;
   flex-shrink: 0;
 }
-.sett-sc-name-in {
-  flex: 0 0 96px;
-}
-.sett-sc-url-in {
-  flex: 1;
-}
-
 .sett-toggles {
   display: grid;
   grid-template-columns: 1fr 1fr;

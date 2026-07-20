@@ -117,20 +117,29 @@ const elFooterUtc = document.getElementById("footer-utc");
 const elFooterLst = document.getElementById("footer-lst");
 const elMoonSvg = document.getElementById("moon-svg");
 const elMoonName = document.getElementById("moon-name");
-const elSidereal = document.getElementById("sidereal");
-const elSunElev = document.getElementById("sun-elev");
+const elMoonAge = document.getElementById("moon-age");
+const elMoonNext = document.getElementById("moon-next");
 const elEphem = document.getElementById("ephem");
 const elWxIcon = document.getElementById("wx-icon");
 const elWxTemp = document.getElementById("wx-temp");
 const elWxMeta = document.getElementById("wx-meta");
 
 let _prevMin = -1;
+let _prevHr = -1;
 function tick() {
   const now = new Date();
   const h = now.getHours(),
     m = now.getMinutes(),
     s = now.getSeconds();
-  elCh.textContent = pad(h);
+  if (h !== _prevHr) {
+    elCh.style.transition = "opacity 0.25s";
+    elCh.style.opacity = "0.25";
+    setTimeout(() => {
+      elCh.textContent = pad(h);
+      elCh.style.opacity = "1";
+    }, 180);
+    _prevHr = h;
+  }
   if (m !== _prevMin) {
     elCm.style.transition = "opacity 0.25s";
     elCm.style.opacity = "0.25";
@@ -158,7 +167,10 @@ function tick() {
   elFooterUtc.textContent = `UTC ${pad(utcH)}:${pad(utcM)}:${pad(utcS)}`;
   elFooterLst.textContent = `LST ${siderealTime(SETTINGS.location.lon, now)}`;
 }
+elCh.textContent = pad(new Date().getHours());
 elCm.textContent = pad(new Date().getMinutes());
+_prevHr = new Date().getHours();
+_prevMin = new Date().getMinutes();
 setInterval(tick, 1000);
 tick();
 
@@ -252,8 +264,9 @@ function sunElev(lat, lon, date) {
   const GMST =
     (((280.46061837 + 360.98564736629 * (JD - 2451545)) % 360) + 360) % 360;
   const LST = (((GMST + lon) % 360) + 360) % 360;
+  const RA = Math.atan2(Math.cos(eps) * Math.sin(lam), Math.cos(lam));
   const HA =
-    ((LST - (((((lam * 180) / Math.PI) % 360) + 360) % 360)) * Math.PI) / 180;
+    ((LST - (((((RA * 180) / Math.PI) % 360) + 360) % 360)) * Math.PI) / 180;
   const latR = (lat * Math.PI) / 180;
   const alt = Math.asin(
     Math.sin(latR) * Math.sin(dec) +
@@ -267,9 +280,16 @@ function updateCelestial() {
   const phase = moonPhase(now);
   drawMoon(phase);
   elMoonName.textContent = moonName(phase);
-  elSidereal.textContent = siderealTime(SETTINGS.location.lon, now);
+  elMoonAge.textContent = phase.toFixed(1);
+  elMoonNext.textContent =
+    phase < 13.9
+      ? `full in ${(14.77 - phase).toFixed(1)}d`
+      : phase < 15.6
+        ? "full tonight"
+        : phase < 28.6
+          ? `new in ${(29.53 - phase).toFixed(1)}d`
+          : "new tonight";
   const elev = sunElev(SETTINGS.location.lat, SETTINGS.location.lon, now);
-  elSunElev.textContent = elev;
   const doy = Math.ceil((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
   const illum = Math.round(
     ((1 - Math.cos((phase / 29.53) * 2 * Math.PI)) / 2) * 100,
@@ -321,8 +341,14 @@ function renderShortcuts() {
 renderShortcuts();
 
 document.getElementById("search").addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && e.target.value.trim())
-    location.href = `https://www.google.com/search?q=${encodeURIComponent(e.target.value.trim())}`;
+  if (e.key !== "Enter") return;
+  const q = e.target.value.trim();
+  if (!q) return;
+  if (/^https?:\/\/\S+$/.test(q)) location.href = q;
+  else if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(q))
+    location.href = "https://" + q;
+  else
+    location.href = `https://www.google.com/search?q=${encodeURIComponent(q)}`;
 });
 
 const WX_SVG = {
@@ -377,9 +403,10 @@ function applyWeatherData(d) {
 
   let k = "sunny";
   if (!isDay && code === 0) k = "moon";
-  else if (code <= 3) k = "cloud";
-  else if (code >= 51 && code <= 82) k = "rain";
-  else if (code >= 71 && code <= 86) k = "snow";
+  else if (code >= 1 && code <= 3) k = "cloud";
+  else if (code === 45 || code === 48) k = "cloud";
+  else if ((code >= 71 && code <= 77) || code === 85 || code === 86) k = "snow";
+  else if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) k = "rain";
   else if (code >= 95) k = "storm";
 
   const parsedSvg = domParser.parseFromString(
@@ -448,7 +475,8 @@ async function loadWeather() {
 loadWeather();
 
 let RW = window.innerWidth,
-  RH = window.innerHeight;
+  RH = window.innerHeight,
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
 
 const bgRenderer = (() => {
   const C = document.getElementById("bg-canvas");
@@ -469,8 +497,9 @@ const bgRenderer = (() => {
 
   return {
     resize(w, h) {
-      C.width = w;
-      C.height = h;
+      C.width = w * DPR;
+      C.height = h * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     },
     draw() {
       const W = RW,
@@ -558,9 +587,10 @@ const systemRenderer = (() => {
 
   function buildOrbitCache(W, H) {
     const oc = document.createElement("canvas");
-    oc.width = W;
-    oc.height = H;
+    oc.width = W * DPR;
+    oc.height = H * DPR;
     const octx = oc.getContext("2d");
+    octx.scale(DPR, DPR);
     const cx = W / 2,
       cy = H / 2;
     const base = Math.min(W, H) / 1100;
@@ -578,8 +608,9 @@ const systemRenderer = (() => {
 
   return {
     resize(w, h) {
-      C.width = w;
-      C.height = h;
+      C.width = w * DPR;
+      C.height = h * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       orbitCache = null;
     },
     invalidateCache() {
@@ -598,7 +629,7 @@ const systemRenderer = (() => {
       }
 
       if (SETTINGS.toggles.planets) {
-        ctx.drawImage(orbitCache, 0, 0);
+        ctx.drawImage(orbitCache, 0, 0, W, H);
         
         ctx.beginPath();
         ctx.arc(cx, cy, 17 * base, 0, Math.PI * 2);
@@ -809,8 +840,9 @@ const cometRenderer = (() => {
 
   return {
     resize(w, h) {
-      C.width = w;
-      C.height = h;
+      C.width = w * DPR;
+      C.height = h * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     },
     draw() {
       const W = RW,
@@ -837,11 +869,7 @@ const cometRenderer = (() => {
 
       if (typeof IS_NIGHT === "undefined" || !IS_NIGHT) {
         updatePlanetStates(b);
-        if (
-          SETTINGS.toggles.timerComets &&
-          cometTime > 0 &&
-          cometTime % nextSpawn === 0
-        ) {
+        if (SETTINGS.toggles.timerComets && cometTime >= nextSpawn) {
           spawnComet();
           nextSpawn = cometTime + newInterval();
         }
@@ -1133,9 +1161,10 @@ const starRenderer = (() => {
 
   function buildDumbStars(diag) {
     const c = document.createElement("canvas");
-    c.width = diag;
-    c.height = diag;
+    c.width = diag * DPR;
+    c.height = diag * DPR;
     const mc = c.getContext("2d");
+    mc.scale(DPR, DPR);
     mc.fillStyle = "#ebe1d2";
     for (let i = 0; i < 2500; i++) {
       const x = Math.random() * diag;
@@ -1184,9 +1213,10 @@ const starRenderer = (() => {
 
   function buildMilkyWay(diagLen) {
     const mw = document.createElement("canvas");
-    mw.width = diagLen;
-    mw.height = diagLen;
+    mw.width = diagLen * DPR;
+    mw.height = diagLen * DPR;
     const mc = mw.getContext("2d");
+    mc.scale(DPR, DPR);
     const halfBand = diagLen * 0.22;
 
     mc.save();
@@ -1256,8 +1286,9 @@ const starRenderer = (() => {
 
   return {
     resize(w, h) {
-      C.width = w;
-      C.height = h;
+      C.width = w * DPR;
+      C.height = h * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       const diag = Math.ceil(Math.sqrt(w * w + h * h));
       dumbStarCache = buildDumbStars(diag);
       initStars(diag);
@@ -1297,7 +1328,7 @@ const starRenderer = (() => {
 
       if (doStars && dumbStarCache) {
         ctx.globalAlpha = Math.min(1, mult * 1.5);
-        ctx.drawImage(dumbStarCache, -diag * 0.5, -diag * 0.5);
+        ctx.drawImage(dumbStarCache, -diag * 0.5, -diag * 0.5, diag, diag);
       }
 
       if (doMilkyWay && mwAlpha > 0 && milkyWayCache) {
@@ -1305,7 +1336,7 @@ const starRenderer = (() => {
         ctx.save();
         ctx.rotate(mwBaseAngle);
         ctx.globalAlpha = mwAlpha * 0.65;
-        ctx.drawImage(milkyWayCache, -diag * 0.5, -diag * 0.5);
+        ctx.drawImage(milkyWayCache, -diag * 0.5, -diag * 0.5, diag, diag);
         ctx.restore();
       }
 
@@ -1423,6 +1454,7 @@ window.addEventListener("resize", () => {
     requestAnimationFrame(() => {
       RW = window.innerWidth;
       RH = window.innerHeight;
+      DPR = Math.min(window.devicePixelRatio || 1, 2);
       bgRenderer.resize(RW, RH);
       systemRenderer.resize(RW, RH);
       cometRenderer.resize(RW, RH);
@@ -1454,6 +1486,17 @@ starRenderer.resize(RW, RH);
 _rafId = requestAnimationFrame(masterLoop);
 
 let _settPendingLoc = null;
+
+function _syncPlanetRotRow() {
+  const planetsOn = document.getElementById("sett-tog-planets").checked;
+  const rotRow = document.getElementById("sett-tog-row-planetaryRotation");
+  rotRow.classList.toggle("sett-toggle-disabled", !planetsOn);
+  if (!planetsOn)
+    document.getElementById("sett-tog-planetaryRotation").checked = false;
+}
+document
+  .getElementById("sett-tog-planets")
+  .addEventListener("change", _syncPlanetRotRow);
 
 function _settOpen() {
   _settPendingLoc = null;
@@ -1488,17 +1531,7 @@ function _settOpen() {
     if (el) el.checked = SETTINGS.toggles[k];
   });
 
-  function _syncPlanetRotRow() {
-    const planetsOn = document.getElementById("sett-tog-planets").checked;
-    const rotRow = document.getElementById("sett-tog-row-planetaryRotation");
-    rotRow.classList.toggle("sett-toggle-disabled", !planetsOn);
-    if (!planetsOn)
-      document.getElementById("sett-tog-planetaryRotation").checked = false;
-  }
   _syncPlanetRotRow();
-  document
-    .getElementById("sett-tog-planets")
-    .addEventListener("change", _syncPlanetRotRow);
 
   const scContainer = document.getElementById("sett-shortcuts");
   scContainer.replaceChildren();
