@@ -18,22 +18,32 @@ hl.monitor({
     mode     = "2256x1504@60",
     position = "0x0",
     scale    = 1,
-    bitdepth = 10,
-    icc      = home .. "/.config/hypr/SR4.icm"
 })
 hl.monitor({
-    output   = "DP-2",
-    mode     = "3840x2160@60",
-    position = "2256x0",
-    scale    = 2
+    output   = "DP-1",
+    mode     = "2560x1440@60", -- 3840x2160
+    position = "1920x0",
+    scale    = 1.33,
 })
 
 -- =========================================================================
 -- Environment Variables
 -- =========================================================================
-hl.env("HYPRCURSOR_SIZE", "48")
-hl.env("XCURSOR_THEME",   "volantes_cursors")
-hl.env("XCURSOR_SIZE",    "48")
+-- Cursor: 
+local function theme_mode()
+    local f = io.open(home .. "/.cache/quickshell/theme_mode", "r")
+    if not f then return "dark" end
+    local m = f:read("l") or ""
+    f:close()
+    return m:gsub("%s+", "") == "light" and "light" or "dark"
+end
+
+local cursor_theme = theme_mode() == "light" and "Saturnian-Day" or "Saturnian-Night"
+
+hl.env("HYPRCURSOR_THEME", cursor_theme)
+hl.env("HYPRCURSOR_SIZE",  "32")
+hl.env("XCURSOR_THEME",    cursor_theme)
+hl.env("XCURSOR_SIZE",     "32")
 hl.env("GDK_SCALE",       "2")
 hl.env("GDK_BACKEND",     "wayland,x11,*")
 hl.env("CLUTTER_BACKEND", "wayland")
@@ -56,16 +66,15 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("hypridle")
     hl.exec_cmd("awww-daemon")
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
-    hl.exec_cmd("hyprctl plugin load " .. home .. "/hyprselect/hyprselect.so")
-    hl.exec_cmd("awww img -o eDP-1 " .. home .. "/Pictures/desktop/wpdark.jpg")
-    hl.exec_cmd("awww img -o DP-2 " .. home .. "/Pictures/desktop/2.png")
+    hl.exec_cmd("awww img -o eDP-1 " .. home .. "/Pictures/Wallpaper/brian-mcgowan-I0fDR8xtApA-unsplash.jpg")
+    hl.exec_cmd("awww img -o DP-1 " .. home .. "/Pictures/Wallpaper/mimicry-hu-24tsXm7qGQE-unsplash.jpg")
 end)
 
 -- =========================================================================
 -- Workspace Rules
 -- =========================================================================
 for i = 1, 5  do hl.workspace_rule({ workspace = tostring(i), monitor = "eDP-1" }) end
-for i = 6, 10 do hl.workspace_rule({ workspace = tostring(i), monitor = "DP-2"  }) end
+for i = 6, 10 do hl.workspace_rule({ workspace = tostring(i), monitor = "DP-1" }) end
 
 -- =========================================================================
 -- Core Config
@@ -73,7 +82,7 @@ for i = 6, 10 do hl.workspace_rule({ workspace = tostring(i), monitor = "DP-2"  
 hl.config({
     general = {
         gaps_in               = 1,
-        gaps_out              = 2,
+        gaps_out              = 3,
         border_size           = 1,
         ["col.active_border"]   = "rgba(87b158aa)",
         ["col.inactive_border"] = "rgba(595959aa)",
@@ -97,10 +106,8 @@ hl.config({
         blur = {
             enabled           = true,
             size              = 5,
-            passes            = 4,
+            passes            = 2,
             new_optimizations = true,
-            xray              = true,
-            popups            = true
         }
     },
     animations = {
@@ -152,6 +159,7 @@ hl.config({
         force_zero_scaling = true
     },
     misc = {
+        vrr                      = 1,
         disable_hyprland_logo    = true,
         disable_splash_rendering = true,
         force_default_wallpaper  = 0,
@@ -160,10 +168,10 @@ hl.config({
         swallow_regex            = "^(kitty)$"
     },
 layerrule = {
-        "animation slide, rofi",
-        "animation popin, power-menu",
-        "dim_around, power-menu"
-    }
+    "animation slide, rofi",
+    "animation popin, power-menu",
+    "dim_around, power-menu",
+}
 })
 
 -- =========================================================================
@@ -191,6 +199,9 @@ hl.animation({ leaf = "specialWorkspaceOut", enabled = true, speed = 3, bezier =
 
 hl.animation({ leaf = "fadeLayersIn", enabled = true, speed = 2, bezier = "md3_decel" })
 hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 2, bezier = "md3_accel" })
+
+
+
 
 -- =========================================================================
 -- Gestures
@@ -237,7 +248,7 @@ hl.bind(mod .. " + CTRL + left",  function() hl.dispatch(hl.dsp.group.change_act
 hl.bind(mod .. " + CTRL + right", function() hl.dispatch(hl.dsp.group.change_active({ direction = "prev" })) end)
 
 hl.bind(mod .. " + " .. alt .. " + F4", hl.dsp.exec_cmd("hyprctl dispatch 'hl.dsp.exit()'"))
-hl.bind(alt .. " + F4", hl.dsp.exec_cmd("quickshell -p ~/.config/quickshell/task-bar/utils/PowerMenu.qml"))
+hl.bind(alt .. " + F4", hl.dsp.exec_cmd("hyprctl layers | grep -q power-menu || quickshell -p ~/.config/quickshell/task-bar/utils/PowerMenu.qml"))
 
 hl.bind(mod .. " + left",         hl.dsp.focus({ direction = "left" }))
 hl.bind(mod .. " + right",        hl.dsp.focus({ direction = "right" }))
@@ -281,21 +292,27 @@ hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
 -- =========================================================================
 -- Lid Switch
 -- =========================================================================
+-- switch:off = lid OPEN, switch:on = lid CLOSED
 hl.bind("switch:off:Lid Switch", function()
     hl.timer(function()
-        hl.dispatch(hl.dsp.exec_cmd("hyprctl dispatch dpms on eDP-1"))
+        hl.monitor({
+            output   = "eDP-1",
+            mode     = "1920x1200@120",
+            position = "0x0",
+            scale    = 1,
+            disabled = false,
+        })
     end, { timeout = 500, type = "oneshot" })
 end, { locked = true })
+
 hl.bind("switch:on:Lid Switch", function()
-    hl.timer(function()
-        hl.dispatch(hl.dsp.exec_cmd("hyprctl dispatch dpms off eDP-1"))
-    end, { locked = true })
+    hl.monitor({ output = "eDP-1", disabled = true })
 end, { locked = true })
 
 -- =========================================================================
 -- Window Rules
 -- =========================================================================
-hl.window_rule({ match = { class = "^kitty$" }, float = true, size = "700 400", center = true, rounding = 8, opacity = "0.9 0.9" })
+hl.window_rule({ match = { class = "^kitty$" }, float = true, size = "950 550", center = true, rounding = 8, opacity = "0.9 0.9" })
 hl.window_rule({ match = { class = "^org.pwmt.zathura$" }, float = true, size = "750 1000" })
 hl.window_rule({ match = { class = "^blueman-manager$" }, float = true, size = "500 300", move = "1165 777", rounding = 10, opacity = "0.90 0.90", border_size = 1, border_color = "rgb(87b158) rgb(2D353B)", animation = "popin", dim_around = true })
 hl.window_rule({ match = { class = "^nm-connection-editor$" }, float = true, size = "500 600", center = true, rounding = 10, opacity = "0.95 0.95", border_color = "rgb(87b158)" })
@@ -303,8 +320,7 @@ hl.window_rule({ match = { class = "^com.snes.evercal$" }, float = true, size = 
 hl.window_rule({ match = { class = "^org.gnome.Lollypop$" }, float = true, size = "900 600" })
 hl.window_rule({ match = { class = "^org.kde.plasma-systemmonitor$" }, float = true, size = "1000 700", rounding = 14 })
 hl.window_rule({ match = { class = "^lens$" }, float = true, center = true, size = "1000 700", rounding = 10, border_color = "rgb(374527)" })
-hl.window_rule({ match = { class = "^code$" }, opacity = "0.9 0.9" })
-hl.window_rule({ match = { class = "^thunar$" }, float = true, opacity = "0.9 0.9", size = "900 600", center = true })
+--hl.window_rule({ match = { class = "^thunar$" }, float = true, size = "900 600", center = true })
 hl.window_rule({ match = { class = "^xdm-app$" }, float = true, size = "700 400", rounding = 10, opacity = "0.8 0.8", center = true })
 hl.window_rule({ match = { class = "^org.gnome.FileRoller$" }, float = true, size = "500 350", center = true, rounding = 10, border_color = "rgb(87b158)" })
 hl.window_rule({ match = { class = "^com.snes.nowplaying$" }, float = true, pin = true, border_size = 1, border_color = "rgb(1e2327)", animation = "slide", move = "1425 16", opacity = "0.9 0.9" })

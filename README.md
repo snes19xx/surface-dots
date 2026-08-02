@@ -17,6 +17,7 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - [Power menu](#power-menu)
 - [Wifi menu](#wifi-menu)
 - [Firefox Customizations](#firefox-customizations)
+- [Cursors](#cursors)
 - [Lockscreens](#lockscreens)
 - [GTK/QT Themes](#themes)
 - [Utilities](#utilities-1)
@@ -30,20 +31,20 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 
 <div align="center">
 <div style="display:flex; justify-content:center; gap:10px;">
-  <img src="media/screenshots/A5.png" width="30%" />
-  <img src="media/screenshots/A3_.jpg" width="30%" />
-  <img src="media/screenshots/A2.jpg" width="30%" />
+  <img src="media/screenshots/top_bar.png" width="30%" />
+  <img src="media/screenshots/task_bar.jpg" width="30%" />
+  <img src="media/screenshots/windows_.jpg" width="30%" />
 </div>
 <p><i>Desktop Layouts</i></p>
 
 <br/>
 
 <div style="display:flex; justify-content:center; gap:10px;">
-  <img src="media/screenshots/main_ui.png" width="30%" />
+  <img src="media/screenshots/cassini.jpg" width="30%" />
   <img src="media/screenshots/reading.png" width="30%" />
   <img src="media/screenshots/layers.jpg" width="30%" />
 </div>
-<p><i>Top-bar UI, Reading Mode, Other system components</i></p>
+<p><i>Cassini Powermenu, Reading Mode, Other system components</i></p>
 
 </div>
 
@@ -88,7 +89,6 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - ttf-nerd-fonts-symbols
 - ttf-cm-unicode
 - ttf-google-fonts-git
-- volantes_cursors
 
 </td>
 <td valign="top">
@@ -653,7 +653,7 @@ Custom on-screen displays for:
 #### Codex Stellarium <img src="media/screenshots/cs_icon.png" width="48" alt="" style="vertical-align: middle; margin-right: 6px;" />
 
 <div align="left">
-  <img src="media/screenshots/cs.gif" width="700" alt="Codex Stellarium preview on Firefox" />
+  <img src="media/screenshots/cs.jpg" width="700" alt="Codex Stellarium preview on Firefox" />
 </div>
 
 ##### Get it on Firefox [![Get Codex Stellarium](https://img.shields.io/badge/Firefox-Add--on-orange?logo=firefox&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/codex-stellarium/)
@@ -707,6 +707,34 @@ Firefox doesn't really want you to use local html as a new tab page, if you want
 
 </details>
 
+## Cursors
+
+<p align="left">
+  <img src="media/Saturnian-Day-progress.gif" height="64">
+  <img src="media/Saturnian-Day-wait.gif" height="64">
+</p>
+
+##### `Saturnian` cursor theme:
+
+Custom cursor theme for Surface-dots in two variants - `Saturnian-Night` for dark desktops `Saturnian-Day` for light.
+For more info:Read [cursor_readme.md](cursor/README.md)
+
+**Note** The installer does not install cursor. Please install it manually; follow the steps below:
+
+###### Install
+
+```sh
+./install.sh              # current user  -> ~/.local/share/icons
+sudo ./install.sh --system  # all users   -> /usr/share/icons
+./install.sh --uninstall
+```
+
+Then, without restarting anything:
+
+```sh
+hyprctl setcursor Saturnian-Night 32
+```
+
 ## Themes
 
 ##### GTK:
@@ -731,8 +759,8 @@ Use _Kvantum Manager_ to install and apply the Kvantum theme.
 
 <div align="center">
 <div style="display:flex; justify-content:center; gap:10px;">
-  <img src="media/screenshots/stella.png" width="400" />
-  <img src="media/screenshots/pixel.png" width="400" />
+  <img src="media/screenshots/sddm_stellarium.jpg" width="400" />
+  <img src="media/screenshots/sddm_pixel.jpg" width="400" />
 </div>
 </div>
 

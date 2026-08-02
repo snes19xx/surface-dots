@@ -16,6 +16,10 @@ THEME_DARK="green-dark"
 THEME_LIGHT="green-light"
 ICONS_DARK="Papirus-Dark"
 ICONS_LIGHT="Papirus-Light"
+# CURSORS
+CURSOR_DARK="Saturnian-Night"
+CURSOR_LIGHT="Saturnian-Day"
+CURSOR_SIZE="32"
 # WALLPAPERS
 WALLPAPER_DARK="$HOME/Pictures/Wallpapers/ffx.png"
 WALLPAPER_LIGHT="$HOME/Pictures/Wallpapers/dissidia_ff.jpg"
@@ -87,6 +91,48 @@ update_kde_icons() {
     qdbus org.kde.KWin /KWin reconfigure >/dev/null 2>&1 || true
   fi
 }
+# Update the mouse cursor theme.
+update_cursor() {
+  local theme="$1"
+  local size="$2"
+
+  # GTK 3 -- same ini as the rest of the GTK settings
+  update_ini_key "$GTK3_SETTINGS" "gtk-cursor-theme-name" "$theme"
+  update_ini_key "$GTK3_SETTINGS" "gtk-cursor-theme-size" "$size"
+
+  # GTK 4 / anything reading the GNOME schema
+  if command -v gsettings &>/dev/null; then
+    gsettings set org.gnome.desktop.interface cursor-theme "$theme" || true
+    gsettings set org.gnome.desktop.interface cursor-size "$size" || true
+  fi
+
+  # The XDG "default" theme is the last-resort fallback: 
+  local def="$HOME/.local/share/icons/default"
+  mkdir -p "$def"
+  printf '[Icon Theme]\nName=default\nComment=Managed by theme-mode.sh\nInherits=%s\n' \
+    "$theme" > "$def/index.theme"
+
+  # KDE / Qt 
+  local kw=""
+  command -v kwriteconfig6 &>/dev/null && kw="kwriteconfig6" || kw="kwriteconfig5"
+  if command -v "$kw" &>/dev/null; then
+    $kw --file "$HOME/.config/kcminputrc" --group Mouse --key cursorTheme "$theme" || true
+    $kw --file "$HOME/.config/kcminputrc" --group Mouse --key cursorSize  "$size"  || true
+  fi
+
+  # XSettings 
+  if command -v xfconf-query &>/dev/null; then
+    xfconf-query -c xsettings -p /Gtk/CursorThemeName -n -t string -s "$theme" >/dev/null 2>&1 \
+      || xfconf-query -c xsettings -p /Gtk/CursorThemeName -s "$theme" >/dev/null 2>&1 || true
+    xfconf-query -c xsettings -p /Gtk/CursorThemeSize -n -t int -s "$size" >/dev/null 2>&1 \
+      || xfconf-query -c xsettings -p /Gtk/CursorThemeSize -s "$size" >/dev/null 2>&1 || true
+  fi
+
+  # Hyprland live
+  if command -v hyprctl &>/dev/null; then
+    hyprctl setcursor "$theme" "$size" >/dev/null 2>&1 || true
+  fi
+}
 # Update Kitty terminal theme
 update_kitty() {
   local source_conf="$1"
@@ -94,6 +140,7 @@ update_kitty() {
   # Reload Kitty config without restarting
   kill -SIGUSR1 $(pidof kitty) 2>/dev/null || true
 }
+
 # Update Dunst notification theme
 update_dunst() {
   local source_conf="$1"
@@ -133,11 +180,20 @@ update_dunst() {
 # OPTIONAL: XFCE/Thunar SYNC
 # If you don't use XFCE/Thunar, comment or remove this to sync Thunar themes:
 xfce_thunar_sync() {
-  local theme="$1" 
+  local theme="$1"
   local icons="$2"
+  # Push into the xsettings channel too
   if command -v xfconf-query &>/dev/null; then
-    xfconf-query -c xsettings -p /Net/ThemeName -s "$theme" >/dev/null 2>&1 || true
-    xfconf-query -c xsettings -p /Net/IconThemeName -s "$icons" >/dev/null 2>&1 || true
+    xfconf-query -c xsettings -p /Net/ThemeName     -n -t string -s "$theme" >/dev/null 2>&1 \
+      || xfconf-query -c xsettings -p /Net/ThemeName     -s "$theme" >/dev/null 2>&1 || true
+    xfconf-query -c xsettings -p /Net/IconThemeName -n -t string -s "$icons" >/dev/null 2>&1 \
+      || xfconf-query -c xsettings -p /Net/IconThemeName -s "$icons" >/dev/null 2>&1 || true
+  fi
+
+  if systemctl --user is-active --quiet thunar.service 2>/dev/null; then
+    systemctl --user restart thunar.service 2>/dev/null || true
+  else
+    command -v thunar &>/dev/null && thunar -q >/dev/null 2>&1 || true
   fi
 }
 # MAIN THEME FUNCTION
@@ -181,13 +237,22 @@ fi
   # GTK 4
   # ---------------------------------------------------------------------------
   update_gtk4_links "$theme_gtk"
+
+  # ---------------------------------------------------------------------------
+  # CURSOR
+  # ---------------------------------------------------------------------------
+  # Derived from $mode 
+  if [ "$mode" == "light" ]; then
+    update_cursor "$CURSOR_LIGHT" "$CURSOR_SIZE"
+  else
+    update_cursor "$CURSOR_DARK" "$CURSOR_SIZE"
+  fi
   
   # ---------------------------------------------------------------------------
   # GNOME/GSETTINGS (for GTK apps that check gsettings)
   # ---------------------------------------------------------------------------
   if command -v gsettings &>/dev/null; then
     gsettings set org.gnome.desktop.interface color-scheme "$gnome_scheme" || true
-    gsettings set org.gnome.desktop.interface gtk-application-prefer-dark-theme "$prefer_dark_bool" || true
     gsettings set org.gnome.desktop.interface icon-theme "$theme_icon" || true
     gsettings set org.gnome.desktop.interface gtk-theme "$theme_gtk" || true
   fi
@@ -247,7 +312,7 @@ fi
   # KITTY TERMINAL
   # ---------------------------------------------------------------------------
   update_kitty "$HOME/.config/kitty/themes/$kitty_conf"
-  
+
   # ---------------------------------------------------------------------------
   # OPTIONAL INTEGRATIONS
   # ---------------------------------------------------------------------------
