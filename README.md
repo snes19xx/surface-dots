@@ -13,6 +13,7 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - [Hyprland](#hyprland)
 - [Shaders](#shaders)
 - [Desktop Layouts](#desktop-layouts)
+- [Workflow guide](#workflow-guide)
 - [Quickshell Hub](#quickshell-hub)
 - [Power menu](#power-menu)
 - [Wifi menu](#wifi-menu)
@@ -21,6 +22,7 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - [Lockscreens](#lockscreens)
 - [GTK/QT Themes](#themes)
 - [Utilities](#utilities-1)
+- [Recent bug fixes](#recent-bug-fixes)
 - [Credits & acknowledgements](#credits--acknowledgements)
 - [Media sources](#media-sources)
 - [FAQs](#faqs)
@@ -67,8 +69,10 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - xdg-desktop-portal-gtk
 - polkit-gnome
 - sddm
+- pacman-contrib
 - networkmanager
 - bluez, blueman
+- upower
 - webkit2gtk-4.1
 
 </td>
@@ -78,10 +82,11 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 
 - dunst
 - awww
-- waypaper-git
 - rofi
 - kitty
+- thunar
 - firefox
+- hyprpicker
 - colorreload-gtk-module
 - qt6ct
 - kvantum
@@ -107,7 +112,7 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - [EverCal](https://github.com/snes19xx/EverCal)
 - xdg-utils
 - curl, jq
-- auto-cpufreq
+- auto-cpufreq (optional)
 - howdy-git (optional)
 </td>
 </tr>
@@ -116,7 +121,7 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 ---
 
 > [!CAUTION]
-> Some layout geometry is hardcoded for 3:2 high-resolution display. Deviation in aspect ratio or pixel density will result in misalignment or things looking too big or small. Please follow instructions in the FAQs below to reconfigure values accordingl or start an issue if you require further assistance.
+> Some layout geometry is still hardcoded for 3:2 high-resolution display. Deviation in aspect ratio or pixel density will result in misalignment or things looking too big or small. Please follow instructions in the FAQs below to reconfigure values accordingl or start an issue if you require further assistance.
 
 ## Installation
 
@@ -143,11 +148,23 @@ chmod +x surface-dots-installer
 
 - `SUPER + Q` → terminal (`kitty`)
 - `SUPER + E` → file manager (`thunar`)
-- `SUPER + R` → app drawer (you need to reprogram it to rofi script in top-bar layout)
+- `SUPER + R` → app drawer (works in both layouts now, see the note below)
 - `SUPER + B` → firefox
+- `SUPER + S` → my custom ocr app (`lens`)
+- `SUPER + P` → color picker (`hyprpicker -a`)
+
+`SUPER + R` used to need rewiring if you ran the top bar. It doesn't anymore — the
+bind goes to the shell either way, and the shell decides what to open: rofi in topbar
+mode, the wide drawer in taskbar mode. Same key, right launcher.
+
+### Shaders
+
+These live in `shader.lua`, not `hyprland.lua`:
+
 - `SUPER + D` → reading mode
 - `SUPER + N` → night light
-- `SUPER + S` → my custom ocr app
+- `ALT + C` → CRT mode
+- `SUPER + ALT + S` → turn every shader off
 
 ### Window actions
 
@@ -155,8 +172,8 @@ chmod +x surface-dots-installer
 - `SUPER + X` → kill active window
 - `SUPER + F` → toggle floating (simple)
 - `SUPER + ALT + F` → toggle floating **and** set size `900x600` + center
+- `SUPER + L` → float **and** resize to `1440x1080`
 - `SUPER + M` → fullscreen
-- `SUPER + P` → pseudotile
 - `SUPER + UP` → togglesplit
 - `SUPER + DOWN` → togglesplit
 
@@ -168,7 +185,7 @@ chmod +x surface-dots-installer
 ### Focus (arrow keys)
 
 - `SUPER + Left/Right` → move focus horizontally
-- `SUPER + UP/Down` → move focus vertically
+- `SUPER + SHIFT + Up/Down` → move focus vertically
 
 ### Workspaces
 
@@ -191,8 +208,19 @@ chmod +x surface-dots-installer
 ### Screenshots
 
 - `Print` → Screen snip
-- `SUPER + Print` <i>or</i> `SUPER + O` → Capture screen
+- `SUPER + Print` → Capture screen
 - `SUPER + SHIFT + Print` → Window capture
+- `SUPER + O` → Capture monitor
+
+### Unbound by default
+
+The shell registers a third global, `quickshell:monitorPicker`, which opens the
+Displays panel straight from the desktop. I don't have a key on it because the panel
+also pops up on its own when you plug a monitor in, but if you want one:
+
+```lua
+hl.bind(mod .. " + SHIFT + D", hl.dsp.global("quickshell:monitorPicker"))
+```
 
 </details>
 
@@ -245,27 +273,30 @@ A shader-based reading mode to mimic an e-ink reader.
 
 ## Desktop Layouts
 
-Two desktop layouts are available depending on how you want the bar positioned.
+Two desktop layouts, depending on where you want the bar. **These used to be two
+separate shells and they aren't anymore** -- `top-bar/` and `task-bar/` were merged into
+one config. There's a single `shell.qml`, one set of services, one theme engine, one
+hub. The layout is now a setting.
 
-Use the **top bar layout**:
-
-```bash
-qs -c top-bar
-```
-
-Use the **taskbar layout**:
+So this is the whole launch command, for both:
 
 ```bash
-qs -c task-bar
+qs
 ```
 
-Both layouts (mostly) reuse the same core components but behave differently depending on mode.
+No more `qs -c task-bar`. If you're coming from an older copy of these dots, that's the
+one thing you have to change in your Hyprland config.
+
+Switch layouts in the Hub under **Settings -> Taskbar -> Layout**, or set `barStyle` to
+`task` or `top` in `lib/usersettings.json`.
+
+Both layouts share the same core components but behave differently depending on mode.
 
 #### Taskbar Mode Behavior
 
 Taskbar mode has additional desktop components and layout changes:
 
-- `desktop/ScreenBorders.qml`
+- `desktop/ScreenBorder.qml`
 - `dock/Drawer.qml`
 
 ##### Default state (no active windows)
@@ -289,24 +320,20 @@ As soon as a window opens:
 
 - The appdrawer menu is wider and contains `shaders`
 - The Hub media card derives its background colors from album art palette colors, instead of using blurred album artwork.
-- Upcoming events are no longer displayed inside `CalendarsWeatherCard.qml` and have a dedicated card
+- Upcoming events are no longer displayed inside `hub/CalendarWeatherCard.qml` and have a dedicated card
   `hub/Events.qml`. By default, the next upcoming event is shown until it ends. Multiple events can be added to the list by increasing the loop count in the file.
-- <strong>Theme switching</strong> also differs between layouts:
-  - <u>Taskbar mode</u>: the Hub header has a theme toggle button (dark/light).
-  - <u>Topbar mode</u>: right-clicking the Arch glyph launcher icon toggles the theme.
-    Both modes use the same theme script just located at:
+- <strong>Theme switching</strong> is the same everywhere now, there are just extra ways to reach it:
+  - `d` and `l` with the hub open, from either layout. This is the one I actually use.
+  - The theme swatch in **Settings → Theme**.
+  - <u>Topbar mode</u> only: right-click the Arch glyph launcher icon.
+
+  All of them end up in the same script, which is now one file instead of one per bar:
 
   ```bash
-  # in top bar mode:
-  bash ~/config/quickshell/top-bar/bar/theme-mode.sh dark|light
+  bash ~/.config/quickshell/utils/theme-mode.sh dark|light
   ```
 
-  ```bash
-  # in task bar mode:
-  bash ~/config/quickshell/task-bar/utils/theme-mode.sh dark|light
-  ```
-
-- Changing colors is generally easier in **Taskbar mode**, as most styling is handled through the dynamic theme system in `lib/ThemeEngine.qml`. Some components still use the older `theme.js` configuration, and a few define their own colors internally, so theme behavior is still not completely unified.
+- Styling for both layouts is handled through the dynamic theme system in `lib/ThemeEngine.qml`, which follows the shared mode state in `lib/ThemeState.qml`. That singleton is the only thing that owns dark/light now — there used to be three separate file watchers confirming what mode you were in. A few components still define their own colors internally.
 
 <details>
   
@@ -322,7 +349,9 @@ hyprctl dispatch workspace <id>
 
 ### Updates
 
-Updates are hardcoded for `archlinux` if you are using a different distro please replace:
+Updates are hardcoded for `archlinux` if you are using a different distro please replace.
+Both bars poll separately, so this is two edits — `bars/TaskBar.qml` (_line 196_) and
+`bars/TopBar.qml` (_line 132_):
 
 ```qml
 // replace this snippet
@@ -353,7 +382,7 @@ Clicking the updates pill runs:
 kitty -e bash -lc "sudo pacman -Syu"
 ```
 
-with this line in `Taskbar.qml` (_line 932_) and `Bar.qml`(_line 595_):
+with this line in `bars/TaskBar.qml` (_line 946_) and `bars/TopBar.qml` (_line 574_):
 
 ```qml
 command: ["kitty", "-e", "bash", "-lc", "sudo pacman -Syu"]
@@ -368,22 +397,72 @@ please replace this line with your package manager's update/upgrade command
 
 </details>
 
+### WORKFLOW GUIDE
+
+The whole shell is built around one idea: you shouldn't have to aim at anything.
+`SUPER + SPACE` opens the hub, and from that point your left hand is already sitting on
+every control in it. I open the hub,
+hit a letter, and it's gone again -- most of my interactions with this desktop last under
+a second and never involve the mouse.
+
+```
+SUPER + SPACE          →   hub opens (or closes)
+        ↓
+   d / l               →   dark / light
+   n                   →   notifications
+   s                   →   settings
+   w                   →   wallpapers
+   m                   →   displays
+   b                   →   battery & system stats
+   Esc                 →   close everything
+```
+
+| Key   | Does                            | Notes                                                   |
+| ----- | ------------------------------- | ------------------------------------------------------- |
+| `d`   | Dark theme                      | `d` on an already-dark desktop does nothing             |
+| `l`   | Light theme                     | Same, `l` when you're already light does nothing        |
+| `n`   | Expand / collapse notifications | For when the media card has squashed them               |
+| `s`   | Settings panel                  | Swaps in place, press `s` again to come back            |
+| `w`   | Wallpaper picker                | `s` also backs out of this one                          |
+| `m`   | Displays panel                  | Resolution, refresh rate, scale, multi-monitor layout   |
+| `b`   | Battery / system stats card     | Toggles the card in the column, doesn't replace the hub |
+| `Esc` | Close                           | One press, from anywhere                                |
+
+The panels are mutually exclusive on purpose. Opening settings closes displays, opening
+wallpapers closes settings, and so on. Only one thing is ever in that content area, so
+there's nothing to stack and nothing to back out of.
+
+A few controls are outside this:
+
+- `ALT + F4` → power menu. It's its own overlay.
+- `SUPER + R` → app drawer. Rofi in topbar mode, the wide drawer in taskbar mode.
+- Right-click the Wi-Fi button → the full network menu.
+- Right-click the performance button → battery health card (same as `b`).
+- Right-click the Arch glyph, topbar mode only → theme toggle.
+
+---
+
 # Quickshell Hub
 
-The hub is named 'snes-hub` with
+The main control and notification center, the core of the shell.
+
+Both layouts open the same hub:
+
+- Clicking the **date/clock module** in the bar
+- `SUPER + SPACE`, via `quickshell:hubToggle`
+
+It's a wlr-layershell overlay, namespaced so you can write Hyprland rules against it:
 
 ```qml
-// in HubWindow.qml (line 78 in task-bar and line 68 in top-bar):
+// hub/HubWindow.qml
 WlrLayershell.namespace: "snes-hub"
 ```
 
-This is the main control/notification center.
-The hub is opened by:
-
-- Clicking the **date/clock module** in the bar
-- Pressing **SUPER + SPACE** through a Hyprland keybinding
-
-It is rendered as a **wlr-layershell overlay** designed to stay out of the way and close quickly. The UI is composed of reusable components so cards can be added, removed, or restyled without rewriting the entire hub.
+Where it appears depends on the layout. In **taskbar mode** it's a 520px two-column panel that rises out of
+the dock. In **topbar mode** it's a 320px single column that drops from under the bar on
+the right, which is how the top bar has always worked.
+Same window, same keys, same services underneath `hub/TaskCards.qml` and
+`hub/TopCards.qml` just lay the cards out differently.
 
 If you want a lightweight fallback, an earlier **AGS** version is available in `.config/ags/`.
 
@@ -392,40 +471,65 @@ If you want a lightweight fallback, an earlier **AGS** version is available in `
 
 ### Header
 
-- Profile icon and username
-- RAM and CPU usage indicators (only in topbar mode)
-- Screenshot button (runs capture script and closes the hub)
-- Power button
-- Theme toggle button (taskbar mode)
-- Settings button (taskbar mode)
+| Buttons  | Does                                                       |
+| -------- | ---------------------------------------------------------- |
+| Stats    | Toggles the battery / system card in the column below      |
+| Settings | Swaps the settings panel into the hub                      |
+| Displays | Swaps the displays panel in                                |
+| Snapshot | Closes the hub, then fires the capture script ~320ms later |
+
+The profile picture is `profile.jpg` next to `shell.qml`, overridable in Settings; the
+name comes from `PROFILE_NAME` in `config.js`.
+
+Two things that used to be here are gone. **The power button** opened a grid inside the
+header that did the same job as the `ALT + F4` menu. there's one power menu now
+and it's outside the hub. **The theme toggle** moved to `d` / `l` and the swatch in
+Settings.
+
+RAM and CPU readouts aren't in the header anymore. You need to toggle them with `B` keypress
 
 ---
 
 ### Settings Panel
 
-There's finally a settings panel (`hub/SettingsPanel.qml`) so you don't have to edit files for everything.
+`hub/SettingsPanel.qml`, so you don't have to edit files for everything.
 
-Open it by:
-
-- Clicking the settings button in the Hub header
-- Pressing the `s` key while the hub is focused
-
-It swaps the hub content in place and lets you change:
+Open it with the settings button or the `s` key. It swaps the hub content in place, and `s` again takes you back to the cards.
 
 - Appearance (theme + accent/colors)
-- Weather API location
-- Power menu skin (Living Things or Cassini) and its accent
-- Layout & taskbar tweaks
-- Screen borders
+- Weather API key and location
+- Power menu skin (Living Things or Cassini) and its accent, saved per light/dark
+- **Layout** : this is where you switch between topbar and taskbar
+- Taskbar tweaks (exclusive zone, dock/workspace forcing, custom background)
+- Screen borders (thickness, color)
 - Profile picture & events
 
-Not everything is wired through it yet, some styling still is in `lib/ThemeEngine.qml` and `theme.js`, but it covers most of the common stuff now.
+Settings are written through `lib/Configuration.qml` into `lib/usersettings.json`.
+Not everything is wired through the panel yet, some styling still is in
+`lib/ThemeEngine.qml` and `theme.js`, but it covers most of the common stuff now.
+
+---
+
+### Displays Panel
+
+`hub/MonitorsPanel.qml`, opened with the `m` key or the displays button. This one is new
+and it's in both layouts.
+
+- Layout: Extend / Duplicate / Laptop only / External only
+- Resolution, refresh rate and scale per monitor
+- Remembers monitors it has seen before, so a setup you plug into every day comes back
+  the way you left it
+- Prompts on hotplug when it sees something new
+
+Changes go out through `hyprctl`.
 
 ---
 
 ### Wallpaper Panel
 
-`hub/WallpaperPanel.qml` is a wallpaper picker opened from the settings panel. It's backed by a small rust helper (`bin/papel`, source in `.source_codes/wallpaper_panel/`) that generates thumbnails and streams them into the grid over a socket.
+`hub/WallpaperPanel.qml`, opened with `w` or from the settings panel. It's backed by a
+small rust helper (`bin/papel`, source in `.source_codes/wallpaper_panel/`) that generates
+thumbnails and streams them into the grid over a socket.
 
 - Live thumbnail grid of your wallpaper folder
 - Refresh button re-scans the folder for newly added wallpapers
@@ -433,41 +537,57 @@ Not everything is wired through it yet, some styling still is in `lib/ThemeEngin
 
 ---
 
-### Power Options
-
-A compact power grid expands **inside the header**.
-
-Open it by:
-
-- Clicking the power button
-- Pressing the `p` key
-
-Keyboard navigation:
-
-- Arrow keys / Tab to move
-- Enter to activate
-- Esc to close
-
----
-
 ### Buttons and Sliders
 
-- `Wi-Fi toggle` with SSID readout (right-click opens the Wi-Fi module)
-- `Bluetooth toggle` with connected device status
-- `Performance profile button` (cycles profiles through `auto-cpufreq`, right click toggles battery health card)
+- `Wi-Fi toggle` with SSID readout (right-click opens the Wi-Fi menu)
+- `Bluetooth toggle` with connected device status (right-click opens blueman)
+- `Performance profile button` (cycles Auto → Max → Powersave through `auto-cpufreq`, right-click toggles the battery health card). **Needs a sudoers rule, see below** — without one it's inert by design.
 - `DND toggle` (dunst)
 - `Volume and brightness sliders` (`pactl` and `brightnessctl`)
+
+#### Enabling the performance button (auto-cpufreq)
+
+`auto-cpufreq --force=…` sets a system-wide CPU policy, so it needs root. The shell runs it as:
+
+```bash
+sudo -n auto-cpufreq --force=performance|powersave|reset
+```
+
+**out of the box the button does nothing** To make it work, grant
+passwordless sudo for those three exact commands:
+
+```bash
+sudo visudo -f /etc/sudoers.d/auto-cpufreq
+```
+
+```sudoers
+yourname ALL=(root) NOPASSWD: /usr/bin/auto-cpufreq --force=performance, \
+                              /usr/bin/auto-cpufreq --force=reset, \
+                              /usr/bin/auto-cpufreq --force=powersave
+```
+
+> [!WARNING]
+> Use `visudo -f`, not an editor. It validates the file before saving, and a broken
+> sudoers file locks you out of sudo entirely.
+>
+> List the three commands out in full. `NOPASSWD: /usr/bin/auto-cpufreq *` looks tidier
+> and is a privilege escalation hole-- the wildcard accepts any argument.
+
+If the call fails the button rolls its own state back, so it won't sit there claiming
+"Max" when nothing changed. If you don't use `auto-cpufreq` at all, ignore the button;
+nothing else in the shell depends on it.
 
 ---
 
 ### Battery Health
 
-The battery health card shows RAM and CPU usage in Taskbar mode.
+Shows RAM and CPU usage alongside the battery in taskbar mode. Toggle it with `b` or by
+right-clicking the performance button.
 
-Polled using:
+It finds your battery automatically:
 
-```
-upower -i /org/freedesktop/UPower/devices/battery_BAT1
+```bash
+DEV=$(upower -e | grep -m1 -i battery); upower -i "$DEV"
 ```
 
 Displayed information:
@@ -479,56 +599,53 @@ Displayed information:
 - Time remaining (when available)
 - Charging state
 
-> NOTE  
-> If your battery device is not `battery_BAT1`, update the device path in `BatteryHealthCard.qml`.
-
 ---
 
 ### Media Card (MPRIS)
-
-The hub includes an **MPRIS media card**.
 
 - Appears only when media is playing
 - Clicking it launches the external **Now Playing widget** and closes the hub
 - Resets its internal state when track metadata changes
 
-Some browser content (like YouTube) can behave inconsistently depending on how the browser exposes MPRIS.
+Some browser content (like YouTube) can behave inconsistently depending on how the
+browser exposes MPRIS.
 
-In taskbar mode, the media card uses colors extracted from album art instead of blurred artwork backgrounds.
+In taskbar mode the media card derives its background from an album art palette. In
+topbar mode it uses blurred artwork.
 
 ---
 
 ### Now Playing (Flutter)
 
-This is a separate Flutter desktop widget managed through Hyprland window rules.
-
-Behavior:
+A separate Flutter desktop widget managed through Hyprland window rules.
 
 - Window resizing is disabled (`setResizable(false)`)
 - Esc closes the widget
 - Theme colors are generated from album artwork using `palette_generator`
 
 > NOTE  
-> You may need to make the now_playing binary executable and change the path to it in MediaCard.qml
+> You may need to make the now_playing binary executable. The path is resolved relative
+> to the shell now, so you shouldn't have to edit it unless you move the binary.
 
 ---
 
 ### Calendar, Weather and Events
 
-The hub includes a calendar and weather card using a JSON-based weather script.
+A calendar and weather card, with weather coming from a shell script
+(`lib/weather.sh`, OpenWeatherMap). Set the key and coordinates in the settings panel.
 
-Calendar events are synced from **Google Calendar** using:
+The weather glyphs are Nerd Font symbols, not emoji. if you see a tofu box instead of a
+cloud, you're missing `ttf-nerd-fonts-symbols`.
 
-- `vdirsyncer`
-- `khal`
+Calendar events are synced from **Google Calendar** using `vdirsyncer` and `khal`.
 
-Events are displayed in a dedicated Events card in Taskbar mode instead of inside `CalendarsWeatherCard.qml`.
+Where events show up differs between the layouts:
 
-The next upcoming event remains visible until it finishes. Multiple events can be configured inside:
+- **Taskbar mode** : a dedicated `hub/Events.qml` card
+- **Topbar mode** : inline in the calendar card
 
-```
-hub/Events.qml
-```
+  The next upcoming event stays visible until it finishes. Show more by increasing the
+  loop count in `hub/Events.qml`, or `maxEvents` in the settings.
 
 <details>
 <summary><strong>Google Calendar sync (vdirsyncer + khal)</strong></summary>
@@ -595,7 +712,7 @@ khal list now 7d
 - Clicking a notification dismisses it
 - Uses dunst (`dunstctl`) as the backend
 - Collapsed by default when the media card is active
-- Can be expanded with the expand button
+- `n` or the expand button opens them back up
 
 ---
 
@@ -621,21 +738,18 @@ Both share the same logic (`utils/PowerMenuController.qml`), the skins are just 
 **Run**
 
 ```bash
-# in Topbar mode:
-quickshell -p ~/.config/quickshell/top-bar/bar/PowerMenu.qml
-```
-
-```bash
-# in Taskbar mode:
-quickshell -p ~/.config/quickshell/task-bar/utils/PowerMenu.qml
+quickshell -p ~/.config/quickshell/utils/PowerMenu.qml
 ```
 
 ## Wifi menu
 
-Standalone network manager applet located at lib/WifiMenu.qml. With both (light/dark) theme.
+Network manager applet at `lib/WifiMenu.qml`, in both light and dark.
 
-- Trigger: Right-click the Wi-Fi button in the Hub.
-- or run: `quickshell -p ~/<pathto>lib/Wifimenu.qml`
+- Trigger: right-click the Wi-Fi button in the Hub.
+- Standalone, if you want it on a key of its own: `quickshell -p ~/.config/quickshell/lib/WifiMenu.qml`
+
+It runs inside the shell now. It's preloaded and just made visible now, so it's instant. The file still works
+standalone for anyone who prefers binding it directly.
 
 > [!WARNING]
 > You should be able to connect to most enterprise access points now (PEAP/MSCHAPv2 only). That covers most corporate/campus networks (including eduroam), but if you ever hit an enterprise AP that requires EAP-TLS (client certificates) or EAP-TTLS, this menu won't handle it -- you'd need nmcli/nmtui directly for that.
@@ -719,7 +833,7 @@ Firefox doesn't really want you to use local html as a new tab page, if you want
 Custom cursor theme for Surface-dots in two variants - `Saturnian-Night` for dark desktops `Saturnian-Day` for light.
 For more info:Read [cursor_readme.md](cursor/README.md)
 
-**Note** The installer does not install cursor. Please install it manually; follow the steps below:
+The installer copies both variants into `~/.local/share/icons` as part of the utilities step. If you'd rather do it by hand, or you want them system wide:
 
 ###### Install
 
@@ -811,6 +925,7 @@ Utilities include the following:
 - Some svgs are from [https://www.svgrepo.com/](https://www.svgrepo.com/) , I made some myself
 - Thorium: https://thorium.rocks/ for the background visualizations in firefox custom new tab
 - My design inspiration comes mainly from : [Microsoft design](https://microsoft.design/), [Material design](https://m3.material.io/blog/building-with-m3-expressive) and [calla](https://github.com/Stardust-kyun/calla). The typography and UI design used in the installer are my own original work, which I’ve also used in several of my other projects, including my website and the firefox extension.
+- Big thanks to u/NoPsychology143 who gave me a giant list of bugs they encountered and I have attempted to resolve them in this update.
 
 ## Media Sources
 
@@ -848,11 +963,14 @@ _A: It assumes the authentication was successful by default. You may need to adj
 **Q: Why are there multiple app drawers (including the top-bar Rofi drawers)?**<br>
 \_A: I am currently experimenting with different designs and layouts. Taskbar mode now has a custom quickshell app + shader drawer (`dock/WideDrawer.qml`) that replaces rofi, moving forward I will only update this.
 
-**Q: Why are the desktop layouts two different shells instead of one unified shell with two options?**<br>
-_A: The project originally started as a simple calendar widget for my Google Calendar events. As more components were added over time, it evolved without a strict overall layout plan. Consolidating everything into a single shell would require significant code edits which I don't want to do atm_
+**Q: I'm updating from an older version and nothing launches. Why?**<br>
+_A: Almost certainly `qs -c task-bar` still in your Hyprland config. There's no `task-bar` config to select anymore, it's just `qs`. Check `hyprland.lua`, `shader.lua` and `scripts/wallpaper.sh`, those are the three places that referenced it._
+
+**Q: I picked a layout in settings, do I need to restart the shell?**<br>
+_A: No._
 
 **Q: How do I enable or disable screen borders?** <br>
-_A: (Only in taskbar mode) follow the instruction in shell.qml_
+_A: Settings -> Screen borders, where you can also set thickness and color. They're taskbar mode only. `showScreenBorders` in `lib/usersettings.json` if you'd rather not click._
 
 **Q: Components are misaligned in the hub. How do I fix them?** <br>
 _A: You can correct alignment by adding padding (left, right, up, down), adjusting spacing, or using the `translate` function. For example, to move weather in `CalendarWeather` card to the right:_
@@ -868,15 +986,10 @@ _A: You can correct alignment by adding padding (left, right, up, down), adjusti
 ```
 
 **Q: The taskbar is covering windows at the bottom of the screen. How do I fix this?** <br>
-_A: Decrease the layer exclusive zone in `Taskbar.qml` or increase the gaps in Hyprland config._
-
-```qml
-// desktop/Taskbar.qml
-    WlrLayershell.exclusiveZone: 47 // <-- change this
-```
+_A: Settings -> Taskbar -> Excl. zone, or increase the gaps in your Hyprland config. It's `taskbarExclusiveZone` in `lib/usersettings.json` and no longer needs a code edit-- the bars moved to `bars/TaskBar.qml` and `bars/TopBar.qml` if you're looking for the old line._
 
 **Q: Can I use the top-bar Rofi on the taskbar, or vice versa?** <br>
-_A: Yes. You just need to edit the path to the launcher script in your Hyprland configuration and update the on-click action within the launcher component for the respective bars._
+_A: `SUPER + R` goes to the shell now and the shell picks the launcher for the current layout, so you don't have to rewire anything to switch modes. To force one, the branch is in `shell.qml` under the `drawerToggle` shortcut, just swap which side calls rofi and which calls `wideDrawer.toggle()`._
 
 **Q: The theme switcher is not applying my GTK or Qt themes. How do I fix it?** <br>
 _A: First, make sure the script has executable permissions. Next, verify the theme files exist and match the names referenced in the script. Finally, run the script directly from the terminal to check for specific error messages abd fix them one by one._
@@ -885,16 +998,37 @@ _A: First, make sure the script has executable permissions. Next, verify the the
 _A: By default it reads from `~/Pictures/Wallpapers`, set `PAPEL_DIR` if yours live somewhere else. It also needs `awww` running to actually set the wallpaper, and `bin/papel` has to be executable. If you just added new wallpapers, hit the refresh button so it re-scans the folder._
 
 **Q: How do I switch the power menu skin?** <br>
-_A: Open the settings panel (taskbar mode) and go to the power menu section, you can pick between Living Things and Cassini there, and set a custom accent for each one._
+_A: Open the settings panel and go to the power menu section, you can pick between Living Things and Cassini there, and set a custom accent for each one. Works from either layout now._
+
+**Q: Where did the `p` power menu in the hub go?** <br>
+_A: Removed. It was a second, worse power menu living in the hub header doing the same job as `ALT + F4`. There's one now._
 
 **Q: The weather is wrong or not showing up. How do I fix it?** <br>
-_A: Set your location in the weather section of the settings panel, or edit `lib/weather.sh` directly. It pulls from the Open-Meteo API so you need `curl` and `jq` installed and a working connection._
+_A: Set your key and coordinates in the weather section of the settings panel, or edit `lib/weather.sh` directly. It's OpenWeatherMap, so you need your own free API key from them. You also need `curl` and `jq` installed._
+
+**Q: The weather text shows but the icon is a blank box.** <br>
+_A: Install `ttf-nerd-fonts-symbols`. The condition icons are Nerd Font glyphs. Same fix for any other missing glyph in the bars or hub._
+
+**Q: The performance button flips back to what it was, or does nothing.** <br>
+_A: Working as intended until you opt in. It runs `sudo -n auto-cpufreq --force=…`, and `-n` means sudo won't prompt — so with no sudoers rule the call fails and the button rolls its state back rather than lying to you. Add the drop-in from [the perf button section](#enabling-the-performance-button-auto-cpufreq). It's deliberately not a plain `sudo`: that version fails as an auth failure and feeds `pam_faillock`, which on Arch is shared with hyprlock and sddm, so enough clicks lock you out of your own screen._
+
+**Q: hyprlock is rejecting my correct password.** <br>
+_A: Check `faillock --user "$USER"`. If it lists a pile of `sudo` entries you've tripped `pam_faillock`, which `system-auth` shares between sudo, hyprlock, sddm, su and passwd. `faillock --user "$USER" --reset` clears it, and the default `unlock_time=600` means it also clears itself after 10 minutes. Older copies of these dots caused this through auto-cpufreq; on a current copy, something else on your system is failing auth._
 
 **Q: I changed something in the settings panel but it didn't stick. Why?** <br>
 _A: Most settings are saved through `lib/Configuration.qml`, so make sure it can actually write to its config location. A few components still read their colors from `theme.js` or define them internally, so those bits still need a manual file edit for now._
 
 **Q: How do I add my own shader to the wide app drawer?** <br>
 _A: Drop the `.glsl` in `~/.config/hypr/shaders/`, then add a matching icon in `dock/shader-icons/` (and a light-mode version in `dock/shader-icons/light/`) so it shows up in the drawer's shader tab._
+
+**Q: The hub keys don't do anything.** <br>
+_A: The hub has to have focus, which it does when you open it with `SUPER + SPACE` or by clicking the clock. If you clicked through to a window first, the keystrokes went there._
+
+**Q: Can I change the hub keybinds?** <br>
+_A: They're a `Keys.onPressed` block near the top of `hub/HubWindow.qml`, one `else if` per key. Add or swap letters there._
+
+**Q: Something's off in only one of the two layouts. Where do I look?** <br>
+_A: If it's a card, it's in `hub/top/` for topbar mode or `hub/` for taskbar mode. If it's the bar, `bars/TopBar.qml` or `bars/TaskBar.qml`. Everything else (services, theme, settings, wifi menu, panels) is shared, so a bug there will show up in both._
 
 <div style="text-align:center;">
   <i>If you have any other questions, please start an issue. I'd be more than happy to answer it for you.</i>

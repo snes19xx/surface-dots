@@ -1,5 +1,5 @@
 -- =========================================================================
--- @snes19xx · Hyprland 0.55 CONFIG
+-- @snes19xx Hyprland CONFIG
 -- =========================================================================
 
 local mod     = "SUPER"
@@ -13,6 +13,8 @@ local shader = require("shader")
 -- =========================================================================
 -- Monitors
 -- =========================================================================
+-- The installer rewrites the blocks below from what you enter on its monitor
+-- screen. Editing them by hand afterwards is fine, keep them at the top level.
 hl.monitor({
     output   = "eDP-1",
     mode     = "2256x1504@60",
@@ -21,10 +23,23 @@ hl.monitor({
 })
 hl.monitor({
     output   = "DP-1",
-    mode     = "2560x1440@60", -- 3840x2160
+    mode     = "2560x1440@60",
     position = "1920x0",
     scale    = 1.33,
 })
+
+local function set_wallpapers()
+    hl.exec_cmd(scripts .. "/wallpaper.sh")
+end
+
+-- Plugging a monitor in gives it no wallpaper until awww is told about it, so
+-- redraw shortly after the layout settles.
+local function set_wallpapers_delayed()
+    hl.timer(set_wallpapers, { timeout = 500, type = "oneshot" })
+end
+
+hl.on("monitor.added",   set_wallpapers_delayed)
+hl.on("monitor.removed", set_wallpapers_delayed)
 
 -- =========================================================================
 -- Environment Variables
@@ -38,7 +53,16 @@ local function theme_mode()
     return m:gsub("%s+", "") == "light" and "light" or "dark"
 end
 
-local cursor_theme = theme_mode() == "light" and "Saturnian-Day" or "Saturnian-Night"
+local function cursor_installed(name)
+    for _, dir in ipairs({ home .. "/.local/share/icons/", "/usr/share/icons/" }) do
+        local f = io.open(dir .. name .. "/index.theme", "r")
+        if f then f:close() return true end
+    end
+    return false
+end
+
+local wanted_cursor = theme_mode() == "light" and "Saturnian-Day" or "Saturnian-Night"
+local cursor_theme  = cursor_installed(wanted_cursor) and wanted_cursor or "Adwaita"
 
 hl.env("HYPRCURSOR_THEME", cursor_theme)
 hl.env("HYPRCURSOR_SIZE",  "32")
@@ -56,18 +80,18 @@ hl.env("QT_QPA_PLATFORM",      "wayland;xcb")
 -- Autostart
 -- =========================================================================
 hl.on("hyprland.start", function()
-    hl.exec_cmd("sleep 1 && mpv --no-video --volume=100 " .. home .. "/.config/hypr/sounds/startup.wav")
     shader.toggle("Main")
+    hl.exec_cmd("qs")
+    hl.exec_cmd("awww-daemon")
+    hl.exec_cmd("hypridle")
     hl.exec_cmd("dunst")
     hl.exec_cmd("blueman-applet")
-    hl.exec_cmd("vdirsyncer sync")
-    hl.exec_cmd("qs -c task-bar")
-    hl.exec_cmd("hyprpaper -c " .. home .. "/.config/hypr/hyprpaper.conf")
-    hl.exec_cmd("hypridle")
-    hl.exec_cmd("awww-daemon")
-    hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
-    hl.exec_cmd("awww img -o eDP-1 " .. home .. "/Pictures/Wallpaper/brian-mcgowan-I0fDR8xtApA-unsplash.jpg")
-    hl.exec_cmd("awww img -o DP-1 " .. home .. "/Pictures/Wallpaper/mimicry-hu-24tsXm7qGQE-unsplash.jpg")
+    -- hyprpolkitagent if you have it, polkit-gnome otherwise
+    hl.exec_cmd("systemctl --user start hyprpolkitagent 2>/dev/null || /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
+    -- needs the oauth done first, skip it if there's no config
+    hl.exec_cmd("[ -f $HOME/.config/vdirsyncer/config ] && vdirsyncer sync || true")
+    hl.exec_cmd("sleep 1 && mpv --no-video --volume=100 " .. home .. "/.config/hypr/sounds/startup.wav")
+    hl.timer(set_wallpapers, { timeout = 1500, type = "oneshot" }) -- after awww-daemon is up
 end)
 
 -- =========================================================================
@@ -234,21 +258,21 @@ hl.bind(mod .. " + " .. alt .. " + F", function()
     hl.dispatch(hl.dsp.window.center())
 end)
 hl.bind(mod .. " + M", function() hl.dispatch(hl.dsp.window.fullscreen()) end)
-hl.bind(mod .. " + P", hl.dsp.window.pseudo())
+-- hl.bind(mod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mod .. " + DOWN", hl.dsp.layout("togglesplit"))
 hl.bind(mod .. " + UP",   hl.dsp.layout("togglesplit"))
 hl.bind(mod .. " + G",    hl.dsp.group.toggle())
 
 hl.bind(mod .. " + L", function()
     hl.dispatch(hl.dsp.window.float({ action = "set" }))
-    hl.dispatch(hl.dsp.window.resize_pixel({ exact = true, x = 1440, y = 1080 }))
+    hl.dispatch(hl.dsp.window.resize({ exact = true, x = 1440, y = 1080 }))
 end)
 
-hl.bind(mod .. " + CTRL + left",  function() hl.dispatch(hl.dsp.group.change_active({ direction = "next" })) end)
-hl.bind(mod .. " + CTRL + right", function() hl.dispatch(hl.dsp.group.change_active({ direction = "prev" })) end)
+hl.bind(mod .. " + CTRL + left",  hl.dsp.group.prev())
+hl.bind(mod .. " + CTRL + right", hl.dsp.group.next())
 
 hl.bind(mod .. " + " .. alt .. " + F4", hl.dsp.exec_cmd("hyprctl dispatch 'hl.dsp.exit()'"))
-hl.bind(alt .. " + F4", hl.dsp.exec_cmd("hyprctl layers | grep -q power-menu || quickshell -p ~/.config/quickshell/task-bar/utils/PowerMenu.qml"))
+hl.bind(alt .. " + F4", hl.dsp.exec_cmd("hyprctl layers | grep -q power-menu || quickshell -p ~/.config/quickshell/utils/PowerMenu.qml"))
 
 hl.bind(mod .. " + left",         hl.dsp.focus({ direction = "left" }))
 hl.bind(mod .. " + right",        hl.dsp.focus({ direction = "right" }))
@@ -293,20 +317,17 @@ hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
 -- Lid Switch
 -- =========================================================================
 -- switch:off = lid OPEN, switch:on = lid CLOSED
+-- No monitor block here. The installer regenerates every
+-- monitor block in this file and would take these two with it.
+-- "preferred,auto" re-reads the panel instead of repeating the mode above, so
+-- this keeps working whatever the monitor section ends up saying.
 hl.bind("switch:off:Lid Switch", function()
-    hl.timer(function()
-        hl.monitor({
-            output   = "eDP-1",
-            mode     = "1920x1200@120",
-            position = "0x0",
-            scale    = 1,
-            disabled = false,
-        })
-    end, { timeout = 500, type = "oneshot" })
+    hl.exec_cmd("hyprctl keyword monitor eDP-1,preferred,auto,1")
+    set_wallpapers_delayed()
 end, { locked = true })
 
 hl.bind("switch:on:Lid Switch", function()
-    hl.monitor({ output = "eDP-1", disabled = true })
+    hl.exec_cmd("hyprctl keyword monitor eDP-1,disable")
 end, { locked = true })
 
 -- =========================================================================

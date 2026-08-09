@@ -1,9 +1,9 @@
 use std::fs;
 use std::path::PathBuf;
 
-/// find the surface-dots repo root. checks SD_REPO_ROOT first (handy for dev/testing),
-/// otherwise walks up from the binary until it hits a dir with both .config/ and sddm/
-/// in it. appimages mount under /tmp so i trust $APPIMAGE over current_exe.
+/// find the surface-dots repo root.Prioritizes SD_REPO_ROOT for dev/testing, then
+/// falls back to walking up from the binary until a dir with both .config/ and
+/// sddm/ is found. 
 pub fn find_repo_root() -> Option<PathBuf> {
     if let Ok(override_root) = std::env::var("SD_REPO_ROOT") {
         let p = PathBuf::from(override_root);
@@ -32,14 +32,14 @@ pub fn find_repo_root() -> Option<PathBuf> {
     None
 }
 
-/// true if there's an executable called `bin` somewhere on $PATH.
+/// True if an executable named `bin` is found on $PATH.
 pub fn has_bin(bin: &str) -> bool {
     let Ok(path) = std::env::var("PATH") else { return false };
     std::env::split_paths(&path).any(|dir| dir.join(bin).is_file())
 }
 
-/// true if any running process's comm contains `needle`. reads /proc myself so this
-/// doesn't need pgrep to be installed.
+/// True if any running process's comm contains `needle`. Reads /proc directly so
+/// it does not depend on pgrep being installed.
 pub fn is_process_running(needle: &str) -> bool {
     let Ok(entries) = fs::read_dir("/proc") else { return false };
     for entry in entries.flatten() {
@@ -56,12 +56,12 @@ pub fn is_process_running(needle: &str) -> bool {
     false
 }
 
-/// true if a polkit auth agent looks like it's running.
+/// True if a polkit authentication agent appears to be running.
 pub fn polkit_agent_running() -> bool {
     is_process_running("polkit") || is_process_running("polkit-gnome") || is_process_running("polkit-kde")
 }
 
-/// true if a nerd/symbol font is installed. without one the bar icons just show as '?'.
+/// True if any Nerd/symbol font is installed (fixes the '?'-glyph reports).
 pub fn nerd_font_present() -> bool {
     let Ok(output) = std::process::Command::new("fc-list").output() else { return false };
     let list = String::from_utf8_lossy(&output.stdout).to_lowercase();
@@ -74,7 +74,7 @@ mod tests {
 
     #[test]
     fn discovers_repo_when_binary_sits_at_root() {
-        // pretend it's in the shipped layout: binary sitting at the repo root
+        // Simulate the shipped layout: binary at the surface-dots repo root,
         // next to .config/ and sddm/.
         let repo = std::env::temp_dir().join(format!("sd-root-{}", std::process::id()));
         std::fs::create_dir_all(repo.join(".config")).unwrap();

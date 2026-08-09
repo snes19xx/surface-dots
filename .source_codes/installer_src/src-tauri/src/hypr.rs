@@ -81,7 +81,7 @@ fn monitor_block(v: &Validated, position: &str) -> String {
     )
 }
 
-/// byte ranges of every `hl.monitor( ... )` call, found by tracking paren depth.
+/// Byte ranges of every `hl.monitor( ... )` call, matched by parenthesis depth.
 fn monitor_spans(src: &str) -> Vec<(usize, usize)> {
     let needle = "hl.monitor(";
     let bytes = src.as_bytes();
@@ -117,8 +117,7 @@ fn monitor_spans(src: &str) -> Vec<(usize, usize)> {
     spans
 }
 
-/// swap every hl.monitor() call for freshly generated ones. i leave SR4.icm out on
-/// purpose, it's calibrated to my exact panel so it's useless on anyone else's.
+/// Replace all hl.monitor() calls with freshly generated blocks. 
 fn rewrite_monitors(raw: &str, generated: &str) -> Result<String, InstallError> {
     let spans = monitor_spans(raw);
     if spans.is_empty() {
@@ -141,8 +140,8 @@ fn rewrite_monitors(raw: &str, generated: &str) -> Result<String, InstallError> 
     Ok(result)
 }
 
-/// first step of the hypr install: back up ~/.config/hypr, write hyprland.lua with your
-/// monitor(s), then copy shader.lua and the lockscreen wallpaper.
+/// Step 1 of the hypr install: back up ~/.config/hypr, write hyprland.lua with the
+/// user's monitor(s), copy shader.lua and the lock-screen wallpaper.
 pub fn configure_monitors(
     repo_root: &str,
     primary: MonitorInput,
@@ -200,7 +199,7 @@ pub fn configure_monitors(
     Ok(())
 }
 
-/// copy one hypr sub-item into ~/.config/hypr (already backed up by the time this runs).
+/// Copy a hypr sub-item into an already-backed-up ~/.config/hypr.
 pub fn copy_hypr_item(repo_root: &str, item: &str) -> Result<(), InstallError> {
     let home = home_dir()?;
     let repo_hypr = PathBuf::from(repo_root).join(".config/hypr");
@@ -213,18 +212,16 @@ pub fn copy_hypr_item(repo_root: &str, item: &str) -> Result<(), InstallError> {
             ErrorCode::HyprShadersFailed,
         ),
         "scripts" => {
-            for sub in &["scripts", "screenshots"] {
+            for sub in &["scripts", "screenshots", "wallpapers"] {
+                let src = repo_hypr.join(sub);
+                if !src.is_dir() {
+                    continue;
+                }
                 copy_dir_contents(
-                    &repo_hypr.join(sub),
+                    &src,
                     &dest_hypr.join(sub),
                     ErrorCode::HyprScriptsFailed,
                 )?;
-            }
-            Ok(())
-        }
-        "lock" => {
-            for file in &["hypridle.conf", "hyprlock.conf"] {
-                copy_file(&repo_hypr.join(file), &dest_hypr.join(file), ErrorCode::HyprLockFailed)?;
             }
             Ok(())
         }
@@ -236,7 +233,33 @@ pub fn copy_hypr_item(repo_root: &str, item: &str) -> Result<(), InstallError> {
     }
 }
 
-/// roll ~/.config/hypr back from its backup if a hypr step fails.
+/// Install hypridle plus the chosen hyprlock theme.
+pub fn install_hyprlock(repo_root: &str, theme: &str) -> Result<(), InstallError> {
+    let home = home_dir()?;
+    let repo_hypr = PathBuf::from(repo_root).join(".config/hypr");
+    let dest_hypr = home.join(".config/hypr");
+
+    copy_file(&repo_hypr.join("hypridle.conf"), &dest_hypr.join("hypridle.conf"), ErrorCode::HyprLockFailed)?;
+
+    let theme_dir = repo_hypr.join("hyprlock").join(theme);
+    if !theme_dir.is_dir() {
+        return Err(InstallError::new(
+            ErrorCode::HyprLockFailed,
+            format!("Hyprlock theme not found: {theme}"),
+            "Pick one of the available lock-screen themes and try again.",
+        ));
+    }
+
+    copy_file(&theme_dir.join("hyprlock.conf"), &dest_hypr.join("hyprlock.conf"), ErrorCode::HyprLockFailed)?;
+
+    let bg = theme_dir.join("background.jpg");
+    if bg.exists() {
+        copy_file(&bg, &dest_hypr.join("background.jpg"), ErrorCode::HyprLockFailed)?;
+    }
+    Ok(())
+}
+
+/// Restore ~/.config/hypr from its backup after a failed hypr step.
 pub fn rollback_hypr() -> Result<(), InstallError> {
     let home = home_dir()?;
     restore_backup(&home.join(".config/hypr"), "hypr")
@@ -288,7 +311,7 @@ hl.env(\"TERMINAL\", \"kitty\")\n";
     fn end_to_end_hypr_install_into_temp_home() {
         let repo = "/home/snes/Documents/surface-dots";
         if !std::path::Path::new(repo).join(".config/hypr/hyprland.lua").exists() {
-            return; // no repo in this environment, skip
+            return; // repo not available in this environment; skip
         }
         let tmp = std::env::temp_dir().join(format!("sd-e2e-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&tmp);

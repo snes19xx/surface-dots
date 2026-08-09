@@ -28,9 +28,11 @@ fn main() {
             commands::preflight,
             commands::configure_monitors,
             commands::copy_hypr_item,
+            commands::install_hyprlock,
             commands::copy_config_item,
             commands::copy_quickshell,
             commands::install_sddm,
+            commands::finish_setup,
         ])
         .run(tauri::generate_context!())
         .expect("error while running surface-dots installer");

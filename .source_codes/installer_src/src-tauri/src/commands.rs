@@ -1,6 +1,6 @@
 use std::fs::{self, File};
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 use flate2::read::GzDecoder;
 use tar::Archive;
@@ -51,6 +51,15 @@ pub fn copy_hypr_item(repo_root: String, item: String) -> Result<(), InstallErro
 }
 
 #[tauri::command]
+pub fn install_hyprlock(repo_root: String, theme: String) -> Result<(), InstallError> {
+    let result = hypr::install_hyprlock(&repo_root, &theme);
+    if result.is_err() {
+        let _ = hypr::rollback_hypr();
+    }
+    result
+}
+
+#[tauri::command]
 pub fn copy_config_item(repo_root: String, item: String) -> Result<(), InstallError> {
     let home = home_dir()?;
     let repo_config = PathBuf::from(&repo_root).join(".config");
@@ -67,13 +76,7 @@ pub fn copy_config_item(repo_root: String, item: String) -> Result<(), InstallEr
 
         "gtk" => install_gtk(&repo_config, &home),
 
-        "kvantum" => backup_and_install_dir(
-            &repo_config.join("kvantum"),
-            &dest_config.join("kvantum"),
-            "kvantum",
-            ErrorCode::KvantumFailed,
-        )
-        .inspect_err(|_| { let _ = restore_backup(&dest_config.join("kvantum"), "kvantum"); }),
+        "kvantum" => install_kvantum(&repo_config, &dest_config),
 
         "dunst" => backup_and_install_dir(
             &repo_config.join("dunst"),
@@ -91,7 +94,7 @@ pub fn copy_config_item(repo_root: String, item: String) -> Result<(), InstallEr
         )
         .inspect_err(|_| { let _ = restore_backup(&dest_config.join("rofi"), "rofi"); }),
 
-        "utils" => install_utils(&repo_config, &dest_config),
+        "utils" => install_utils(&repo_config, &dest_config, &home),
 
         _ => Err(InstallError::new(
             ErrorCode::Unknown,
@@ -148,7 +151,28 @@ fn install_gtk(repo_config: &std::path::Path, home: &std::path::Path) -> Result<
     Ok(())
 }
 
-fn install_utils(repo_config: &std::path::Path, dest_config: &std::path::Path) -> Result<(), InstallError> {
+/// Kvantum only ever looks in ~/.config/Kvantum, capital K. Earlier versions of this
+/// installer wrote the lowercase one, so move that out of the way if it's still around.
+fn install_kvantum(repo_config: &std::path::Path, dest_config: &std::path::Path) -> Result<(), InstallError> {
+    let dest = dest_config.join("Kvantum");
+
+    let legacy = dest_config.join("kvantum");
+    if legacy.is_dir() && !legacy.starts_with(&dest) && legacy != dest {
+        let parked = dest_config.join("kvantum.pre-surface-dots");
+        let _ = fs::remove_dir_all(&parked);
+        let _ = fs::rename(&legacy, &parked);
+    }
+
+    backup_and_install_dir(
+        &repo_config.join("kvantum"),
+        &dest,
+        "kvantum",
+        ErrorCode::KvantumFailed,
+    )
+    .inspect_err(|_| { let _ = restore_backup(&dest, "kvantum"); })
+}
+
+fn install_utils(repo_config: &std::path::Path, dest_config: &std::path::Path, home: &std::path::Path) -> Result<(), InstallError> {
     let dirs = ["ags", "color-schemes", "fastfetch", "qt6ct", "waybar", "zathura", "spicetify", "mako"];
     for dir in &dirs {
         let src = repo_config.join(dir);
@@ -162,6 +186,25 @@ fn install_utils(repo_config: &std::path::Path, dest_config: &std::path::Path) -
     let starship_src = repo_config.join("starship.toml");
     if starship_src.exists() {
         copy_file(&starship_src, &dest_config.join("starship.toml"), ErrorCode::UtilsFailed)?;
+    }
+
+    install_cursors(repo_config, home)?;
+    Ok(())
+}
+
+/// Saturnian cursors into ~/.local/share/icons.
+fn install_cursors(repo_config: &std::path::Path, home: &std::path::Path) -> Result<(), InstallError> {
+    let Some(repo_root) = repo_config.parent() else { return Ok(()) };
+    let icons = home.join(".local/share/icons");
+
+    for theme in &["Saturnian-Night", "Saturnian-Day"] {
+        let src = repo_root.join("cursor").join(theme);
+        if !src.is_dir() {
+            continue;
+        }
+        let dest = icons.join(theme);
+        let _ = fs::remove_dir_all(&dest);
+        copy_dir_contents(&src, &dest, ErrorCode::UtilsFailed)?;
     }
     Ok(())
 }
@@ -180,10 +223,9 @@ pub fn copy_quickshell(repo_root: String, selection: String) -> Result<(), Insta
         ));
     }
 
-    let dirs: &[&str] = match selection.as_str() {
-        "qs-top" => &["top-bar"],
-        "qs-bottom" => &["task-bar"],
-        "qs-both" => &["top-bar", "task-bar"],
+    // Both bars are in one config, so the choice only picks which one starts.
+    let bar_style = match selection.as_str() {
+        "top" | "task" => selection.as_str(),
         _ => return Err(InstallError::new(
             ErrorCode::QuickshellFailed,
             format!("Unknown quickshell selection: {selection}"),
@@ -193,31 +235,34 @@ pub fn copy_quickshell(repo_root: String, selection: String) -> Result<(), Insta
 
     backup_existing(&dest_qs, "quickshell")?;
 
+    // Older installs kept the shell under top-bar/ and task-bar/. The copy below
+    // merges, so clear those out or they sit there stale.
+    for legacy in &["top-bar", "task-bar"] {
+        let _ = fs::remove_dir_all(dest_qs.join(legacy));
+    }
+
+    if let Err(e) = copy_dir_contents(&src_qs, &dest_qs, ErrorCode::QuickshellFailed) {
+        let _ = restore_backup(&dest_qs, "quickshell");
+        return Err(e);
+    }
+
     // The .cache dir holds per-user runtime state and is not shipped; create it
     // empty so anything writing there before the weather script runs succeeds.
     let _ = fs::create_dir_all(dest_qs.join(".cache"));
 
-    for dir in dirs {
-        let src = src_qs.join(dir);
-        if !src.exists() {
-            let _ = restore_backup(&dest_qs, "quickshell");
-            return Err(InstallError::new(
-                ErrorCode::QuickshellFailed,
-                format!("Required quickshell subdirectory missing: {dir}"),
-                "The repository may be incomplete.",
-            ));
-        }
-        if let Err(e) = copy_dir_contents(&src, &dest_qs.join(dir), ErrorCode::QuickshellFailed) {
-            let _ = restore_backup(&dest_qs, "quickshell");
-            return Err(e);
-        }
+    // lib/usersettings.json is per-user state and is not shipped either. Writing
+    // barStyle here applies the choice above on first launch.
+    let settings = dest_qs.join("lib/usersettings.json");
+    if let Err(e) = fs::write(&settings, format!("{{\"barStyle\":\"{bar_style}\"}}\n")) {
+        let _ = restore_backup(&dest_qs, "quickshell");
+        return Err(InstallError::new(
+            ErrorCode::QuickshellFailed,
+            format!("Could not write {}: {}", settings.display(), e),
+            "Check write permissions on ~/.config/quickshell.",
+        ));
     }
 
-    let qs_config = match selection.as_str() {
-        "qs-top" => "top-bar",
-        _ => "task-bar",
-    };
-    let _ = Command::new("qs").args(["-c", qs_config]).spawn();
+    let _ = Command::new("qs").spawn();
 
     Ok(())
 }
@@ -225,4 +270,51 @@ pub fn copy_quickshell(repo_root: String, selection: String) -> Result<(), Insta
 #[tauri::command]
 pub fn install_sddm(repo_root: String, choice: String, faceunlock: bool) -> Result<(), InstallError> {
     sddm::install(&repo_root, &choice, faceunlock)
+}
+
+/// Sets the default wallpaper and sends a greeting once everything is copied.
+/// All of it is optional, so a missing binary just makes for a quieter finish.
+#[tauri::command]
+pub fn finish_setup() {
+    let Ok(home) = home_dir() else { return };
+
+    let wallpaper = home.join(".config/hypr/wallpapers/default-dark.jpg");
+    if wallpaper.is_file() {
+        // awww img needs the daemon running
+        let daemon_up = Command::new("awww")
+            .arg("query")
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false);
+
+        if !daemon_up {
+            let _ = Command::new("awww-daemon")
+                .args(["--format", "xrgb"])
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn();
+            std::thread::sleep(std::time::Duration::from_millis(1500));
+        }
+
+        let _ = Command::new("awww")
+            .arg("img")
+            .arg(&wallpaper)
+            .args([
+                "--transition-type", "wipe",
+                "--transition-pos", "center",
+                "--transition-step", "90",
+                "--transition-duration", "1.2",
+            ])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn();
+    }
+
+    let _ = Command::new("notify-send")
+        .args(["-a", "surface-dots", "Welcome to surface-dots"])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn();
 }

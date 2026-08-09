@@ -30,7 +30,7 @@ The lock screen ships as themes under `hypr/hyprlock/` (`stellarium`, `pixel`), 
 
 **SDDM**
 
-The SDDM step offers three choices — `None`, `Stellarium`, or `Pixel` (with an optional face-unlock variant). It copies the chosen theme into `/usr/share/sddm/themes/` and writes `/etc/sddm.conf.d/theme.conf` in one **idempotent** `pkexec bash -c` call, so the user sees a single polkit prompt and a re-run after a cancelled prompt can't leave a half state. It only fires on an explicit button press, and checks a polkit agent is running first (E-107) instead of failing opaquely.
+The SDDM step offers three choices : `None`, `Stellarium`, or `Pixel` (with an optional face-unlock variant). It copies the chosen theme into `/usr/share/sddm/themes/` and writes `/etc/sddm.conf.d/theme.conf` in one **idempotent** `pkexec bash -c` call, so the user sees a single polkit prompt and a re-run after a cancelled prompt can't leave a half state. It only fires on an explicit button press, and checks a polkit agent is running first (E-107) instead of failing opaquely.
 
 **WebKit launch fix**
 
@@ -38,7 +38,11 @@ WebKit2GTK on Wayland renders a blank window or exits on launch for many users. 
 
 **Quickshell**
 
-The `.cache/` directory is per-user runtime state, so it is not shipped — the installer creates an empty one and the weather script also self-creates it. After copying the chosen layout the installer spawns `qs -c <config>` to load it immediately; if `qs` isn't installed or fails, the error is discarded. If you select `both`, only `task-bar` is launched.
+Both bar layouts are in one config now, so the whole `.config/quickshell/` tree gets copied in one go and the picker only sets which bar loads first. That choice is written to `lib/usersettings.json` as a single `barStyle` key (`top` or `task`), and it can be changed later from the hub under Settings.
+
+**Finish**
+
+Reaching the final screen calls `finish_setup`. It sets `~/.config/hypr/wallpapers/default-dark.jpg` through `awww`, starting `awww-daemon` first if `awww query` reports it is not running, and sends a `Welcome to surface-dots` notification.
 
 ## If you want to build something like this
 

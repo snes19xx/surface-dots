@@ -4,8 +4,8 @@ use std::process::Command;
 use crate::errors::{ErrorCode, InstallError};
 use crate::paths::polkit_agent_running;
 
-/// install one sddm theme and set it as default, all behind a single pkexec prompt.
-/// choice is "none" | "stellarium" | "pixel". faceunlock only for pixel.
+/// Install one SDDM theme and set it as default in a single pkexec prompt.
+/// choice: "none" | "stellarium" | "pixel". faceunlock only applies to pixel.
 pub fn install(repo_root: &str, choice: &str, faceunlock: bool) -> Result<(), InstallError> {
     let (theme_name, src) = match choice {
         "none" => return Ok(()),
@@ -46,7 +46,7 @@ pub fn install(repo_root: &str, choice: &str, faceunlock: bool) -> Result<(), In
         ));
     }
 
-    // idempotent on purpose, so re-running after you cancel the prompt can't leave a half state.
+    // Idempotent: a re-run after a cancelled prompt cannot leave a half state.
     let script = format!(
         "set -e; \
          mkdir -p /usr/share/sddm/themes; \

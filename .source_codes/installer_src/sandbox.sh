@@ -22,6 +22,17 @@ rm -rf /tmp/sandbox-root
 
 install -m 755 "$HERE/pkexec" "$FAKEBIN/pkexec"
 
+FINISHLOG="/tmp/sandbox-calls.log"
+rm -f "$FINISHLOG"
+for shim in qs awww awww-daemon notify-send; do
+    cat > "$FAKEBIN/$shim" <<EOF
+#!/usr/bin/env bash
+[[ "\$1" == "query" ]] && exit 0
+echo "[$shim] \$*" >> "$FINISHLOG"
+EOF
+    chmod 755 "$FAKEBIN/$shim"
+done
+
 export HOME="$SANDBOX"
 export XDG_CONFIG_HOME="$SANDBOX/.config"
 export XDG_CACHE_HOME="$SANDBOX/.cache"
@@ -38,17 +49,18 @@ export WEBKIT_DISABLE_COMPOSITING_MODE=1
 export WEBKIT_DISABLE_GPU_PROCESS=1
 export WEBKIT_DISABLE_DMABUF_RENDERER=1
 
+BIN="${SD_INSTALLER_BIN:-$HERE/surface-dots-installer}"
+
 echo "sandbox HOME : $SANDBOX"
 echo "repo         : $REPO"
 echo "sddm writes  : /tmp/sandbox-root"
+echo "binary       : $BIN"
+echo "shimmed calls: $FINISHLOG"
 
-# The frontend is static (frontendDist points at ../src, no dev server), so a
-# plain `cargo run` loads it — no cargo-tauri CLI needed. Use the CLI only if it
-# happens to be installed.
-cd "$HERE/src-tauri"
-if cargo tauri --version >/dev/null 2>&1; then
-    cd "$HERE"
-    exec cargo tauri dev
+if [[ -x "$BIN" ]]; then
+    exec "$BIN"
 else
+    echo "release binary not found at $BIN - falling back to cargo run" >&2
+    cd "$HERE/installer/src-tauri"
     exec cargo run
 fi
