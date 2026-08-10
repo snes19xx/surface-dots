@@ -223,9 +223,16 @@ pub fn copy_hypr_item(repo_root: &str, item: &str) -> Result<(), InstallError> {
             Ok(())
         }
         "lock" => {
-            for file in &["hypridle.conf", "hyprlock.conf"] {
-                copy_file(&repo_hypr.join(file), &dest_hypr.join(file), ErrorCode::HyprLockFailed)?;
-            }
+            copy_file(
+                &repo_hypr.join("hypridle.conf"),
+                &dest_hypr.join("hypridle.conf"),
+                ErrorCode::HyprLockFailed,
+            )?;
+            copy_dir_contents(
+                &repo_hypr.join("hyprlock"),
+                &dest_hypr.join("hyprlock"),
+                ErrorCode::HyprLockFailed,
+            )?;
             Ok(())
         }
         _ => Err(InstallError::new(
