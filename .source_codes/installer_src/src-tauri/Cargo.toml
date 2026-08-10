@@ -1,7 +1,7 @@
 [package]
 name = "surface-dots-installer"
 version = "0.1.0"
-edition = "2026"
+edition = "2021"
 description = "Installer for surface-dots dotfiles"
 
 [build-dependencies]

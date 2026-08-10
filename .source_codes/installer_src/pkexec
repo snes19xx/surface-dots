@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Fake pkexec for sandbox testing. Redirects the SDDM step's /usr and /etc writes
-# into /tmp/sandbox-root so the real system is never touched. Never prompts.
+# into /tmp/sandbox-root
 SANDBOX_ROOT="/tmp/sandbox-root"
 
 mkdir -p "$SANDBOX_ROOT/usr/share/sddm/themes"

@@ -1,5 +1,5 @@
-use std::fs::{self, OpenOptions};
-use std::io::Write;
+use std::fs::{self, File, OpenOptions};
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
 use crate::errors::{ErrorCode, InstallError};
@@ -14,12 +14,30 @@ pub fn home_dir() -> Result<PathBuf, InstallError> {
         ))
 }
 
+/// Anything starting with a shebang gets +x. Some scripts went into git as 0644 and
+/// a plain permission copy carries that straight through to the install.
+fn make_executable_if_script(path: &Path) {
+    use std::os::unix::fs::PermissionsExt;
+
+    let mut head = [0u8; 2];
+    match File::open(path).and_then(|mut f| f.read_exact(&mut head)) {
+        Ok(()) if &head == b"#!" => {}
+        _ => return,
+    }
+
+    if let Ok(meta) = fs::metadata(path) {
+        let mut perms = meta.permissions();
+        perms.set_mode(perms.mode() | 0o111);
+        let _ = fs::set_permissions(path, perms);
+    }
+}
+
 fn manifest_path() -> Option<PathBuf> {
     let home = std::env::var("HOME").ok()?;
     Some(PathBuf::from(home).join(".cache/surface-dots-installer/manifest.log"))
 }
 
-/// tack one line onto the install manifest. best-effort, i never let this fail a step.
+/// Append one action line to the install manifest. 
 pub fn log_action(action: &str, detail: &str) {
     if let Some(path) = manifest_path() {
         if let Some(parent) = path.parent() {
@@ -31,8 +49,8 @@ pub fn log_action(action: &str, detail: &str) {
     }
 }
 
-/// copy a single file. text files get my /home/snes rewritten to your $HOME, binaries
-/// copy as-is. keeps the original permissions.
+/// Copy one file. Text files get /home/snes rewritten to $HOME; binaries copy raw.
+/// Original permissions are preserved.
 pub fn copy_file(src: &Path, dest: &Path, error_code: ErrorCode) -> Result<(), InstallError> {
     if let Some(parent) = dest.parent() {
         fs::create_dir_all(parent).map_err(|e| InstallError::new(
@@ -75,11 +93,13 @@ pub fn copy_file(src: &Path, dest: &Path, error_code: ErrorCode) -> Result<(), I
         "Check your filesystem permissions.",
     ))?;
 
+    make_executable_if_script(dest);
+
     log_action("COPY", &dest.to_string_lossy());
     Ok(())
 }
 
-/// copy everything under src into dest, recursively. skips anything ending in .old (those are backups).
+/// Copy everything inside src into dest, recursively. Skips any entry ending in .old.
 pub fn copy_dir_contents(src: &Path, dest: &Path, error_code: ErrorCode) -> Result<(), InstallError> {
     fs::create_dir_all(dest).map_err(|e| InstallError::new(
         error_code,
@@ -118,7 +138,7 @@ fn backup_dir(dir: &Path, name: &str) -> PathBuf {
     dir.join(format!("{name}.old"))
 }
 
-/// if dir exists, stash its contents in <dir>/<name>.old before overwrite it.
+/// If dir exists, back its contents up to <dir>/<name>.old before it gets overwritten.
 pub fn backup_existing(dir: &Path, name: &str) -> Result<(), InstallError> {
     if !dir.exists() {
         return Ok(());
@@ -145,15 +165,15 @@ pub fn backup_existing(dir: &Path, name: &str) -> Result<(), InstallError> {
     Ok(())
 }
 
-/// back up dest first, then copy src in.
+/// Back up dest, then copy src into dest.
 pub fn backup_and_install_dir(src: &Path, dest: &Path, name: &str, error_code: ErrorCode) -> Result<(), InstallError> {
     backup_existing(dest, name)?;
     copy_dir_contents(src, dest, error_code)?;
     Ok(())
 }
 
-/// put a component back from its <dir>/<name>.old backup, undoing an install.
-/// runs when a step dies halfway so you're not left with a half-written config.
+/// Restore a component from its <dir>/<name>.old backup, reversing an install.
+/// Used when a step fails partway so nothing is left half-written.
 pub fn restore_backup(dir: &Path, name: &str) -> Result<(), InstallError> {
     let backup = backup_dir(dir, name);
     if !backup.exists() {
