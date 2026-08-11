@@ -19,6 +19,15 @@ ShellRoot {
         }
     }
 
+    Loader {
+        active: true
+        sourceComponent: Lib.BluetoothMenu {
+            standalone: false
+            visible: Lib.Overlays.btOpen
+            onCloseRequested: Lib.Overlays.btOpen = false
+        }
+    }
+
     Variants {
         model: Quickshell.screens
         Scope {

@@ -235,7 +235,7 @@ Lib.TopCard {
         onClicked: toggleBt()
         onRightClicked: {
             root.closeRequested()
-            det("blueman-manager >/dev/null 2>&1 &")
+            Lib.Overlays.btOpen = true
         }
       }
 
