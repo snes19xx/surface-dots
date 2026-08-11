@@ -740,10 +740,15 @@ PanelWindow {
         width: 390
         height: Math.ceil(mainLayout.implicitHeight + 24)
 
-        // MOVED TO BOTTOM RIGHT IN TASKBAR MODE
+        // the popup opens from whichever corner the bar is in. the top-bar copy
+        // of this file used to hardcode x/y, which only right-aligned on a
+        // 1440-wide screen, so anchor it instead
+        readonly property bool topStyle: Configuration.barStyle === "top"
         anchors.right: parent.right
-        anchors.bottom: parent.bottom
+        anchors.top: topStyle ? parent.top : undefined
+        anchors.bottom: topStyle ? undefined : parent.bottom
         anchors.rightMargin: 10  // Increase this number to move LEFT
+        anchors.topMargin: 44
         anchors.bottomMargin: 48 // Decrease this number to move DOWN
 
         color: cCard
