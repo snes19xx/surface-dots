@@ -52,71 +52,38 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 
 ## Dependencies
 
-<table>
-<tr>
-<td valign="top">
+Everything below is on Arch. The installer does not install any of this for you, do it first.
 
-### Core & System
+**Official repos:**
 
-- quickshell
-- hyprland
-- hypridle
-- hyprlock
-- hyprland-plugins
-- xdg-utils
-- xdg-desktop-portal-hyprland
-- xdg-desktop-portal-kde
-- xdg-desktop-portal-gtk
-- polkit-gnome
-- sddm
-- pacman-contrib
-- networkmanager
-- bluez, blueman
-- upower
-- webkit2gtk-4.1
+```bash
+sudo pacman -S hyprland hypridle hyprlock hyprpicker quickshell awww \
+  xdg-utils xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-desktop-portal-kde \
+  polkit-gnome sddm networkmanager bluez bluez-utils blueman upower webkit2gtk-4.1 \
+  dunst rofi kitty thunar firefox mpv zathura fastfetch starship \
+  qt6ct kvantum papirus-icon-theme qt6-5compat qt6-svg qqc2-desktop-style \
+  pipewire-pulse libpulse pamixer pavucontrol playerctl brightnessctl \
+  libnotify wl-clipboard grim slurp swappy \
+  vdirsyncer khal curl jq pacman-contrib \
+  ttf-nerd-fonts-symbols ttf-jetbrains-mono-nerd
+```
 
-</td>
-<td valign="top">
+**AUR** (yay, paru, whatever you use):
 
-### UI & Theming
+```bash
+yay -S grimblast-git ttf-google-fonts-git ttf-cm-unicode evercal
+```
 
-- dunst
-- awww
-- rofi
-- kitty
-- thunar
-- firefox
-- hyprpicker
-- colorreload-gtk-module
-- qt6ct
-- kvantum
-- papirus-icon-theme
-- ttf-nerd-fonts-symbols
-- ttf-cm-unicode
-- ttf-google-fonts-git
+`ttf-google-fonts-git` is a couple of GB. It covers Manrope, EB Garamond, Space Mono, Cinzel, Newsreader, Lora, Cormorant Garamond, Fraunces, Inter and Plus Jakarta Sans, all of which the bars and the shell use. If you don't want the whole thing, install those families individually instead.
 
-</td>
-<td valign="top">
+**Optional:**
 
-### Utilities
+- `auto-cpufreq` for the performance button in the hub
+- `howdy-git` for face unlock on the SDDM theme
+- `spicetify-cli` if you want the bundled Spotify theme
 
-- grim, slurp, swappy, grimblast
-- pamixer
-- pulseaudio-utils
-- playerctl
-- brightnessctl
-- libnotify
-- wl-clipboard
-- vdirsyncer
-- khal
-- [EverCal](https://github.com/snes19xx/EverCal)
-- xdg-utils
-- curl, jq
-- auto-cpufreq (optional)
-- howdy-git (optional)
-</td>
-</tr>
-</table>
+> [!NOTE]
+> There is no `hyprland-plugins` package, and these dots don't use any Hyprland plugins, so you don't need one. If you want plugins for your own config, they go through `hyprpm` (`hyprpm update` then `hyprpm add <repo>`), not your package manager.
 
 ---
 
@@ -996,6 +963,16 @@ _A: First, make sure the script has executable permissions. Next, verify the the
 
 **Q: The wallpaper panel is empty or won't apply anything. How do I fix it?** <br>
 _A: By default it reads from `~/Pictures/Wallpapers`, set `PAPEL_DIR` if yours live somewhere else. It also needs `awww` running to actually set the wallpaper, and `bin/papel` has to be executable. If you just added new wallpapers, hit the refresh button so it re-scans the folder._
+
+**Q: How do I set my own wallpapers?** <br>
+_A: Make `~/.config/surface-dots/wallpapers.conf` and put your paths in there, don't edit the scripts. `WALLPAPER_DARK` and `WALLPAPER_LIGHT` are the two the theme switcher uses. `WALLPAPER_READING` and `WALLPAPER_CRT` are optional, they give Reading Mode and CRT Mode a wallpaper of their own, and if you leave them out those modes just keep the theme wallpaper._
+
+```bash
+# For Example:
+WALLPAPER_DARK="$HOME/Pictures/Wallpapers/night.jpg"
+WALLPAPER_LIGHT="$HOME/Pictures/Wallpapers/day.jpg"
+WALLPAPER_READING="$HOME/Pictures/Wallpapers/paper.jpg"
+```
 
 **Q: How do I switch the power menu skin?** <br>
 _A: Open the settings panel and go to the power menu section, you can pick between Living Things and Cassini there, and set a custom accent for each one. Works from either layout now._

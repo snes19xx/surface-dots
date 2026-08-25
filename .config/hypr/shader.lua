@@ -12,7 +12,9 @@ local rm_state_file   = cache_dir .. "/reading_mode"
 local nl_state_file   = cache_dir .. "/night_light"
 local crt_state_file  = cache_dir .. "/crt_mode"
 
-local theme_script    = home .. "/.config/quickshell/utils/theme-mode.sh"
+local theme_script     = home .. "/.config/quickshell/utils/theme-mode.sh"
+local wallpaper_script = home .. "/.config/hypr/scripts/wallpaper.sh"
+local wallpaper_conf   = home .. "/.config/surface-dots/wallpapers.conf"
 
 local M = {}
 
@@ -36,9 +38,7 @@ M.defaults = {
 }
 
 M.ui_state = {
-    theme           = "dark",
-    wallpaper_light = home .. "/Pictures/Wallpapers/6.png",
-    wallpaper_dark  = home .. "/Pictures/Wallpapers/ffx.png",
+    theme = "dark",
 }
 
 -- Helpers
@@ -56,9 +56,35 @@ local function read_file(path, fallback)
     return (content ~= "") and content or fallback
 end
 
-local function apply_theme(theme)
+local function wallpaper_override(key)
+    local f = io.open(wallpaper_conf, "r")
+    if not f then return nil end
+    local value
+    for line in f:lines() do
+        local v = line:match("^%s*" .. key .. "%s*=%s*(.+)$")
+        if v then value = v end
+    end
+    f:close()
+    if not value then return nil end
+    value = value:gsub("[\"']", ""):gsub("%s+$", "")
+    value = value:gsub("%$HOME", home):gsub("^~", home)
+    return (value ~= "") and value or nil
+end
+
+
+local function wallpaper_cmd(key, transition)
+    local override = key and wallpaper_override(key)
+    if override then
+        return 'awww img "' .. override .. '" ' .. (transition or "--transition-type none")
+    end
+    return wallpaper_script
+end
+
+local function apply_theme(theme, with_wallpaper)
     M.ui_state.theme = theme
-    hl.exec_cmd(theme_script .. " " .. theme .. " --quiet --no-wallpaper")
+    local cmd = theme_script .. " " .. theme .. " --quiet --no-wallpaper"
+    if with_wallpaper then cmd = cmd .. " && " .. wallpaper_script end
+    hl.exec_cmd(cmd)
 end
 
 local function switch_theme(restore_file, new_theme)
@@ -115,7 +141,7 @@ M.complex_modes = {
             switch_theme(rm_restore_file, "light")
             write_file(rm_state_file, "on")
 
-            hl.exec_cmd("sleep 1 && awww img " .. home .. "/Pictures/Wallpapers/bahamut.jpg --transition-type none")
+            hl.exec_cmd("sleep 1 && " .. wallpaper_cmd("WALLPAPER_READING"))
             hl.exec_cmd("brightnessctl set 37%")
 
             hl.config({
@@ -138,12 +164,9 @@ M.complex_modes = {
         end,
         deactivate = function()
             local prev_theme = read_file(rm_restore_file, "dark")
-            apply_theme(prev_theme)
+            apply_theme(prev_theme, true)
             write_file(rm_state_file, "off")
             os.remove(rm_restore_file)
-
-            local wp = prev_theme == "light" and M.ui_state.wallpaper_light or M.ui_state.wallpaper_dark
-            hl.exec_cmd("awww img " .. wp .. " --transition-type none")
 
             restore_defaults()
         end,
@@ -174,7 +197,7 @@ M.complex_modes = {
         activate = function(shader_path)
             write_file(crt_state_file, "on")
 
-            hl.exec_cmd("swww img " .. home .. "/Pictures/retro/van.png --transition-type grow --transition-pos 0.5,0.5 --transition-duration 1.5 --transition-fps 60")
+            hl.exec_cmd(wallpaper_cmd("WALLPAPER_CRT", "--transition-type grow --transition-pos 0.5,0.5 --transition-duration 1.5 --transition-fps 60"))
 
             hl.exec_cmd("pkill qs")
             hl.exec_cmd("qs -p " .. home .. "/.config/quickshell/lib/ThemeOSD.qml")
@@ -205,9 +228,7 @@ M.complex_modes = {
             hl.exec_cmd("pkill waybar")
             hl.exec_cmd("qs &")
 
-            local saved_theme = read_file(theme_mode_file, "dark")
-            local wp = saved_theme == "light" and home .. "/Pictures/desktop/l2.png" or home .. "/Pictures/desktop/1.png"
-            hl.exec_cmd("swww img " .. wp .. " --transition-type none")
+            hl.exec_cmd(wallpaper_script)
 
             restore_defaults()
         end,

@@ -1,10 +1,8 @@
 #!/bin/bash
 
-awww query
-if [ $? -eq 1 ]; then
+# Starts awww if it isn't up yet, then puts the theme wallpaper back.
+if ! awww query >/dev/null 2>&1; then
   awww-daemon --format xrgb &
-
-  awww img ~/.local/state/theme/current_wallpaper \
-    --transition-type "wipe" \
-    --transition-duration 3
+  sleep 1
+  "$HOME/.config/hypr/scripts/wallpaper.sh" --transition
 fi
