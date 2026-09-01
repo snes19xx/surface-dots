@@ -7,4 +7,5 @@ import Quickshell
 // draws, so these are in the running instance instead.
 Scope {
     property bool wifiOpen: false
+    property bool btOpen: false
 }

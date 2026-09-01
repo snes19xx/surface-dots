@@ -204,7 +204,7 @@ Lib.Card {
         
         onClicked: toggleBt()
         onRightClicked: { root.closeRequested();
-        Lib.Shell.det("blueman-manager >/dev/null 2>&1 &") }
+        Lib.Overlays.btOpen = true }
       }
 
       // 3. Performance
