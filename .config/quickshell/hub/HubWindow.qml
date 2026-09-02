@@ -17,22 +17,28 @@ PanelWindow {
             Quickshell.execDetached(["hyprctl", "keyword", "general:border_size", hidden ? "0" : "1"])
         }
 
-        // Single entry point for outside callers, so the other panels get cleared
-        function showMonitors() {
+        // Only one content panel is up at a time
+        function clearPanels() {
             win.wallpaperMode = false
             win.settingsPanelOpen = false
-            win.monitorsMode = true
+            win.monitorsMode = false
+            win.wifiMode = false
+            win.bluetoothMode = false
         }
 
+        // Single entry points for outside callers
+        function showMonitors()  { win.clearPanels(); win.monitorsMode = true }
+        function showWifi()      { win.clearPanels(); win.wifiMode = true }
+        function showBluetooth() { win.clearPanels(); win.bluetoothMode = true }
+
         function closeAll() {
-            win.settingsPanelOpen = false
-            win.wallpaperMode = false
-            win.monitorsMode = false
+            win.clearPanels()
             exitAnim.start()
         }
 
         onVisibleChanged: {
             setBordersHidden(visible)
+            Lib.Shell.nudgeCursor()
 
             if (visible) {
                 root.forceActiveFocus()
@@ -47,9 +53,7 @@ PanelWindow {
                 enterAnim.start()
             } else {
                 win.batteryCardActive = false
-                win.settingsPanelOpen = false
-                win.wallpaperMode = false
-                win.monitorsMode = false
+                win.clearPanels()
                 }
         }
     
@@ -67,6 +71,22 @@ PanelWindow {
     focusable: visible
     WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     WlrLayershell.namespace: "snes-hub"
+
+    // Screen-space rectangle of the toggle button
+    property rect toggleHole: Qt.rect(0, 0, 0, 0)
+
+    mask: Region {
+        width: win.width
+        height: win.height
+
+        Region {
+            intersection: Intersection.Subtract
+            x: win.toggleHole.x
+            y: win.toggleHole.y - win.barStrip
+            width: win.toggleHole.width
+            height: win.toggleHole.height
+        }
+    }
 
     property string profileName: Config.PROFILE_NAME
     readonly property string _bundledProfile:
@@ -92,17 +112,29 @@ PanelWindow {
     property bool monitorsMode: false
     property bool _monEverOpened: false
     onMonitorsModeChanged: if (win.monitorsMode) win._monEverOpened = true
+    property bool wifiMode: false
+    property bool _wifiEverOpened: false
+    onWifiModeChanged: if (win.wifiMode) win._wifiEverOpened = true
+    property bool bluetoothMode: false
+    property bool _btEverOpened: false
+    onBluetoothModeChanged: if (win.bluetoothMode) win._btEverOpened = true
     property QtObject hubTheme: theme
     // Top style drops the panel from under the bar; task style rises from the dock
     readonly property bool topAnchored: Lib.Configuration.barStyle === "top"
     property int topGap: 8
     property int rightGap: 10
+    // How far the panel's drop shadow spreads past its edges
+    readonly property int shadowSpread: 30
     readonly property string contentMode: win.wallpaperMode ? "wallpaper"
         : win.settingsPanelOpen ? "settings"
-        : win.monitorsMode ? "monitors" : "cards"
+        : win.monitorsMode ? "monitors"
+        : win.wifiMode ? "wifi"
+        : win.bluetoothMode ? "bluetooth" : "cards"
     property int panelW: win.contentMode === "wallpaper" ? 540
         : win.contentMode === "settings" ? 620
         : win.contentMode === "monitors" ? 560
+        : win.contentMode === "wifi" ? 460
+        : win.contentMode === "bluetooth" ? 460
         : win.topAnchored ? 320 : 520
 // ---------------------------------------------------------------------------------------------------------------------------
         Item {
@@ -112,32 +144,40 @@ PanelWindow {
 
             Keys.onEscapePressed: closeAll()
             Keys.onPressed: (event) => {
-                // Press 'S' to toggle settings panel
+                // Press 'S' to toggle settings panel.
                 if (event.key === Qt.Key_S) {
-                    if (win.wallpaperMode) {
-                        win.wallpaperMode = false
-                    } else {
-                        win.settingsPanelOpen = !win.settingsPanelOpen
-                        if (win.settingsPanelOpen) win.monitorsMode = false
-                    }
+                    var wasSettings = win.settingsPanelOpen
+                    var fromWallpaper = win.wallpaperMode
+                    win.clearPanels()
+                    win.settingsPanelOpen = fromWallpaper || !wasSettings
                     event.accepted = true
                 }
                 // Press 'W' to toggle wallpaper panel
                 else if (event.key === Qt.Key_W) {
-                    win.wallpaperMode = !win.wallpaperMode
-                    if (win.wallpaperMode) {
-                        win.settingsPanelOpen = false
-                        win.monitorsMode = false
-                    }
+                    var wasWallpaper = win.wallpaperMode
+                    win.clearPanels()
+                    win.wallpaperMode = !wasWallpaper
                     event.accepted = true
                 }
                 // Press 'M' to toggle the displays panel
                 else if (event.key === Qt.Key_M) {
-                    win.monitorsMode = !win.monitorsMode
-                    if (win.monitorsMode) {
-                        win.settingsPanelOpen = false
-                        win.wallpaperMode = false
-                    }
+                    var wasMonitors = win.monitorsMode
+                    win.clearPanels()
+                    win.monitorsMode = !wasMonitors
+                    event.accepted = true
+                }
+                // Press 'I' to toggle the internet panel
+                else if (event.key === Qt.Key_I) {
+                    var wasWifi = win.wifiMode
+                    win.clearPanels()
+                    win.wifiMode = !wasWifi
+                    event.accepted = true
+                }
+                // Press 'T' to toggle the bluetooth panel
+                else if (event.key === Qt.Key_T) {
+                    var wasBt = win.bluetoothMode
+                    win.clearPanels()
+                    win.bluetoothMode = !wasBt
                     event.accepted = true
                 }
                 // Press 'B' to toggle battery/system stats card
@@ -183,23 +223,18 @@ PanelWindow {
         }
 
         //  SHADOW EFFECT
-        //  The container starts at the panel's top edge and clips, so the blur
-        //  only escapes on the left, right and bottom.
         Item {
             id: panelShadow
             z: -1
 
-            property int spread: 30
-
-            width: panel.width + spread * 2
-            height: panel.height + spread
-            clip: true
+            width: panel.width + win.shadowSpread * 2
+            height: panel.height + win.shadowSpread * 2
             visible: panel.visible && panel.opacity > 0
             opacity: panel.opacity
 
             anchors.right: parent.right
-            anchors.rightMargin: win.rightGap - spread
-            y: panel.y
+            anchors.rightMargin: win.rightGap - win.shadowSpread
+            y: panel.y - win.shadowSpread
 
             // mirror the panel's enter/exit transforms so the shadow moves with it
             transform: [
@@ -207,25 +242,27 @@ PanelWindow {
                     xScale: panelScale.xScale
                     yScale: panelScale.yScale
                     origin.x: panelShadow.width / 2
-                    origin.y: win.topAnchored ? 0 : panelShadow.height - panelShadow.spread
+                    origin.y: win.topAnchored ? win.shadowSpread
+                                              : win.shadowSpread + panel.height
                 },
                 Translate { y: panelTranslate.y }
             ]
 
             Item {
-                x: panelShadow.spread
-                y: 0
+                x: win.shadowSpread
+                y: win.shadowSpread
                 width: panel.width
                 height: panel.height
 
                 layer.enabled: true
                 layer.effect: DropShadow {
                     transparentBorder: true
-                    radius: 22
-                    samples: 27
+                    radius: 26
+                    samples: 31
                     color: "#70000000"
                     horizontalOffset: 0
-                    verticalOffset: 4
+                    // ~ half the radius
+                    verticalOffset: 12
                 }
 
                 Rectangle {
@@ -369,19 +406,15 @@ PanelWindow {
                     onCloseRequested: closeAll()
                     onBatteryToggleRequested: win.batteryCardActive = !win.batteryCardActive
                     onMonitorsRequested: {
-                        win.monitorsMode = !win.monitorsMode
-                        if (win.monitorsMode) {
-                            win.settingsPanelOpen = false
-                            win.wallpaperMode = false
-                        }
+                        var wasMonitors = win.monitorsMode
+                        win.clearPanels()
+                        win.monitorsMode = !wasMonitors
                     }
                     onSettingsRequested: {
-                        if (win.wallpaperMode) {
-                            win.wallpaperMode = false
-                        } else {
-                            win.settingsPanelOpen = !win.settingsPanelOpen
-                            if (win.settingsPanelOpen) win.monitorsMode = false
-                        }
+                        var wasSettings = win.settingsPanelOpen
+                        var fromWallpaper = win.wallpaperMode
+                        win.clearPanels()
+                        win.settingsPanelOpen = fromWallpaper || !wasSettings
                     }
                 }
 
@@ -390,13 +423,17 @@ PanelWindow {
                     id: contentArea
                     Layout.fillWidth: true
                     readonly property real maxContentH: Math.max(160, panel.maxH - header.height - layout.spacing - 24)
-                    implicitHeight: win.contentMode === "wallpaper"
-                        ? (wallpaperLoader.height > 0 ? wallpaperLoader.height : cardsColumn.implicitHeight)
-                        : win.contentMode === "settings"
-                            ? (settingsLoader.height > 0 ? settingsLoader.height : cardsColumn.implicitHeight)
-                            : win.contentMode === "monitors"
-                                ? (monitorsLoader.height > 0 ? monitorsLoader.height : cardsColumn.implicitHeight)
-                                : cardsColumn.implicitHeight
+                    // Height of whichever panel is showing
+                    readonly property var activeLoader: ({
+                        "wallpaper": wallpaperLoader,
+                        "settings":  settingsLoader,
+                        "monitors":  monitorsLoader,
+                        "wifi":      wifiLoader,
+                        "bluetooth": btLoader
+                    })[win.contentMode] || null
+                    implicitHeight: (activeLoader && activeLoader.height > 0)
+                        ? activeLoader.height
+                        : cardsColumn.implicitHeight
                     Behavior on implicitHeight { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
 
                     // Task style keeps its own two-column card set; top style uses
@@ -427,6 +464,8 @@ PanelWindow {
                             onCloseRequested: closeAll()
                             onBatteryToggleRequested: win.batteryCardActive = !win.batteryCardActive
                             onBatteryDismissed: win.batteryCardActive = false
+                            onWifiRequested: win.showWifi()
+                            onBluetoothRequested: win.showBluetooth()
                         }
                     }
 
@@ -440,6 +479,8 @@ PanelWindow {
                             onCloseRequested: closeAll()
                             onBatteryToggleRequested: win.batteryCardActive = !win.batteryCardActive
                             onBatteryDismissed: win.batteryCardActive = false
+                            onWifiRequested: win.showWifi()
+                            onBluetoothRequested: win.showBluetooth()
                         }
                     }
 
@@ -515,6 +556,54 @@ PanelWindow {
                             theme: win.hubTheme
                             width: monitorsLoader.width
                             onCloseRequested: win.monitorsMode = false
+                            onToastRequested: (msg) => panel.triggerToast(msg)
+                        }
+                    }
+
+                    // NETWORK LOADER
+                    Loader {
+                        id: wifiLoader
+                        active: win._wifiEverOpened
+                        width: parent.width
+                        height: Math.min(item ? item.implicitHeight : 0, contentArea.maxContentH)
+                        opacity: win.contentMode === "wifi" ? 1 : 0
+                        visible: opacity > 0.01
+                        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+                        sourceComponent: wifiPanelComponent
+                    }
+
+                    Component {
+                        id: wifiPanelComponent
+                        WifiPanel {
+                            theme: win.hubTheme
+                            width: wifiLoader.width
+                            height: wifiLoader.height
+                            live: win.visible && win.contentMode === "wifi"
+                            onCloseRequested: win.wifiMode = false
+                            onToastRequested: (msg) => panel.triggerToast(msg)
+                        }
+                    }
+
+                    // BLUETOOTH LOADER, stays alive so the device list survives when going back to the cards
+                    Loader {
+                        id: btLoader
+                        active: win._btEverOpened
+                        width: parent.width
+                        height: Math.min(item ? item.implicitHeight : 0, contentArea.maxContentH)
+                        opacity: win.contentMode === "bluetooth" ? 1 : 0
+                        visible: opacity > 0.01
+                        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+                        sourceComponent: bluetoothPanelComponent
+                    }
+
+                    Component {
+                        id: bluetoothPanelComponent
+                        BluetoothPanel {
+                            theme: win.hubTheme
+                            width: btLoader.width
+                            height: btLoader.height
+                            live: win.visible && win.contentMode === "bluetooth"
+                            onCloseRequested: win.bluetoothMode = false
                             onToastRequested: (msg) => panel.triggerToast(msg)
                         }
                     }

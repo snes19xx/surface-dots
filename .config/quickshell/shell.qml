@@ -10,15 +10,6 @@ import "desktop" as Desktop
 import "hub" as SystemHub
 
 ShellRoot {
-    Loader {
-        active: true
-        sourceComponent: Lib.WifiMenu {
-            standalone: false
-            visible: Lib.Overlays.wifiOpen
-            onCloseRequested: Lib.Overlays.wifiOpen = false
-        }
-    }
-
     Variants {
         model: Quickshell.screens
         Scope {
@@ -49,6 +40,7 @@ ShellRoot {
                 id: taskBarComponent
                 Bars.TaskBar {
                     screen: v.modelData
+                    drawerOpen: appDrawer.isOpen || wideDrawer.isOpen
                     onHasWindowsChanged: border.setTopSidesVisible(!hasWindows)
                     onLauncherClicked: isDockMode ? appDrawer.toggle() : wideDrawer.toggle()
                     onRequestHubToggle: v.toggleHub()
@@ -64,10 +56,17 @@ ShellRoot {
                 }
             }
 
+            // Bar items that toggle an overlay, so each overlay can leave a hole
+            // in its input region over its own toggle
+            readonly property var taskBar: (!v.topStyle && barLoader.item) ? barLoader.item : null
+            readonly property rect launcherHole: taskBar ? taskBar.launcherRect : Qt.rect(0, 0, 0, 0)
+            readonly property rect clockHole: taskBar ? taskBar.clockRect : Qt.rect(0, 0, 0, 0)
+
             SystemHub.HubWindow {
                 id: hubWindow
                 screen: v.modelData
                 visible: false
+                toggleHole: v.clockHole
             }
 
             // Display picker, laptop panel only so it does not appear twice
@@ -115,11 +114,13 @@ ShellRoot {
             Dock.Drawer {
                 id: appDrawer
                 isDarkMode: screenTheme.isDarkMode
+                launcherHole: v.launcherHole
             }
 
             Dock.WideDrawer {
                 id: wideDrawer
                 theme: screenTheme
+                launcherHole: v.launcherHole
             }
 
             function toggleHub() {

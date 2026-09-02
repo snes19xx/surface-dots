@@ -41,6 +41,9 @@ Item {
         for (i = 0; i < firstDay; i++) out.push({ kind: "blank", t: "" })
         for (i = 1; i <= daysInMonth; i++) out.push({ kind: "day", t: String(i), today: (i === today) })
 
+        // pad to a full 6 rows
+        while (out.length < 7 + 42) out.push({ kind: "blank", t: "" })
+
         root.cells = out
     }
 

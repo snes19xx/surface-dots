@@ -14,6 +14,8 @@ ColumnLayout {
     signal closeRequested()
     signal batteryToggleRequested()
     signal batteryDismissed()
+    signal wifiRequested()
+    signal bluetoothRequested()
 
     property alias notifs: notifsCard
 
@@ -26,6 +28,8 @@ ColumnLayout {
         theme: root.theme
         onCloseRequested: root.closeRequested()
         onBatteryToggleRequested: root.batteryToggleRequested()
+        onWifiRequested: root.wifiRequested()
+        onBluetoothRequested: root.bluetoothRequested()
     }
 
     Top.BatteryHealthCard {

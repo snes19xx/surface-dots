@@ -8,6 +8,8 @@ Lib.TopCard {
   id: root
   signal closeRequested()
   signal batteryToggleRequested()
+  signal wifiRequested()
+  signal bluetoothRequested()
   property bool active: true
 
   property bool autoMode: true
@@ -220,10 +222,7 @@ Lib.TopCard {
         label: String(wifiSSID.value || "WiFi")
         active: Boolean(wifiOn.value)
         onClicked: toggleWifi()
-        onRightClicked: {
-            root.closeRequested()
-            Lib.Overlays.wifiOpen = true
-        }
+        onRightClicked: root.wifiRequested()
       }
 
       Lib.ExpressiveButton {
@@ -233,10 +232,7 @@ Lib.TopCard {
         label: String(btDev.value || "Off")
         active: Boolean(btOn.value)
         onClicked: toggleBt()
-        onRightClicked: {
-            root.closeRequested()
-            det("blueman-manager >/dev/null 2>&1 &")
-        }
+        onRightClicked: root.bluetoothRequested()
       }
 
       Lib.ExpressiveButton {

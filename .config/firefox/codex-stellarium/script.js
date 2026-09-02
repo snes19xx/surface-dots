@@ -630,7 +630,7 @@ const systemRenderer = (() => {
 
       if (SETTINGS.toggles.planets) {
         ctx.drawImage(orbitCache, 0, 0, W, H);
-        
+
         ctx.beginPath();
         ctx.arc(cx, cy, 17 * base, 0, Math.PI * 2);
         ctx.fillStyle = cssVars.accent;
@@ -669,7 +669,7 @@ const systemRenderer = (() => {
               ctx.beginPath();
               ctx.arc(px, py, mr, 0, Math.PI * 2);
               ctx.strokeStyle = cssVars.border;
-              ctx.globalAlpha = 0.3;
+              ctx.globalAlpha = 0.9;
               ctx.lineWidth = 0.5;
               ctx.stroke();
               ctx.globalAlpha = 1;
@@ -693,7 +693,7 @@ const systemRenderer = (() => {
           const ay = cy + Math.sin(a.angle) * ar;
           const asz = a.sz * base;
           if (asz < 1.2) {
-            ctx.fillRect(ax - asz/2, ay - asz/2, asz, asz);
+            ctx.fillRect(ax - asz / 2, ay - asz / 2, asz, asz);
           } else {
             ctx.beginPath();
             ctx.arc(ax, ay, asz, 0, Math.PI * 2);

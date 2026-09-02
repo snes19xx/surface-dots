@@ -30,6 +30,58 @@ PanelWindow {
     // -----------------------------------------------
         property bool forceDockMode: Lib.Configuration.taskbarForceDockMode
 
+        property bool drawerOpen: false
+        property double lastLauncherPress: 0
+        property rect launcherRect: Qt.rect(0, 0, 0, 0)
+        property rect clockRect: Qt.rect(0, 0, 0, 0)
+        property bool hitRectsPending: false
+
+        onDrawerOpenChanged: {
+            // the click that opened it already ran its own animation
+            if (Date.now() - lastLauncherPress < 400) return
+            if (isDockMode) dockLauncher.pulse()
+            else launchRoot.pulse()
+        }
+
+        onIsDockModeChanged: scheduleHitRects()
+        onWidthChanged: scheduleHitRects()
+        Component.onCompleted: scheduleHitRects()
+
+        function screenRectOf(it) {
+            if (!it || !taskbar.screen || it.width <= 0 || it.height <= 0)
+                return Qt.rect(0, 0, 0, 0)
+            var p = it.mapToItem(null, 0, 0)
+            var mb = taskbar.margins ? taskbar.margins.bottom : 0
+            var top = taskbar.screen.height - mb - taskbar.height
+            return Qt.rect(Math.round(p.x), Math.round(top + p.y),
+                           Math.round(it.width), Math.round(it.height))
+        }
+
+        function refreshHitRects() {
+            launcherRect = screenRectOf(isDockMode ? dockLauncher : launchRoot)
+            clockRect = screenRectOf(isDockMode ? clockContainer : wsClockItem)
+        }
+
+        function scheduleHitRects() {
+            if (hitRectsPending) return
+            hitRectsPending = true
+            Qt.callLater(function() {
+                hitRectsPending = false
+                refreshHitRects()
+            })
+        }
+
+        function emitLauncherClick() {
+            refreshHitRects()
+            lastLauncherPress = Date.now()
+            taskbar.launcherClicked()
+        }
+
+        function emitHubToggle() {
+            refreshHitRects()
+            taskbar.requestHubToggle()
+        }
+
         property bool isDockMode: false
         property bool hasWindows: false
         property int activeWsId: Hyprland.focusedMonitor?.activeWorkspace?.id ?? 1
@@ -382,7 +434,10 @@ PanelWindow {
                 anchors.centerIn: parent
                 anchors.verticalCenterOffset: 4
                 spacing: -5
-                
+
+                onXChanged: taskbar.scheduleHitRects()
+                onWidthChanged: taskbar.scheduleHitRects()
+
                 Behavior on opacity {
                     NumberAnimation { duration: 300; easing.type: Easing.OutQuart }
                 }
@@ -391,12 +446,16 @@ PanelWindow {
                 Item {
                     Layout.preferredWidth: 48
                     Layout.preferredHeight: 48
-                    
+
+                    onXChanged: taskbar.scheduleHitRects()
+                    onYChanged: taskbar.scheduleHitRects()
+
                     DockButton {
+                        id: dockLauncher
                         anchors.centerIn: parent
                         iconPath: "../lib/arch.svg"
                         tooltipText: "Applications"
-                        onClicked: taskbar.launcherClicked()
+                        onClicked: taskbar.emitLauncherClick()
                     }
                 }
                 
@@ -459,12 +518,15 @@ PanelWindow {
                     scale: dockClockSegment.containsMouse ? 1.05 : 1.0
                     Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
 
+                    onXChanged: taskbar.scheduleHitRects()
+                    onWidthChanged: taskbar.scheduleHitRects()
+
                     MouseArea {
                         id: dockClockSegment
                         width: dockTimeContent.width + 24 // + padding
                         height: parent.height
                         hoverEnabled: true
-                        onClicked: taskbar.requestHubToggle()
+                        onClicked: taskbar.emitHubToggle()
 
                         Rectangle {
                             anchors.fill: parent
@@ -594,32 +656,65 @@ PanelWindow {
                     
                     // Launcher
                     Item {
+                        id: launchRoot
                         Layout.preferredWidth: 30
                         Layout.preferredHeight: 30
                         Layout.alignment: Qt.AlignVCenter
-                        
-                        scale: launchPress.pressed ? 0.94 : 1.0
-                        Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
-                        
+
+                        property real pressScale: 1.0
+                        property real hoverScale: hoverLaunch.hovered ? 1.05 : 1.0
+                        property real iconPressScale: 1.0
+                        property real iconHoverScale: hoverLaunch.hovered ? 1.12 : 1.0
+                        property real iconSpin: 0
+
+                        onXChanged: taskbar.scheduleHitRects()
+                        onYChanged: taskbar.scheduleHitRects()
+
+                        Behavior on hoverScale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                        Behavior on iconHoverScale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+
+                        scale: pressScale * hoverScale
+
+                        // Play the press animation without a press, for drawer toggles
+                        // that did not come from this button.
+                        function pulse() {
+                            launchPressAnim.stop()
+                            launchReleaseAnim.stop()
+                            launchPulseAnim.restart()
+                        }
+
                         HoverHandler { id: hoverLaunch }
-                        Rectangle {
-                                    anchors.fill: parent
-                                    radius: 9
-                                    color: taskbar.isDarkMode ? pal.bg : "transparent"
-                                }
-                        
+
                         Rectangle {
                             anchors.fill: parent
-                            radius: height / 2
-                            color: Qt.rgba(launchIcon.color.r, launchIcon.color.g, launchIcon.color.b, 1)
-                            opacity: launchPress.pressed ? 0.10 : (hoverLaunch.hovered ? 0.08 : 0.0)
-                            Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                            radius: 9
+                            color: taskbar.isDarkMode ? pal.bg : "transparent"
+                        }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 9
+                            color: launchIcon.color
+                            opacity: launchPress.pressed ? 0.18 : (hoverLaunch.hovered ? 0.08 : 0.0)
+                            Behavior on opacity { NumberAnimation { duration: 130; easing.type: Easing.OutCubic } }
+                        }
+
+                        Rectangle {
+                            id: launchFlash
+                            anchors.centerIn: parent
+                            width: parent.width
+                            height: parent.height
+                            radius: 9
+                            color: launchIcon.color
+                            opacity: 0
+                            scale: 0.35
                         }
 
                         Item {
                             id: launchIcon
                             anchors.centerIn: parent
-                            width:21; height: 21
+                            anchors.verticalCenterOffset: launchPress.pressed ? 1 : (hoverLaunch.hovered ? -3 : 0)
+                            width: 21; height: 21
                             property color color: {
                                 if (hoverLaunch.hovered) return taskbar.isDarkMode ? "#89b4fa" : "#1e66f5"
                                 return taskbar.isDarkMode ? "#89b4fa" : "#1e66f5"
@@ -641,36 +736,63 @@ PanelWindow {
                                 cached: true
                                 antialiasing: true
                             }
-                            scale: launchPress.pressed ? 0.92 : (hoverLaunch.hovered ? 1.12 : 1.0)
-                            y: launchPress.pressed ? 1 : (hoverLaunch.hovered ? -3 : 0)
+                            scale: launchRoot.iconPressScale * launchRoot.iconHoverScale
+                            rotation: launchRoot.iconSpin
 
-                            Behavior on scale {
-                                NumberAnimation {
-                                    duration: 160
-                                    easing.type: Easing.OutCubic
-                                }
+                            Behavior on anchors.verticalCenterOffset {
+                                NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
                             }
-
-                            Behavior on y {
-                                NumberAnimation {
-                                    duration: 160
-                                    easing.type: Easing.OutCubic
-                                }
-                            }
-
                         }
-                        
+
+                        ParallelAnimation {
+                            id: launchPressAnim
+                            NumberAnimation { target: launchRoot; property: "pressScale"; to: 0.86; duration: 110; easing.type: Easing.OutCubic }
+                            NumberAnimation { target: launchRoot; property: "iconPressScale"; to: 0.82; duration: 110; easing.type: Easing.OutCubic }
+                        }
+
+                        ParallelAnimation {
+                            id: launchReleaseAnim
+                            NumberAnimation { target: launchRoot; property: "pressScale"; to: 1.0; duration: 460; easing.type: Easing.OutBack; easing.overshoot: 3.0 }
+                            NumberAnimation { target: launchRoot; property: "iconPressScale"; to: 1.0; duration: 540; easing.type: Easing.OutBack; easing.overshoot: 4.0 }
+                        }
+
+                        SequentialAnimation {
+                            id: launchPulseAnim
+                            ParallelAnimation {
+                                NumberAnimation { target: launchRoot; property: "pressScale"; to: 0.86; duration: 110; easing.type: Easing.OutCubic }
+                                NumberAnimation { target: launchRoot; property: "iconPressScale"; to: 0.82; duration: 110; easing.type: Easing.OutCubic }
+                            }
+                            PauseAnimation { duration: 70 }
+                            ScriptAction { script: { launchBurstAnim.restart(); launchReleaseAnim.restart() } }
+                        }
+
+                        SequentialAnimation {
+                            id: launchBurstAnim
+                            PropertyAction { target: launchFlash; property: "scale"; value: 0.35 }
+                            PropertyAction { target: launchFlash; property: "opacity"; value: 0.42 }
+                            PropertyAction { target: launchRoot; property: "iconSpin"; value: -9 }
+                            ParallelAnimation {
+                                NumberAnimation { target: launchFlash; property: "scale"; to: 1.0; duration: 340; easing.type: Easing.OutQuad }
+                                NumberAnimation { target: launchFlash; property: "opacity"; to: 0.0; duration: 400; easing.type: Easing.OutCubic }
+                                NumberAnimation { target: launchRoot; property: "iconSpin"; to: 0; duration: 620; easing.type: Easing.OutElastic; easing.amplitude: 1.0; easing.period: 0.45 }
+                            }
+                        }
+
                         MouseArea {
                             id: launchPress
                             anchors.fill: parent
                             hoverEnabled: true
-                            acceptedButtons: Qt.LeftButton 
-                            
+                            acceptedButtons: Qt.LeftButton
+
+                            onPressed: { launchPulseAnim.stop(); launchPressAnim.restart() }
+                            onReleased: launchReleaseAnim.restart()
+                            onCanceled: launchReleaseAnim.restart()
+
                             onClicked: (mouse) => {
                                 if (mouse.button === Qt.LeftButton) {
-                                     taskbar.launcherClicked()
-                                } 
-                                
+                                     launchBurstAnim.restart()
+                                     taskbar.emitLauncherClick()
+                                }
                             }
                         }
                     }
@@ -1021,8 +1143,12 @@ PanelWindow {
                     
                     // Clock
                     Item {
+                        id: wsClockItem
                         Layout.preferredHeight: 28
                         Layout.preferredWidth: clockRow.implicitWidth + 24
+
+                        onXChanged: taskbar.scheduleHitRects()
+                        onWidthChanged: taskbar.scheduleHitRects()
                         // pillWrapper clips, and the row sits flush against its right
                         // edge, so the hover scale needs room or it loses its corner
                         Layout.rightMargin: 6
@@ -1084,7 +1210,7 @@ PanelWindow {
                             id: clockArea
                             anchors.fill: parent
                             hoverEnabled: true
-                            onPressed: (mouse) => { taskbar.requestHubToggle(); mouse.accepted = true }
+                            onPressed: (mouse) => { taskbar.emitHubToggle(); mouse.accepted = true }
                         }
                         
                         HoverHandler {
@@ -1104,49 +1230,121 @@ PanelWindow {
         id: btn
         property string iconPath: ""
         property string tooltipText: ""
-        
+        property real pressScale: 1.0
+        property real hoverScale: btn.containsMouse ? 1.08 : 1.0
+        property real iconPressScale: 1.0
+        property real iconSpin: 0
+
         width: 33
         height: 32
         hoverEnabled: true
-        
+
+        Behavior on hoverScale {
+            NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+        }
+
+        // Play the press animation without a press, for drawer toggles that did
+        // not come from this button.
+        function pulse() {
+            dockPressAnim.stop()
+            dockReleaseAnim.stop()
+            dockPulseAnim.restart()
+        }
+
+        onPressed: { dockPulseAnim.stop(); dockPressAnim.restart() }
+        onCanceled: dockReleaseAnim.restart()
+        onReleased: {
+            dockReleaseAnim.restart()
+            if (btn.containsMouse) dockBurstAnim.restart()
+        }
+
         Rectangle {
             id: btnBg
             anchors.fill: parent
             radius: 8
             color: parent.containsMouse ? (taskbar.isDarkMode ? "#18FFFFFF" : "#18000000") : "transparent"
-            
+
             Behavior on color {
                 ColorAnimation { duration: 200; easing.type: Easing.OutQuart }
             }
-            
-            scale: parent.pressed ? 0.92 : (parent.containsMouse ? 1.08 : 1.0)
-            
-            Behavior on scale {
-                NumberAnimation { duration: 180; easing.type: Easing.OutBack; easing.overshoot: 1.2 }
+
+            scale: btn.pressScale * btn.hoverScale
+
+            Rectangle {
+                id: dockFlash
+                anchors.centerIn: parent
+                width: parent.width
+                height: parent.height
+                radius: 8
+                color: taskbar.isDarkMode ? "#ffffff" : "#000000"
+                opacity: 0
+                scale: 0.35
             }
-            
-            Image {
-                id: launcherIcon
+
+            // Icon and overlay
+            Item {
+                id: dockIconWrap
                 anchors.centerIn: parent
                 width: 24
                 height: 24
-                source: btn.iconPath
-                sourceSize: Qt.size(128, 128)
-                smooth: true
-                antialiasing: true
-                mipmap: true
-                visible: taskbar.isDarkMode
-            }
-            
+                scale: btn.iconPressScale
+                rotation: btn.iconSpin
 
-            ColorOverlay {
-                anchors.fill: launcherIcon
-                source: launcherIcon
-                color: '#5b000000'
-                visible: !taskbar.isDarkMode
+                Image {
+                    id: launcherIcon
+                    anchors.fill: parent
+                    source: btn.iconPath
+                    sourceSize: Qt.size(128, 128)
+                    smooth: true
+                    antialiasing: true
+                    mipmap: true
+                    visible: taskbar.isDarkMode
+                }
+
+                ColorOverlay {
+                    anchors.fill: launcherIcon
+                    source: launcherIcon
+                    color: '#5b000000'
+                    visible: !taskbar.isDarkMode
+                }
             }
         }
-        
+
+        ParallelAnimation {
+            id: dockPressAnim
+            NumberAnimation { target: btn; property: "pressScale"; to: 0.88; duration: 110; easing.type: Easing.OutCubic }
+            NumberAnimation { target: btn; property: "iconPressScale"; to: 0.84; duration: 110; easing.type: Easing.OutCubic }
+        }
+
+        ParallelAnimation {
+            id: dockReleaseAnim
+            NumberAnimation { target: btn; property: "pressScale"; to: 1.0; duration: 450; easing.type: Easing.OutBack; easing.overshoot: 3.0 }
+            NumberAnimation { target: btn; property: "iconPressScale"; to: 1.0; duration: 530; easing.type: Easing.OutBack; easing.overshoot: 4.0 }
+        }
+
+        SequentialAnimation {
+            id: dockPulseAnim
+            ParallelAnimation {
+                NumberAnimation { target: btn; property: "pressScale"; to: 0.88; duration: 110; easing.type: Easing.OutCubic }
+                NumberAnimation { target: btn; property: "iconPressScale"; to: 0.84; duration: 110; easing.type: Easing.OutCubic }
+            }
+            PauseAnimation { duration: 70 }
+            ScriptAction { script: { dockBurstAnim.restart(); dockReleaseAnim.restart() } }
+        }
+
+        SequentialAnimation {
+            id: dockBurstAnim
+            PropertyAction { target: dockFlash; property: "scale"; value: 0.35 }
+            PropertyAction { target: dockFlash; property: "opacity"; value: 0.30 }
+            PropertyAction { target: btn; property: "iconSpin"; value: -9 }
+            ParallelAnimation {
+                NumberAnimation { target: dockFlash; property: "scale"; to: 1.0; duration: 340; easing.type: Easing.OutQuad }
+                NumberAnimation { target: dockFlash; property: "opacity"; to: 0.0; duration: 400; easing.type: Easing.OutCubic }
+                NumberAnimation { target: btn; property: "iconSpin"; to: 0; duration: 620; easing.type: Easing.OutElastic; easing.amplitude: 1.0; easing.period: 0.45 }
+            }
+        }
+
+
         Rectangle {
             id: tooltip
             visible: parent.containsMouse && tooltipText !== ""

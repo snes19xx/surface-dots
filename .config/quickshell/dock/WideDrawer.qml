@@ -25,9 +25,26 @@ PanelWindow {
     color: "transparent"
     visible: shell.activeHeight > 1
 
+    onVisibleChanged: Lib.Shell.nudgeCursor()
+
     WlrLayershell.exclusiveZone: -1
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+
+    property rect launcherHole: Qt.rect(0, 0, 0, 0)
+
+    mask: Region {
+        width: drawerWin.width
+        height: drawerWin.height
+
+        Region {
+            intersection: Intersection.Subtract
+            x: drawerWin.launcherHole.x
+            y: drawerWin.launcherHole.y
+            width: drawerWin.launcherHole.width
+            height: drawerWin.launcherHole.height
+        }
+    }
 
     // ThemeEngine instance from shell.qml.
     required property var theme
@@ -217,12 +234,21 @@ PanelWindow {
                         })
                     }
                 }
-                drawerWin.rebuild()
+                // SplitParser fires per line, resets the models on every one
+                rebuildCoalesce.restart()
             }
         }
         stderr: SplitParser { onRead: data => console.error("applist:", data) }
-        onExited: (code, status) => console.warn("[drawer] applist.sh exited code=" + code + " apps parsed=" + appModel.count)
+        onExited: (code, status) => {
+            rebuildCoalesce.stop()
+            drawerWin.rebuild()
+            drawerWin.warmIconCache()
+            console.warn("[drawer] applist.sh exited code=" + code + " apps parsed=" + appModel.count)
+        }
     }
+
+    // Collapse a burst of parsed lines into one rebuild
+    Timer { id: rebuildCoalesce; interval: 32; onTriggered: drawerWin.rebuild() }
 
     ListModel { id: appModel }
 
@@ -291,6 +317,36 @@ PanelWindow {
 
     Component.onCompleted: {
         loadFavorites()
+        warmupTimer.start()
+    }
+
+    // Load the app list before the first open, clear of shell startup.
+    Timer {
+        id: warmupTimer
+        interval: 1200
+        onTriggered: if (!drawerWin.hasLoadedApps) { drawerWin.hasLoadedApps = true; drawerWin.loadApps() }
+    }
+    Item { id: iconWarmHost; visible: false }
+    Component {
+        id: iconWarmImage
+        // the cache key has to match AppTile's Image exactly.
+        Image {
+            smooth: true; mipmap: true; cache: true; asynchronous: true
+            // AppTile's fallback
+            property bool errored: false
+            onStatusChanged: { if (status === Image.Error && !errored) { errored = true; source = "image://icon/application-x-executable" } }
+        }
+    }
+    function warmIconCache() {
+        // Re-created before the old ones are collected
+        var stale = iconWarmHost.children
+        for (var c = stale.length - 1; c >= 0; c--) stale[c].destroy()
+        for (var i = 0; i < appModel.count; i++) {
+            var path = String(appModel.get(i).icon).trim()
+            iconWarmImage.createObject(iconWarmHost, {
+                source: path.indexOf("/") >= 0 ? "file://" + path : "image://icon/" + path
+            })
+        }
     }
 
     function rebuild() {
@@ -811,7 +867,7 @@ PanelWindow {
                                 return p.indexOf("/") >= 0 ? "file://" + p : "image://icon/" + p
                             }
                             fillMode: Image.PreserveAspectFit
-                            smooth: true; mipmap: true; cache: true; asynchronous: false
+                            smooth: true; mipmap: true; cache: true; asynchronous: true
                             visible: drawerWin.theme.isDarkMode
                             property bool errored: false
                             onStatusChanged: { if (status === Image.Error && !errored) { errored = true; source = "image://icon/application-x-executable" } }

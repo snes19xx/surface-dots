@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Qt5Compat.GraphicalEffects
+import "../lib" as Lib
 import "../theme.js" as Theme      // will  consolidate to theme engine soon!            
 
 PanelWindow {
@@ -16,7 +17,9 @@ PanelWindow {
 
     visible: drawerContainer.activeHeight > 1
 
-    WlrLayershell.exclusiveZone: -1 
+    onVisibleChanged: Lib.Shell.nudgeCursor()
+
+    WlrLayershell.exclusiveZone: -1
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
@@ -25,7 +28,22 @@ PanelWindow {
     property bool hasLoadedApps: false
     property var contextApp: ({})
 
-    //  BACKGROUND CLICK (Close) 
+    property rect launcherHole: Qt.rect(0, 0, 0, 0)
+
+    mask: Region {
+        width: drawerWin.width
+        height: drawerWin.height
+
+        Region {
+            intersection: Intersection.Subtract
+            x: drawerWin.launcherHole.x
+            y: drawerWin.launcherHole.y
+            width: drawerWin.launcherHole.width
+            height: drawerWin.launcherHole.height
+        }
+    }
+
+    //  BACKGROUND CLICK (Close)
     MouseArea {
         anchors.fill: parent
         enabled: drawerWin.isOpen

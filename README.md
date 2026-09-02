@@ -16,7 +16,6 @@ Also, please check out my calendar app: [Evercal](https://github.com/snes19xx/Ev
 - [Workflow guide](#workflow-guide)
 - [Quickshell Hub](#quickshell-hub)
 - [Power menu](#power-menu)
-- [Wifi menu](#wifi-menu)
 - [Firefox Customizations](#firefox-customizations)
 - [Cursors](#cursors)
 - [Lockscreens](#lockscreens)
@@ -59,7 +58,8 @@ Everything below is on Arch. The installer does not install any of this for you,
 ```bash
 sudo pacman -S hyprland hypridle hyprlock hyprpicker quickshell awww \
   xdg-utils xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-desktop-portal-kde \
-  polkit-gnome sddm networkmanager bluez bluez-utils blueman upower webkit2gtk-4.1 \
+  polkit-gnome sddm networkmanager nm-connection-editor bluez bluez-utils blueman \
+  upower webkit2gtk-4.1 \
   dunst rofi kitty thunar firefox mpv zathura fastfetch starship \
   qt6ct kvantum papirus-icon-theme qt6-5compat qt6-svg qqc2-desktop-style \
   pipewire-pulse libpulse pamixer pavucontrol playerctl brightnessctl \
@@ -380,6 +380,8 @@ SUPER + SPACE          →   hub opens (or closes)
    s                   →   settings
    w                   →   wallpapers
    m                   →   displays
+   i                   →   internet
+   t                   →   bluetooth
    b                   →   battery & system stats
    Esc                 →   close everything
 ```
@@ -392,6 +394,8 @@ SUPER + SPACE          →   hub opens (or closes)
 | `s`   | Settings panel                  | Swaps in place, press `s` again to come back            |
 | `w`   | Wallpaper picker                | `s` also backs out of this one                          |
 | `m`   | Displays panel                  | Resolution, refresh rate, scale, multi-monitor layout   |
+| `i`   | Internet panel                  | Saved and nearby networks, connect and forget           |
+| `t`   | Bluetooth panel                 | Paired and nearby devices, pair and connect             |
 | `b`   | Battery / system stats card     | Toggles the card in the column, doesn't replace the hub |
 | `Esc` | Close                           | One press, from anywhere                                |
 
@@ -403,7 +407,8 @@ A few controls are outside this:
 
 - `ALT + F4` → power menu. It's its own overlay.
 - `SUPER + R` → app drawer. Rofi in topbar mode, the wide drawer in taskbar mode.
-- Right-click the Wi-Fi button → the full network menu.
+- Right-click the Wi-Fi button → the internet panel (same as `i`).
+- Right-click the Bluetooth button → the bluetooth panel (same as `t`).
 - Right-click the performance button → battery health card (same as `b`).
 - Right-click the Arch glyph, topbar mode only → theme toggle.
 
@@ -504,10 +509,49 @@ thumbnails and streams them into the grid over a socket.
 
 ---
 
+### Internet Panel
+
+`hub/WifiPanel.qml`, opened with `i` or by right-clicking the Wi-Fi button. Swaps in place
+like every other panel.
+
+- Saved and nearby networks, with signal strength
+- Password and enterprise (PEAP/MSCHAPv2) prompts
+- Right-click a saved network to forget it
+- Advanced settings opens `nm-connection-editor`
+
+Runs on `nmcli`. Last connection is cached to `~/.cache/quickshell/wifi_status.json` so the
+card paints before the first poll comes back.
+
+This replaces the old standalone network applet at `lib/WifiMenu.qml`, which is still in the
+repo and still works if you'd rather bind it to a key of its own:
+`quickshell -p ~/.config/quickshell/lib/WifiMenu.qml`
+
+> [!WARNING]
+> You should be able to connect to most enterprise access points now (PEAP/MSCHAPv2 only). That covers most corporate/campus networks (including eduroam), but if you ever hit an enterprise AP that requires EAP-TLS (client certificates) or EAP-TTLS, this won't handle it -- you'd need nmcli/nmtui directly for that.
+
+---
+
+### Bluetooth Panel
+
+`hub/BluetoothPanel.qml`, opened with `t` or by right-clicking the Bluetooth button.
+
+- Connected, paired and nearby devices, with battery level where the device reports it
+- Scanning only runs while the panel is open
+- Right-click a paired device to forget it
+- Advanced settings opens blueman
+
+Binds straight to Quickshell's bluetooth module, no polling.
+
+> [!NOTE]
+> Devices that need PIN confirmation to pair won't finish here, since the shell doesn't
+> register a bluez agent. Use blueman for those.
+
+---
+
 ### Buttons and Sliders
 
-- `Wi-Fi toggle` with SSID readout (right-click opens the Wi-Fi menu)
-- `Bluetooth toggle` with connected device status (right-click opens blueman)
+- `Wi-Fi toggle` with SSID readout (right-click opens the internet panel)
+- `Bluetooth toggle` with connected device status (right-click opens the bluetooth panel)
 - `Performance profile button` (cycles Auto → Max → Powersave through `auto-cpufreq`, right-click toggles the battery health card). **Needs a sudoers rule, see below** — without one it's inert by design.
 - `DND toggle` (dunst)
 - `Volume and brightness sliders` (`pactl` and `brightnessctl`)
@@ -707,19 +751,6 @@ Both share the same logic (`utils/PowerMenuController.qml`), the skins are just 
 ```bash
 quickshell -p ~/.config/quickshell/utils/PowerMenu.qml
 ```
-
-## Wifi menu
-
-Network manager applet at `lib/WifiMenu.qml`, in both light and dark.
-
-- Trigger: right-click the Wi-Fi button in the Hub.
-- Standalone, if you want it on a key of its own: `quickshell -p ~/.config/quickshell/lib/WifiMenu.qml`
-
-It runs inside the shell now. It's preloaded and just made visible now, so it's instant. The file still works
-standalone for anyone who prefers binding it directly.
-
-> [!WARNING]
-> You should be able to connect to most enterprise access points now (PEAP/MSCHAPv2 only). That covers most corporate/campus networks (including eduroam), but if you ever hit an enterprise AP that requires EAP-TLS (client certificates) or EAP-TTLS, this menu won't handle it -- you'd need nmcli/nmtui directly for that.
 
 ## OSDs
 
@@ -1005,7 +1036,7 @@ _A: The hub has to have focus, which it does when you open it with `SUPER + SPAC
 _A: They're a `Keys.onPressed` block near the top of `hub/HubWindow.qml`, one `else if` per key. Add or swap letters there._
 
 **Q: Something's off in only one of the two layouts. Where do I look?** <br>
-_A: If it's a card, it's in `hub/top/` for topbar mode or `hub/` for taskbar mode. If it's the bar, `bars/TopBar.qml` or `bars/TaskBar.qml`. Everything else (services, theme, settings, wifi menu, panels) is shared, so a bug there will show up in both._
+_A: If it's a card, it's in `hub/top/` for topbar mode or `hub/` for taskbar mode. If it's the bar, `bars/TopBar.qml` or `bars/TaskBar.qml`. Everything else (services, theme, settings, panels) is shared, so a bug there will show up in both._
 
 <div style="text-align:center;">
   <i>If you have any other questions, please start an issue. I'd be more than happy to answer it for you.</i>

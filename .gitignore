@@ -2,5 +2,6 @@
 
 .config/quickshell/**/.cache/
 .config/quickshell/**/usersettings.json
+.config/quickshell/**/monitors.json
 .config/quickshell/**/errors.log
 .config/quickshell/weather_api.conf

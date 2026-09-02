@@ -9,6 +9,8 @@ Lib.Card {
   id: root
   signal closeRequested()
   signal batteryToggleRequested()
+  signal wifiRequested()
+  signal bluetoothRequested()
   property bool active: true
   property bool autoMode: true
   property bool dnd: false
@@ -185,8 +187,7 @@ Lib.Card {
         label: String(wifiSSID.value || "WiFi")
         active: Boolean(wifiOn.value)
         onClicked: toggleWifi()
-        onRightClicked: { root.closeRequested();
-        Lib.Overlays.wifiOpen = true }
+        onRightClicked: root.wifiRequested()
       }
 
       // 2. Bluetooth 
@@ -203,8 +204,7 @@ Lib.Card {
         active: showActive
         
         onClicked: toggleBt()
-        onRightClicked: { root.closeRequested();
-        Lib.Shell.det("blueman-manager >/dev/null 2>&1 &") }
+        onRightClicked: root.bluetoothRequested()
       }
 
       // 3. Performance

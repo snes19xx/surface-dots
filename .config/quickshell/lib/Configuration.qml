@@ -31,10 +31,26 @@ Scope {
     readonly property string evercalBin:       "/opt/evercal/ever_cal"
 
     // Hub
-    property int    maxEvents:       1
-    property bool   useCustomColors: false
-    property color  customAccent:    "#7AA1A6"
-    property color  customBg:        "#141719"
+    property int    maxEvents: 1
+
+    property bool   useCustomAccent:   false
+    property bool   useCustomBg:       false
+    property color  customAccentDark:  "#7AA1A6"
+    property color  customAccentLight: "#4A6B70"
+    property color  customBgDark:      "#141719"
+    property color  customBgLight:     "#F0ECE6"
+
+    function setCustomAccent(dark, hex) {
+        if (dark) customAccentDark = hex; else customAccentLight = hex
+        useCustomAccent = true
+        save()
+    }
+
+    function setCustomBg(dark, hex) {
+        if (dark) customBgDark = hex; else customBgLight = hex
+        useCustomBg = true
+        save()
+    }
 
     // Weather
     property string weatherApiKey: ""
@@ -148,9 +164,12 @@ Scope {
             desktopMode:              root.desktopMode,
             wallpaperDir:             root.wallpaperDir,
             maxEvents:                root.maxEvents,
-            useCustomColors:          root.useCustomColors,
-            customAccent:             String(root.customAccent),
-            customBg:                 String(root.customBg),
+            useCustomAccent:          root.useCustomAccent,
+            useCustomBg:              root.useCustomBg,
+            customAccentDark:         String(root.customAccentDark),
+            customAccentLight:        String(root.customAccentLight),
+            customBgDark:             String(root.customBgDark),
+            customBgLight:            String(root.customBgLight),
             currentShader:            root.currentShader,
             weatherApiKey:            root.weatherApiKey,
             weatherLat:               root.weatherLat,
@@ -189,9 +208,23 @@ Scope {
             if (d.desktopMode              !== undefined) root.desktopMode              = d.desktopMode
             if (d.wallpaperDir             !== undefined) root.wallpaperDir             = d.wallpaperDir
             if (d.maxEvents                !== undefined) root.maxEvents                = d.maxEvents
-            if (d.useCustomColors          !== undefined) root.useCustomColors          = d.useCustomColors
-            if (d.customAccent             !== undefined) root.customAccent             = d.customAccent
-            if (d.customBg                 !== undefined) root.customBg                 = d.customBg
+            // pre-split keys
+            if (d.useCustomColors !== undefined) {
+                root.useCustomAccent = d.useCustomColors
+                root.useCustomBg     = d.useCustomColors
+            }
+            if (d.customAccent !== undefined) {
+                root.customAccentDark  = d.customAccent
+                root.customAccentLight = d.customAccent
+            }
+            if (d.customBg !== undefined) root.customBgDark = d.customBg
+
+            if (d.useCustomAccent          !== undefined) root.useCustomAccent          = d.useCustomAccent
+            if (d.useCustomBg              !== undefined) root.useCustomBg              = d.useCustomBg
+            if (d.customAccentDark         !== undefined) root.customAccentDark         = d.customAccentDark
+            if (d.customAccentLight        !== undefined) root.customAccentLight        = d.customAccentLight
+            if (d.customBgDark             !== undefined) root.customBgDark             = d.customBgDark
+            if (d.customBgLight            !== undefined) root.customBgLight            = d.customBgLight
             if (d.currentShader            !== undefined) root.currentShader            = d.currentShader
             if (d.weatherApiKey            !== undefined) root.weatherApiKey            = d.weatherApiKey
             if (d.weatherLat               !== undefined) root.weatherLat               = d.weatherLat

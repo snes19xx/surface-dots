@@ -49,9 +49,9 @@ Lib.Card {
       ColumnLayout {
         Layout.fillWidth: true
         Layout.preferredWidth: 1
+        Layout.leftMargin: 8
         spacing: -8
-        transform: Translate { x: 10 }
-        
+
         Text {
           text: Qt.formatDate(root.now, "dddd").toUpperCase()
           font.family: Theme.textFont
@@ -72,6 +72,7 @@ Lib.Card {
           lineHeightMode: Text.ProportionalHeight
         }
         
+        // The longest month name is used for how much room is left for the weather
         Text {
           text: Qt.formatDate(root.now, "MMMM yyyy").toUpperCase()
           font.family: Theme.textFont
@@ -80,14 +81,16 @@ Lib.Card {
           font.letterSpacing: 1.0
           color: (root.theme ? root.theme.textSecondary : Theme.fgMuted)
           opacity: 0.65
+          elide: Text.ElideRight
+          Layout.fillWidth: true
         }
       }
-      
+
       // Right: Weather
       ColumnLayout {
         Layout.alignment: Qt.AlignTop | Qt.AlignRight
-        Layout.preferredWidth: 120
-        transform: Translate { x: 19 }
+        Layout.minimumWidth: 100
+        Layout.maximumWidth: 100
         spacing: 6
         
         Text {
@@ -114,7 +117,7 @@ Lib.Card {
           font.weight: 500
           color: (root.theme ? root.theme.textSecondary : Theme.fgMuted)
           Layout.alignment: Qt.AlignRight
-          Layout.maximumWidth: 110
+          Layout.fillWidth: true
           horizontalAlignment: Text.AlignRight
           wrapMode: Text.WordWrap
         }
@@ -122,13 +125,18 @@ Lib.Card {
     }
     
     // Spacer
-    Item { Layout.preferredHeight: 16 }
-    
+    Item {
+      Layout.fillHeight: true
+      Layout.minimumHeight: 4
+      Layout.preferredHeight: 16
+    }
+
     // Calendar Grid
     Item {
       Layout.fillWidth: true
       Layout.preferredHeight: calGrid.implicitHeight
-      
+      Layout.minimumHeight: calGrid.implicitHeight
+
       CalendarGrid {
         id: calGrid
         anchors.right: parent.right
@@ -136,8 +144,6 @@ Lib.Card {
         theme: root.theme
       }
     }
-    
-    Item { Layout.fillHeight: true }
   }
   
   // Click launches my calendar app

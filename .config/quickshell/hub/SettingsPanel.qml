@@ -104,12 +104,12 @@ Item {
                     CPicker {
                         Layout.fillWidth: true; label: "Hub accent"
                         currentHex: root.theme ? root.flatHex(root.theme.accent, root.theme.bgMain) : "#759b61"
-                        onPicked: (hex) => { Lib.Configuration.customAccent=hex; Lib.Configuration.useCustomColors=true; Lib.Configuration.save() }
+                        onPicked: (hex) => Lib.Configuration.setCustomAccent(!root.theme || root.theme.isDarkMode, hex)
                     }
                     CPicker {
                         Layout.fillWidth: true; label: "Background"
                         currentHex: root.theme ? root.hex6(root.theme.bgMain) : "#141719"
-                        onPicked: (hex) => { Lib.Configuration.customBg=hex; Lib.Configuration.useCustomColors=true; Lib.Configuration.save() }
+                        onPicked: (hex) => Lib.Configuration.setCustomBg(!root.theme || root.theme.isDarkMode, hex)
                     }
                     CPicker {
                         Layout.fillWidth: true; label: "Bar accent"
@@ -120,7 +120,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true; spacing: 8
                     SBtn { label: "Reset colors"
-                        onTriggered: { Lib.Configuration.useCustomColors=false; Lib.Configuration.taskbarAccent="#759b61"; Lib.Configuration.save() }
+                        onTriggered: { Lib.Configuration.useCustomAccent=false; Lib.Configuration.useCustomBg=false; Lib.Configuration.taskbarAccent="#759b61"; Lib.Configuration.save() }
                     }
                     Item { Layout.fillWidth: true }
                     SBtn { label: " Wallpaper"; accent: true; onTriggered: root.wallpaperRequested() }
