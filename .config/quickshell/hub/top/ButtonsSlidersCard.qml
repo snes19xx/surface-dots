@@ -55,16 +55,14 @@ Lib.TopCard {
     onUpdated: if (!root._toggling) root._optBt = value 
   }
 
-  // BT Device ID
-  Lib.CommandPoll {
-    id: btDev;
-    running: root.active && root.visible; interval: 3500
-    command: sh("pactl list cards 2>/dev/null | grep -A 20 'bluez_card' | grep 'device.description' | head -n1 | cut -d'=' -f2 | tr -d '\"'")
-    parse: function(o) {
-      var d = String(o).trim();
+  // BT Device ID, from the default sink when it is a bluez one
+  QtObject {
+    id: btDev
+    readonly property string value: {
+      var d = Lib.Audio.bluetoothName
       if (d.length > 0) return d.length > 9 ? d.slice(0, 9) : d
       // Fallback: Use the strict btOn value.
-      return btOn.value ? "On" : "Off" 
+      return btOn.value ? "On" : "Off"
     }
   }
   
@@ -78,17 +76,13 @@ Lib.TopCard {
   }
 
   // --- VOLUME / BRIGHTNESS ---
-  Lib.CommandPoll {
-    id: volPoll
-    running: root.active && root.visible
-    interval: 1200
-    // Get volume number only
-    command: sh("pactl get-sink-volume @DEFAULT_SINK@ 2>/dev/null | grep -Po '\\d+(?=%)' | head -n1")
-    parse: function(o) {
-      var n = parseInt(String(o).trim())
-      return isFinite(n) ? n : 0
-    }
-    onUpdated: if (!volS.pressed) volS.value = value
+  // Hold-off so the slider stays put until pipewire echoes the new value
+  Timer { id: volHold; interval: 300 }
+  Binding {
+    target: volS; property: "value"
+    value: Math.round(Lib.Audio.volume * 100)
+    // Volume reads 0 mid sink switch
+    when: !volS.pressed && !volHold.running && Lib.Audio.ready
   }
 
   Lib.CommandPoll {
@@ -285,7 +279,7 @@ Lib.TopCard {
         // Logic: Muted/0 -> mute | Headphones -> headphones | <50 -> 50m | >50 -> 50p
         icon: {
             if (value === 0) return "mute.svg"
-            if (volPoll.value.isHeadphones) return "vol_headphones.svg"
+            if (Lib.Audio.bluetoothName !== "") return "vol_headphones.svg"
             return (value > 50) ? "vol_50p.svg" : "vol_50m.svg"
         }
         from: 0; to: 100
@@ -294,7 +288,8 @@ Lib.TopCard {
         accentColor: (root.theme && root.theme.isDarkMode !== undefined && !root.theme.isDarkMode)
             ? root.theme.accentSlider
             : "#83C092"
-        onUserChanged: det("pactl set-sink-volume @DEFAULT_SINK@ " + Math.round(value) + "%")
+        onPressedChanged: volHold.restart()
+        onUserChanged: { volHold.restart(); Lib.Audio.setVolume(value / 100) }
       }
     }
 
