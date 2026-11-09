@@ -50,8 +50,15 @@ PanelWindow {
     required property var theme
     property bool isOpen: false
     property bool hasLoadedApps: false
-    property string currentTab: "apps"           // "apps" | "shaders"
+    property string currentTab: "apps"           // "apps" | "shaders" | "clipboard"
+    readonly property var tabOrder: ["apps", "shaders", "clipboard"]
     property var contextApp: ({})
+    property bool clearArmed: false              // second click within 3 s wipes history
+
+    onCurrentTabChanged: {
+        clearArmed = false
+        if (currentTab === "clipboard") { Lib.Clipboard.reload(); rebuildClip() }
+    }
 
     // Storage paths for the pinned apps list. 
     readonly property string favStorePath: Quickshell.env("HOME") + "/.config/quickshell/.cache/favorites.json"
@@ -77,6 +84,7 @@ PanelWindow {
 
     function close() {
         isOpen = false
+        clearArmed = false
         contextMenu.visible = false
         searchField.focus = false
     }
@@ -150,10 +158,14 @@ PanelWindow {
     }
 
     // ---------- keyboard ----------
-    function toggleTab() { currentTab = (currentTab === "apps") ? "shaders" : "apps" }
+    function cycleTab(step) {
+        var n = tabOrder.length
+        currentTab = tabOrder[(tabOrder.indexOf(currentTab) + step + n) % n]
+    }
+    function toggleTab() { cycleTab(1) }
 
     function focusGrid() {
-        var g = (currentTab === "apps") ? appGrid : shaderGrid
+        var g = (currentTab === "apps") ? appGrid : (currentTab === "shaders") ? shaderGrid : clipList
         if (g.count > 0) {
             if (g.currentIndex < 0) g.currentIndex = 0
             g.forceActiveFocus()
@@ -175,7 +187,8 @@ PanelWindow {
 
     // Prevents text mutations when hitting backspace/modifiers
     function typeToSearch(e) {
-        if (e.text.length === 1 && e.text >= " "
+        // the Delete key comes in as "\x7f" and sneaks past the >= " " check
+        if (e.text.length === 1 && e.text >= " " && e.text !== "\x7f"
             && !(e.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier))) {
             searchField.forceActiveFocus()
             searchField.text += e.text
@@ -289,6 +302,41 @@ PanelWindow {
     ListModel { id: favoritesModel }       
     ListModel { id: filteredModel }        
     ListModel { id: filteredShaderModel }
+    ListModel { id: filteredClipModel }
+
+    Connections {
+        target: Lib.Clipboard
+        function onEntriesChanged() { drawerWin.rebuildClip() }
+    }
+
+    // clips get their own rebuild, otherwise a late thumbnail resets the selection
+    function rebuildClip() {
+        if (!searchField || !clipList) return
+        var query = searchField.text.toLowerCase().trim()
+        var keep = clipList.currentIndex
+        var all = Lib.Clipboard.entries
+        filteredClipModel.clear()
+        for (var c = 0; c < all.length; c++) {
+            var e = all[c]
+            if (query === "" || e.preview.toLowerCase().includes(query))
+                filteredClipModel.append({ cid: e.id, preview: e.preview, isImage: e.isImage, thumb: e.thumb })
+        }
+        if (filteredClipModel.count > 0)
+            clipList.currentIndex = Math.max(0, Math.min(keep, filteredClipModel.count - 1))
+    }
+
+    function copyClip(cid) {
+        Lib.Clipboard.copy(cid)
+        drawerWin.close()
+    }
+
+    function clearClipboard() {
+        if (!clearArmed) { clearArmed = true; clearTimer.restart(); return }
+        clearTimer.stop()
+        clearArmed = false
+        Lib.Clipboard.wipe()
+    }
+    Timer { id: clearTimer; interval: 3000; onTriggered: drawerWin.clearArmed = false }
 
     function isPinned(filename) { return drawerWin.pinnedFiles.indexOf(filename) >= 0 }
 
@@ -383,9 +431,13 @@ PanelWindow {
             }
         }
 
+        if (clipList) clipList.currentIndex = 0   // a new query restarts the selection
+        rebuildClip()
+
         Qt.callLater(function() {
             if (appGrid) appGrid.positionViewAtBeginning()
             if (shaderGrid) shaderGrid.positionViewAtBeginning()
+            if (clipList) clipList.positionViewAtBeginning()
        })
     }
 
@@ -482,7 +534,8 @@ PanelWindow {
                         Layout.rightMargin: 6
 
                         Text {
-                            text: drawerWin.currentTab === "apps" ? "Programs" : "Shaders"
+                            text: drawerWin.currentTab === "apps" ? "Programs"
+                                : drawerWin.currentTab === "shaders" ? "Shaders" : "Clipboard"
                             font.family: "Newsreader"
                             font.pixelSize: 28
                             font.weight: Font.Medium
@@ -490,6 +543,35 @@ PanelWindow {
                         }
 
                         Item { Layout.fillWidth: true }
+
+                        Rectangle {
+                            visible: drawerWin.currentTab === "clipboard" && Lib.Clipboard.entries.length > 0
+                            Layout.preferredWidth: clearLabel.implicitWidth + 28
+                            Layout.preferredHeight: 28
+                            Layout.rightMargin: 6
+                            radius: 8
+                            color: clearMa.containsMouse ? drawerWin.theme.subtleFillHover : drawerWin.theme.subtleFill
+                            border.width: 1
+                            border.color: drawerWin.clearArmed ? drawerWin.theme.accentRed : drawerWin.theme.outline
+                            Behavior on color { ColorAnimation { duration: 160 } }
+
+                            Text {
+                                id: clearLabel
+                                anchors.centerIn: parent
+                                text: drawerWin.clearArmed ? "Click again to clear" : "Clear"
+                                font.family: drawerWin.theme.textFont
+                                font.pixelSize: 12
+                                font.weight: Font.Medium
+                                color: drawerWin.clearArmed ? drawerWin.theme.accentRed : drawerWin.theme.textSecondary
+                            }
+                            MouseArea {
+                                id: clearMa
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: drawerWin.clearClipboard()
+                            }
+                        }
 
                         RowLayout {
                             spacing: 10
@@ -566,7 +648,7 @@ PanelWindow {
                                 Keys.onEnterPressed:  if (favView.currentItem) drawerWin.launchApp(favView.currentItem.tCmd, favView.currentItem.tTerminal)
                                 Keys.onEscapePressed: drawerWin.close()
                                 Keys.onTabPressed: { drawerWin.toggleTab(); drawerWin.focusGrid() }
-                                Keys.onBacktabPressed: { drawerWin.toggleTab(); drawerWin.focusGrid() }
+                                Keys.onBacktabPressed: { drawerWin.cycleTab(-1); drawerWin.focusGrid() }
                                 Keys.onDownPressed: drawerWin.focusGrid()
                                 Keys.onUpPressed: (e) => e.accepted = true
                                 Keys.onPressed: (e) => drawerWin.typeToSearch(e)
@@ -594,6 +676,24 @@ PanelWindow {
                             anchors.fill: parent
                             visible: drawerWin.currentTab === "shaders"
                             model: filteredShaderModel
+                        }
+
+                        ClipList {
+                            id: clipList
+                            anchors.fill: parent
+                            visible: drawerWin.currentTab === "clipboard"
+                            model: filteredClipModel
+                        }
+
+                        Text {
+                            anchors.centerIn: parent
+                            visible: drawerWin.currentTab === "clipboard" && filteredClipModel.count === 0
+                            text: !Lib.Clipboard.available ? "cliphist or wl-clipboard is not installed"
+                                : Lib.Clipboard.entries.length === 0 ? "Clipboard history is empty"
+                                : "No matching entries"
+                            font.family: drawerWin.theme.textFont
+                            font.pixelSize: 13
+                            color: drawerWin.theme.textSecondary
                         }
                     }
 
@@ -623,7 +723,7 @@ PanelWindow {
                                     Layout.fillHeight: true
                                     Text {
                                         anchors.verticalCenter: parent.verticalCenter
-                                        text: "Search apps and features..."
+                                        text: drawerWin.currentTab === "clipboard" ? "Search clipboard..." : "Search apps and features..."
                                         font.family: drawerWin.theme.textFont
                                         font.pixelSize: 13
                                         color: drawerWin.theme.textSecondary
@@ -645,7 +745,7 @@ PanelWindow {
                                         
                                         Keys.onEscapePressed: drawerWin.close()
                                         Keys.onTabPressed: drawerWin.toggleTab()
-                                        Keys.onBacktabPressed: drawerWin.toggleTab()
+                                        Keys.onBacktabPressed: drawerWin.cycleTab(-1)
                                         Keys.onUpPressed: drawerWin.enterContentUp()
                                         Keys.onLeftPressed: (e) => { if (searchField.text === "") drawerWin.enterContentUp(); else e.accepted = false }
                                         Keys.onRightPressed: (e) => { if (searchField.text === "") drawerWin.enterContentUp(); else e.accepted = false }
@@ -656,6 +756,8 @@ PanelWindow {
                                             } else if (drawerWin.currentTab === "shaders" && filteredShaderModel.count > 0) {
                                                 var sh = filteredShaderModel.get(0)
                                                 drawerWin.applyShader(drawerWin.shaderTarget(sh.sPath))
+                                            } else if (drawerWin.currentTab === "clipboard" && filteredClipModel.count > 0) {
+                                                drawerWin.copyClip(filteredClipModel.get(0).cid)
                                             }
                                         }
                                     }
@@ -664,7 +766,7 @@ PanelWindow {
                         }
 
                         Rectangle {
-                            Layout.preferredWidth: 190
+                            Layout.preferredWidth: 270
                             Layout.preferredHeight: 40
                             radius: 10
                             color: drawerWin.theme.subtleFill
@@ -673,10 +775,11 @@ PanelWindow {
 
                             Rectangle {
                                 id: segIndicator
-                                width: parent.width / 2 - 4
+                                readonly property real seg: parent.width / drawerWin.tabOrder.length
+                                width: seg - 6
                                 height: parent.height - 8
                                 y: 4
-                                x: drawerWin.currentTab === "apps" ? 4 : parent.width / 2 + 0
+                                x: drawerWin.tabOrder.indexOf(drawerWin.currentTab) * seg + 3
                                 radius: 7
                                 color: drawerWin.theme.accent
                                 Behavior on x { NumberAnimation { duration: 240; easing.type: Easing.OutBack; easing.overshoot: 1.1 } }
@@ -686,6 +789,7 @@ PanelWindow {
                                 anchors.fill: parent
                                 TabButton2 { tabId: "apps"; label: "Apps" }
                                 TabButton2 { tabId: "shaders"; label: "Shaders" }
+                                TabButton2 { tabId: "clipboard"; label: "Clipboard" }
                             }
                         }
                     }
@@ -773,7 +877,7 @@ PanelWindow {
         property string tabId: ""
         property string label: ""
         readonly property bool current: drawerWin.currentTab === tabId
-        width: parent.width / 2
+        width: parent.width / drawerWin.tabOrder.length
         height: parent.height
 
         Text {
@@ -920,8 +1024,8 @@ PanelWindow {
         Keys.onEnterPressed:  if (ag.currentItem) drawerWin.launchApp(ag.currentItem.tCmd, ag.currentItem.tTerminal)
         Keys.onEscapePressed: drawerWin.close()
         Keys.onTabPressed: { drawerWin.toggleTab(); drawerWin.focusGrid() }
-        Keys.onBacktabPressed: { drawerWin.toggleTab(); drawerWin.focusGrid() }
-        
+        Keys.onBacktabPressed: { drawerWin.cycleTab(-1); drawerWin.focusGrid() }
+
         Keys.onUpPressed: (e) => {
             if (ag.currentIndex < drawerWin.cols) {
                 if (!drawerWin.focusFavorites()) searchField.forceActiveFocus()
@@ -980,6 +1084,137 @@ PanelWindow {
         }
     }
 
+    component ClipList: ListView {
+        id: cl
+        clip: true
+        topMargin: 12
+        bottomMargin: 8
+        spacing: 2
+        boundsBehavior: Flickable.StopAtBounds
+
+        keyNavigationEnabled: true
+        highlightFollowsCurrentItem: true
+        highlightMoveDuration: 130
+        highlight: Rectangle {
+            radius: 12
+            color: drawerWin.theme.subtleFill
+            border.width: 2
+            border.color: drawerWin.theme.accent
+            visible: cl.activeFocus
+        }
+        function activateCurrent() {
+            var m = filteredClipModel.get(cl.currentIndex)
+            if (m) drawerWin.copyClip(m.cid)
+        }
+        function removeCurrent() {
+            var m = filteredClipModel.get(cl.currentIndex)
+            if (m) Lib.Clipboard.remove(m.cid)
+        }
+        Keys.onPressed: (e) => drawerWin.typeToSearch(e)
+        Keys.onReturnPressed: cl.activateCurrent()
+        Keys.onEnterPressed:  cl.activateCurrent()
+        Keys.onDeletePressed: cl.removeCurrent()
+        Keys.onEscapePressed: drawerWin.close()
+        Keys.onTabPressed: { drawerWin.toggleTab(); drawerWin.focusGrid() }
+        Keys.onBacktabPressed: { drawerWin.cycleTab(-1); drawerWin.focusGrid() }
+        Keys.onUpPressed: (e) => e.accepted = false
+        Keys.onDownPressed: (e) => {
+            if (cl.currentIndex >= cl.count - 1) {
+                searchField.forceActiveFocus()
+                e.accepted = true
+            } else e.accepted = false
+        }
+
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+            contentItem: Rectangle {
+                implicitWidth: 5; radius: 3
+                color: drawerWin.theme.textSecondary
+                opacity: parent.active ? 0.5 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 150 } }
+            }
+        }
+
+        delegate: Item {
+            id: row
+            width: cl.width
+            height: 64
+
+            MouseArea {
+                id: rm
+                anchors.fill: parent
+                anchors.margins: 4
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: drawerWin.copyClip(model.cid)
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 12
+                    color: drawerWin.theme.isDarkMode
+                        ? (rm.containsMouse ? drawerWin.theme.subtleFill : "transparent")
+                        : (rm.containsMouse ? Qt.darker(drawerWin.theme.bgCard, 1.12) : drawerWin.theme.bgCard)
+                    Behavior on color { ColorAnimation { duration: 160 } }
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 14
+                        anchors.rightMargin: 10
+                        spacing: 12
+
+                        Rectangle {
+                            visible: model.isImage
+                            Layout.preferredWidth: 72
+                            Layout.preferredHeight: 44
+                            radius: 6
+                            color: drawerWin.theme.subtleFill
+                            clip: true
+                            Image {
+                                anchors.fill: parent
+                                source: model.thumb
+                                fillMode: Image.PreserveAspectCrop
+                                sourceSize: Qt.size(144, 88)
+                                asynchronous: true
+                                smooth: true
+                            }
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: model.isImage
+                                ? "Image, " + model.preview.replace(/^\[\[ binary data (.*) \]\]$/, "$1")
+                                : model.preview
+                            color: drawerWin.theme.textPrimary
+                            font.family: drawerWin.theme.textFont
+                            font.pixelSize: 13
+                            font.weight: Font.Medium
+                            wrapMode: Text.Wrap
+                            maximumLineCount: 2
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            // opacity instead of visible, otherwise the text jumps around on hover
+                            opacity: (rm.containsMouse || cl.currentIndex === index) ? 1 : 0
+                            text: "✕"
+                            font.pixelSize: 12
+                            color: delMa.containsMouse ? drawerWin.theme.accentRed : drawerWin.theme.textSecondary
+                            MouseArea {
+                                id: delMa
+                                anchors.fill: parent
+                                anchors.margins: -8
+                                enabled: parent.opacity > 0
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: Lib.Clipboard.remove(model.cid)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     component ShaderGrid: GridView {
         id: sg
         cellWidth: Math.floor(width / drawerWin.cols)
@@ -1009,7 +1244,7 @@ PanelWindow {
         Keys.onEnterPressed:  sg.activateCurrent()
         Keys.onEscapePressed: drawerWin.close()
         Keys.onTabPressed: { drawerWin.toggleTab(); drawerWin.focusGrid() }
-        Keys.onBacktabPressed: { drawerWin.toggleTab(); drawerWin.focusGrid() }
+        Keys.onBacktabPressed: { drawerWin.cycleTab(-1); drawerWin.focusGrid() }
         Keys.onUpPressed: (e) => e.accepted = false
         Keys.onDownPressed: (e) => {
             if (sg.currentIndex >= sg.count - drawerWin.cols) {
