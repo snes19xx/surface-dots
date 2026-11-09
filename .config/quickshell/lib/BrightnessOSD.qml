@@ -33,26 +33,15 @@ PanelWindow {
         onTriggered: if (!root.isDragging) root.localPercent = -1
     }
 
-    // First value read at start does not show the OSD
-    property bool _armed: false
-    Timer {
-        id: armTimer
-        interval: 500
-        onTriggered: root._armed = true
-    }
+    // Scripts like reading mode stay silent
     Connections {
         target: Brightness
-        function onPercentChanged() {
-            if (!root._armed) {
-                armTimer.restart()
-                return
-            }
+        function onUserChanged() {
             if (root.isDragging) return
             root.osdVisible = true
             hideTimer.restart()
         }
     }
-    Component.onCompleted: if (Brightness.available) armTimer.restart()
 
     // Throttle: only fire every 40ms during drag
     Timer {

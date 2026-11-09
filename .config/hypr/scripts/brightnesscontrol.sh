@@ -20,3 +20,6 @@ new_perc=$(brightnessctl info | grep -oP "(?<=\()\d+(?=%)" | head -1)
 
 echo "$new_perc" > "$HOME/.cache/quickshell/brightness"
 
+# Key press, so the shell shows the OSD
+qs ipc call brightness notify >/dev/null 2>&1
+

@@ -15,8 +15,17 @@ Scope {
     readonly property bool available: dir !== "" && maxValue > 0 && _raw >= 0
     readonly property int percent: available ? Math.round(_raw * 100 / maxValue) : -1
 
+    // Only my own changes: hub slider, OSD drag, brightness keys
+    signal userChanged()
+
+    IpcHandler {
+        target: "brightness"
+        function notify(): void { root.userChanged() }
+    }
+
     function set(pct) {
         if (!root.available) return
+        root.userChanged()
         // Floor of 1 so a drag can't black out the screen
         const p = Math.max(1, Math.min(100, Math.round(pct)))
         Quickshell.execDetached(["brightnessctl", "set", p + "%"])
