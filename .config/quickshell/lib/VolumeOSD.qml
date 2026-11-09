@@ -2,9 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import Quickshell
-import Quickshell.Io
 import Quickshell.Wayland
-import "../lib" as Lib
 
 PanelWindow {
     id: root
@@ -24,98 +22,68 @@ PanelWindow {
     color:          "transparent"
     visible:        false  
 
-    // State 
-    property int  volume:     80
-    property bool muted:      false
+    // State
     property bool isDragging: false
     property bool osdVisible: false
-    property bool _ready:     false
-    property bool isHeadphones: false
+    // Drag and wheel steps build on this until pipewire catches up
+    property int  localVolume: -1
+    readonly property int  volume: localVolume >= 0 ? localVolume : Math.round(Audio.volume * 100)
+    Timer {
+        id: localHold
+        interval: 400
+        onTriggered: if (!root.isDragging) root.localVolume = -1
+    }
+    readonly property bool muted:  Audio.muted
+    readonly property bool isHeadphones: Audio.bluetoothName !== ""
+        || /headphone|headset/i.test(Audio.sinkName)
 
-    // Headphone / bluetooth sink 
-    Lib.CommandPoll {
-        id: sinkPoll
-        interval: 6000
-        // Default sink rarely changes  only poll while the OSD is on screen.
-        // CommandPoll fires once on start (triggeredOnStart), so the headphone
-        // icon is correct the moment the OSD appears; zero work while hidden.
-        running: root.osdVisible
-        command: ["bash", "-lc", "pactl get-default-sink 2>/dev/null || echo ''"]
-        parse: function(o) {
-            var s = String(o).trim().toLowerCase()
-            return s.indexOf("bluez")      !== -1
-                || s.indexOf("headphone")  !== -1
-                || s.indexOf("headset")    !== -1
+    // A sink appearing or switching changes the volume too, those are ignored
+    property bool _armed: false
+    property var  _seenSink: null
+    Timer {
+        id: armTimer
+        interval: 500
+        onTriggered: root._armed = Audio.ready
+    }
+    Connections {
+        target: Audio
+        function onReadyChanged() {
+            root._armed = false
+            if (Audio.ready) armTimer.restart()
         }
-        onUpdated: root.isHeadphones = Boolean(value)
+        function onSinkChanged()   { root._checkSink() }
+        function onVolumeChanged() { root._show() }
+        function onMutedChanged()  { root._show() }
+    }
+    Component.onCompleted: {
+        root._seenSink = Audio.sink
+        if (Audio.ready) armTimer.restart()
     }
 
-    // File watcher
-    FileView {
-        id: volWatcher
-        path:         Quickshell.env("HOME") + "/.cache/quickshell/volume"
-        watchChanges: true
-        preload:      true
-        onFileChanged: reload()
-        onLoaded:      root._ready = true
-        onTextChanged: root._handleVol(text())
+    function _checkSink() {
+        if (Audio.sink === root._seenSink) return false
+        root._seenSink = Audio.sink
+        root._armed = false
+        armTimer.restart()
+        return true
     }
 
-    function _handleVol(raw) {
-        if (!root._ready) return
-        if (root.isDragging) return
-        var parts = raw.trim().split(":")
-        if (parts.length < 2) return
-        var v = parseInt(parts[0], 10)
-        if (isNaN(v)) return
-        root.volume     = Math.max(0, Math.min(100, v))
-        root.muted      = (parts[1].trim() === "true")
+    function _show() {
+        if (root._checkSink()) return
+        if (!root._armed || !Audio.ready || root.isDragging) return
         root.osdVisible = true
         hideTimer.restart()
     }
 
-    // Pamixer (drag)
-    Process {
-        id: setVolProc
-        running: false
-    }
-
-    Process {
-        id: muteProc
-        command: ["pamixer", "-t"]
-        running: false
-    }
-
-    Timer {
-        id: setVolThrottle
-        interval: 40
-        property int pendingVol: -1
-        onTriggered: {
-            if (pendingVol < 0) return
-            setVolProc.command = ["pamixer", "--set-volume", pendingVol.toString()]
-            setVolProc.running = true
-            cacheWriter.setText(pendingVol + ":" + (root.muted ? "true" : "false") + "\n")
-            cacheWriter.save()
-            pendingVol = -1
-        }
-    }
-
-    FileView {
-        id: cacheWriter
-        path: Quickshell.env("HOME") + "/.cache/quickshell/volume"
-    }
-
     function _setVolume(v) {
         v = Math.max(0, Math.min(100, v))
-        root.volume = v
-        // mute state only changes via _toggleMute()
-        setVolThrottle.pendingVol = v
-        if (!setVolThrottle.running) setVolThrottle.start()
+        root.localVolume = v
+        localHold.restart()
+        Audio.setVolume(v / 100)
     }
 
     function _toggleMute() {
-        muteProc.running = true
-        root.muted      = !root.muted
+        Audio.toggleMute()
         root.osdVisible = true
         hideTimer.restart()
     }
@@ -446,6 +414,7 @@ PanelWindow {
                             }
                             onReleased: {
                                 root.isDragging = false
+                                localHold.restart()
                                 hideTimer.restart()
                             }
                             onWheel: wheel => {
