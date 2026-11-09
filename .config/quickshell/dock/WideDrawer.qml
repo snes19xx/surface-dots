@@ -78,6 +78,7 @@ PanelWindow {
         searchField.text = ""
         currentTab = "apps"
         loadFavorites()
+        Lib.Clipboard.reload()
         if (!hasLoadedApps) { hasLoadedApps = true; loadApps() }
         Qt.callLater(() => searchField.forceActiveFocus())
     }
@@ -85,6 +86,7 @@ PanelWindow {
     function close() {
         isOpen = false
         clearArmed = false
+        flashId = ""
         contextMenu.visible = false
         searchField.focus = false
     }
@@ -309,25 +311,55 @@ PanelWindow {
         function onEntriesChanged() { drawerWin.rebuildClip() }
     }
 
-    // clips get their own rebuild, otherwise a late thumbnail resets the selection
+    function clipRow(e) {
+        return { cid: e.id, preview: e.preview, isImage: e.isImage, thumb: e.thumb, kind: e.kind,
+                 label: e.label, detail: e.detail, host: e.host, rest: e.rest, swatch: e.swatch }
+    }
+
+    // edits the model in place, clearing it would kill the remove animation and lose the selection
     function rebuildClip() {
         if (!searchField || !clipList) return
         var query = searchField.text.toLowerCase().trim()
-        var keep = clipList.currentIndex
         var all = Lib.Clipboard.entries
-        filteredClipModel.clear()
+        var want = []
+        var wantIds = ({})
         for (var c = 0; c < all.length; c++) {
-            var e = all[c]
-            if (query === "" || e.preview.toLowerCase().includes(query))
-                filteredClipModel.append({ cid: e.id, preview: e.preview, isImage: e.isImage, thumb: e.thumb })
+            if (query === "" || all[c].preview.toLowerCase().includes(query)) {
+                want.push(all[c])
+                wantIds[all[c].id] = true
+            }
         }
-        if (filteredClipModel.count > 0)
-            clipList.currentIndex = Math.max(0, Math.min(keep, filteredClipModel.count - 1))
+        for (var r = filteredClipModel.count - 1; r >= 0; r--)
+            if (!wantIds[filteredClipModel.get(r).cid]) filteredClipModel.remove(r)
+        for (var i = 0; i < want.length; i++) {
+            var e = want[i]
+            if (i >= filteredClipModel.count || filteredClipModel.get(i).cid !== e.id) {
+                var from = -1
+                for (var j = i + 1; j < filteredClipModel.count; j++)
+                    if (filteredClipModel.get(j).cid === e.id) { from = j; break }
+                if (from >= 0) filteredClipModel.move(from, i, 1)
+                else { filteredClipModel.insert(i, clipRow(e)); continue }
+            }
+            if (filteredClipModel.get(i).thumb !== e.thumb) filteredClipModel.setProperty(i, "thumb", e.thumb)
+        }
+        if (filteredClipModel.count > 0 && clipList.currentIndex < 0) clipList.currentIndex = 0
     }
 
+    // flash the copied row for a sec before closing
+    property string flashId: ""
     function copyClip(cid) {
         Lib.Clipboard.copy(cid)
-        drawerWin.close()
+        flashId = cid
+        copyClose.restart()
+    }
+    Timer { id: copyClose; interval: 170; onTriggered: drawerWin.close() }
+
+    // so a screenshot taken while the tab is open still shows up
+    Timer {
+        interval: 1500
+        repeat: true
+        running: drawerWin.isOpen && drawerWin.currentTab === "clipboard"
+        onTriggered: Lib.Clipboard.reload()
     }
 
     function clearClipboard() {
@@ -544,35 +576,6 @@ PanelWindow {
 
                         Item { Layout.fillWidth: true }
 
-                        Rectangle {
-                            visible: drawerWin.currentTab === "clipboard" && Lib.Clipboard.entries.length > 0
-                            Layout.preferredWidth: clearLabel.implicitWidth + 28
-                            Layout.preferredHeight: 28
-                            Layout.rightMargin: 6
-                            radius: 8
-                            color: clearMa.containsMouse ? drawerWin.theme.subtleFillHover : drawerWin.theme.subtleFill
-                            border.width: 1
-                            border.color: drawerWin.clearArmed ? drawerWin.theme.accentRed : drawerWin.theme.outline
-                            Behavior on color { ColorAnimation { duration: 160 } }
-
-                            Text {
-                                id: clearLabel
-                                anchors.centerIn: parent
-                                text: drawerWin.clearArmed ? "Click again to clear" : "Clear"
-                                font.family: drawerWin.theme.textFont
-                                font.pixelSize: 12
-                                font.weight: Font.Medium
-                                color: drawerWin.clearArmed ? drawerWin.theme.accentRed : drawerWin.theme.textSecondary
-                            }
-                            MouseArea {
-                                id: clearMa
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: drawerWin.clearClipboard()
-                            }
-                        }
-
                         RowLayout {
                             spacing: 10
                             Item {
@@ -678,22 +681,159 @@ PanelWindow {
                             model: filteredShaderModel
                         }
 
-                        ClipList {
-                            id: clipList
+                        // ---------- clipboard view ----------
+                        Item {
+                            id: clipView
                             anchors.fill: parent
                             visible: drawerWin.currentTab === "clipboard"
-                            model: filteredClipModel
-                        }
 
-                        Text {
-                            anchors.centerIn: parent
-                            visible: drawerWin.currentTab === "clipboard" && filteredClipModel.count === 0
-                            text: !Lib.Clipboard.available ? "cliphist or wl-clipboard is not installed"
-                                : Lib.Clipboard.entries.length === 0 ? "Clipboard history is empty"
-                                : "No matching entries"
-                            font.family: drawerWin.theme.textFont
-                            font.pixelSize: 13
-                            color: drawerWin.theme.textSecondary
+                            // font sizes for the whole tab
+                            readonly property string fontText: drawerWin.theme.textFont
+                            readonly property string fontMono: drawerWin.theme.iconFont
+                            readonly property int titleSize: 13
+                            readonly property int titleWeight: Font.DemiBold
+                            readonly property real titleSpacing: 0.2
+                            readonly property int bodySize: 13
+                            readonly property int bodyWeight: Font.Medium
+                            readonly property real bodyLine: 1.35
+                            readonly property int monoSize: 12
+                            readonly property int monoWeight: Font.Normal
+                            readonly property real monoLine: 1.4
+                            // pixelSize is an int, 10.5 ends up as 11
+                            readonly property int metaSize: Math.round(10.5)
+                            readonly property int metaWeight: Font.DemiBold
+                            readonly property real metaSpacing: 0.6
+                            readonly property int hintSize: Math.round(10.5)
+                            readonly property int hintWeight: Font.Medium
+                            readonly property real hintOpacity: 0.7
+
+                            readonly property int total: Lib.Clipboard.entries.length
+                            readonly property int shown: filteredClipModel.count
+                            readonly property string emptyKind: !Lib.Clipboard.available ? "missing"
+                                : total === 0 ? "empty" : "nomatch"
+
+                            ColumnLayout {
+                                anchors.fill: parent
+                                spacing: 4
+
+                                // count on the left, Clear on the right
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 30
+                                    Layout.leftMargin: 6
+                                    Layout.rightMargin: 6
+                                    visible: clipView.total > 0
+
+                                    Text {
+                                        text: (clipView.shown === clipView.total ? clipView.total : clipView.shown + " of " + clipView.total)
+                                            + (clipView.total === 1 ? " item" : " items")
+                                        font.family: clipView.fontText
+                                        font.pixelSize: clipView.titleSize
+                                        font.weight: clipView.titleWeight
+                                        font.letterSpacing: clipView.titleSpacing
+                                        color: drawerWin.theme.textPrimary
+                                    }
+
+                                    Item { Layout.fillWidth: true }
+
+                                    Rectangle {
+                                        Layout.preferredWidth: clearLabel.implicitWidth + 28
+                                        Layout.preferredHeight: 26
+                                        radius: 8
+                                        color: clearMa.containsMouse ? drawerWin.theme.subtleFillHover : drawerWin.theme.subtleFill
+                                        border.width: 1
+                                        border.color: drawerWin.clearArmed ? drawerWin.theme.accentRed : drawerWin.theme.outline
+                                        Behavior on color { ColorAnimation { duration: 160 } }
+                                        Behavior on border.color { ColorAnimation { duration: 160 } }
+
+                                        Text {
+                                            id: clearLabel
+                                            anchors.centerIn: parent
+                                            text: drawerWin.clearArmed ? "Click again to clear" : "Clear"
+                                            font.family: clipView.fontText
+                                            font.pixelSize: clipView.titleSize
+                                            font.weight: clipView.titleWeight
+                                            font.letterSpacing: clipView.titleSpacing
+                                            color: drawerWin.clearArmed ? drawerWin.theme.accentRed : drawerWin.theme.textSecondary
+                                        }
+                                        MouseArea {
+                                            id: clearMa
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: drawerWin.clearClipboard()
+                                        }
+                                    }
+                                }
+
+                                ClipList {
+                                    id: clipList
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    model: filteredClipModel
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 18
+                                    Layout.leftMargin: 6
+                                    visible: clipView.total > 0
+                                    text: "Enter copy   Del remove   Tab switch"
+                                    font.family: clipView.fontText
+                                    font.pixelSize: clipView.hintSize
+                                    font.weight: clipView.hintWeight
+                                    color: drawerWin.theme.textSecondary
+                                    opacity: clipView.hintOpacity
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                            }
+
+                            // empty / cliphist missing / nothing matches
+                            ColumnLayout {
+                                anchors.centerIn: parent
+                                visible: clipView.shown === 0
+                                spacing: 6
+
+                                Text {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    text: ""
+                                    font.family: clipView.fontMono
+                                    font.pixelSize: 44
+                                    color: drawerWin.theme.textSecondary
+                                    opacity: 0.45
+                                }
+                                Text {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    Layout.topMargin: 6
+                                    text: clipView.emptyKind === "missing" ? "cliphist is not installed"
+                                        : clipView.emptyKind === "empty" ? "Nothing copied yet"
+                                        : "No matches"
+                                    font.family: clipView.fontText
+                                    font.pixelSize: clipView.titleSize
+                                    font.weight: clipView.titleWeight
+                                    font.letterSpacing: clipView.titleSpacing
+                                    color: drawerWin.theme.textPrimary
+                                }
+                                Text {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    visible: clipView.emptyKind !== "missing"
+                                    text: clipView.emptyKind === "empty" ? "Copy something and it shows up here"
+                                        : "Nothing in the history matches your search"
+                                    font.family: clipView.fontText
+                                    font.pixelSize: clipView.bodySize
+                                    font.weight: clipView.bodyWeight
+                                    color: drawerWin.theme.textSecondary
+                                }
+                                Text {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    visible: clipView.emptyKind === "missing"
+                                    text: "sudo pacman -S cliphist wl-clipboard"
+                                    font.family: clipView.fontMono
+                                    font.pixelSize: clipView.monoSize
+                                    font.weight: clipView.monoWeight
+                                    color: drawerWin.theme.textSecondary
+                                }
+                            }
                         }
                     }
 
@@ -1087,21 +1227,19 @@ PanelWindow {
     component ClipList: ListView {
         id: cl
         clip: true
-        topMargin: 12
-        bottomMargin: 8
-        spacing: 2
+        topMargin: 2
+        bottomMargin: 4
         boundsBehavior: Flickable.StopAtBounds
 
+        // rows draw their own selection, so there's no highlight item
         keyNavigationEnabled: true
-        highlightFollowsCurrentItem: true
-        highlightMoveDuration: 130
-        highlight: Rectangle {
-            radius: 12
-            color: drawerWin.theme.subtleFill
-            border.width: 2
-            border.color: drawerWin.theme.accent
-            visible: cl.activeFocus
-        }
+
+        // bumped every time the tab shows so the rows animate in again
+        property int introGen: 0
+        property bool intro: false
+        onVisibleChanged: if (visible) { introGen++; intro = true; introWindow.restart() }
+        Timer { id: introWindow; interval: 700; onTriggered: cl.intro = false }
+
         function activateCurrent() {
             var m = filteredClipModel.get(cl.currentIndex)
             if (m) drawerWin.copyClip(m.cid)
@@ -1138,7 +1276,41 @@ PanelWindow {
         delegate: Item {
             id: row
             width: cl.width
-            height: 64
+            // 24 padding inside the card + the 4px gap above and below
+            height: Math.max(row.isImage ? 96 : 32, cols.implicitHeight) + 32
+
+            readonly property bool isImage: model.isImage
+            readonly property string kind: model.kind
+            readonly property bool mono: kind === "code" || kind === "path" || kind === "color"
+            readonly property bool selected: cl.activeFocus && cl.currentIndex === index
+            readonly property bool hot: rm.containsMouse || selected
+            property real appear: 1       // 0 to 1 on first show
+            property bool collapsing: false
+            clip: collapsing
+
+            function playIn() { appear = 0; introAnim.restart() }
+            SequentialAnimation {
+                id: introAnim
+                PauseAnimation { duration: Math.max(0, Math.min(index, 8)) * 35 }
+                NumberAnimation { target: row; property: "appear"; to: 1; duration: 240; easing.type: Easing.OutQuart }
+            }
+            Component.onCompleted: if (cl.intro) playIn()
+            Connections {
+                target: cl
+                function onIntroGenChanged() { row.playIn() }
+            }
+
+            ListView.onRemove: removeAnim.start()
+            SequentialAnimation {
+                id: removeAnim
+                PropertyAction { target: row; property: "ListView.delayRemove"; value: true }
+                PropertyAction { target: row; property: "collapsing"; value: true }
+                ParallelAnimation {
+                    NumberAnimation { target: row; property: "height"; to: 0; duration: 220; easing.type: Easing.OutQuint }
+                    NumberAnimation { target: lift; property: "opacity"; to: 0; duration: 160; easing.type: Easing.OutQuart }
+                }
+                PropertyAction { target: row; property: "ListView.delayRemove"; value: false }
+            }
 
             MouseArea {
                 id: rm
@@ -1148,65 +1320,226 @@ PanelWindow {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: drawerWin.copyClip(model.cid)
 
-                Rectangle {
+                // handles the fade/slide in and the press scale
+                Item {
+                    id: lift
                     anchors.fill: parent
-                    radius: 12
-                    color: drawerWin.theme.isDarkMode
-                        ? (rm.containsMouse ? drawerWin.theme.subtleFill : "transparent")
-                        : (rm.containsMouse ? Qt.darker(drawerWin.theme.bgCard, 1.12) : drawerWin.theme.bgCard)
-                    Behavior on color { ColorAnimation { duration: 160 } }
+                    opacity: row.appear
+                    scale: rm.pressed ? 0.98 : 1.0
+                    Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                    transform: Translate { y: (1 - row.appear) * 8 }
 
-                    RowLayout {
+                    Rectangle {
+                        id: card
                         anchors.fill: parent
-                        anchors.leftMargin: 14
-                        anchors.rightMargin: 10
-                        spacing: 12
+                        radius: 12
+                        // light accent tint on hover or keyboard selection
+                        color: row.hot
+                            ? Qt.tint(drawerWin.theme.bgCard,
+                                      drawerWin.withAlpha(drawerWin.theme.accent, drawerWin.theme.isDarkMode ? 0.14 : 0.12))
+                            : drawerWin.withAlpha(drawerWin.theme.bgCard,
+                                      drawerWin.theme.isDarkMode ? drawerWin.tileAlphaDark : drawerWin.tileAlphaLight)
+                        Behavior on color { ColorAnimation { duration: 160 } }
 
+                        // the copy flash
                         Rectangle {
-                            visible: model.isImage
-                            Layout.preferredWidth: 72
-                            Layout.preferredHeight: 44
-                            radius: 6
-                            color: drawerWin.theme.subtleFill
-                            clip: true
-                            Image {
-                                anchors.fill: parent
-                                source: model.thumb
-                                fillMode: Image.PreserveAspectCrop
-                                sourceSize: Qt.size(144, 88)
-                                asynchronous: true
-                                smooth: true
+                            anchors.fill: parent
+                            radius: 12
+                            color: drawerWin.theme.accent
+                            opacity: drawerWin.flashId === model.cid ? 0.32 : 0
+                            Behavior on opacity { NumberAnimation { duration: 110 } }
+                        }
+
+                        RowLayout {
+                            id: cols
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.leftMargin: 16
+                            anchors.rightMargin: 10
+                            spacing: 14
+
+                            // thumbnail, cropped to fill with rounded corners
+                            Item {
+                                visible: row.isImage
+                                Layout.preferredWidth: 160
+                                Layout.preferredHeight: 96
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: 10
+                                    color: drawerWin.theme.subtleFill
+                                    Text {
+                                        anchors.centerIn: parent
+                                        visible: thumbImg.status !== Image.Ready
+                                        text: ""
+                                        font.family: clipView.fontMono
+                                        font.pixelSize: 22
+                                        color: drawerWin.theme.textSecondary
+                                        opacity: 0.5
+                                    }
+                                }
+                                Image {
+                                    id: thumbImg
+                                    anchors.fill: parent
+                                    source: row.isImage ? model.thumb : ""
+                                    fillMode: Image.PreserveAspectCrop
+                                    sourceSize: Qt.size(320, 192)
+                                    asynchronous: true
+                                    smooth: true
+                                    visible: false
+                                }
+                                Rectangle { id: thumbMask; anchors.fill: parent; radius: 10; visible: false }
+                                OpacityMask {
+                                    anchors.fill: parent
+                                    source: thumbImg
+                                    maskSource: thumbMask
+                                    visible: thumbImg.status === Image.Ready
+                                }
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: 10
+                                    color: "transparent"
+                                    border.width: 1
+                                    border.color: drawerWin.theme.outline
+                                }
                             }
-                        }
 
-                        Text {
-                            Layout.fillWidth: true
-                            text: model.isImage
-                                ? "Image, " + model.preview.replace(/^\[\[ binary data (.*) \]\]$/, "$1")
-                                : model.preview
-                            color: drawerWin.theme.textPrimary
-                            font.family: drawerWin.theme.textFont
-                            font.pixelSize: 13
-                            font.weight: Font.Medium
-                            wrapMode: Text.Wrap
-                            maximumLineCount: 2
-                            elide: Text.ElideRight
-                        }
+                            // icon for the kind, or a swatch for colours
+                            Item {
+                                visible: !row.isImage
+                                Layout.preferredWidth: 32
+                                Layout.preferredHeight: 32
+                                Layout.alignment: Qt.AlignVCenter
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: row.kind === "color" ? 16 : 10
+                                    color: row.kind === "color" ? model.swatch : drawerWin.theme.subtleFill
+                                    border.width: row.kind === "color" ? 1 : 0
+                                    border.color: drawerWin.theme.outline
+                                }
+                                Text {
+                                    anchors.centerIn: parent
+                                    visible: row.kind !== "color"
+                                    text: row.kind === "link" ? ""
+                                        : row.kind === "path" ? ""
+                                        : row.kind === "code" ? "" : ""
+                                    font.family: clipView.fontMono
+                                    font.pixelSize: 14
+                                    color: row.kind === "link" ? drawerWin.theme.accent : drawerWin.theme.textSecondary
+                                }
+                            }
 
-                        Text {
-                            // opacity instead of visible, otherwise the text jumps around on hover
-                            opacity: (rm.containsMouse || cl.currentIndex === index) ? 1 : 0
-                            text: "✕"
-                            font.pixelSize: 12
-                            color: delMa.containsMouse ? drawerWin.theme.accentRed : drawerWin.theme.textSecondary
-                            MouseArea {
-                                id: delMa
-                                anchors.fill: parent
-                                anchors.margins: -8
-                                enabled: parent.opacity > 0
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: Lib.Clipboard.remove(model.cid)
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignVCenter
+                                spacing: 4
+
+                                // images get a title instead of the preview text
+                                Text {
+                                    visible: row.isImage
+                                    Layout.fillWidth: true
+                                    text: "Image"
+                                    font.family: clipView.fontText
+                                    font.pixelSize: clipView.titleSize
+                                    font.weight: clipView.titleWeight
+                                    font.letterSpacing: clipView.titleSpacing
+                                    color: drawerWin.theme.textPrimary
+                                }
+
+                                // links: host in the accent colour, the rest muted
+                                RowLayout {
+                                    visible: row.kind === "link"
+                                    Layout.fillWidth: true
+                                    spacing: 0
+                                    Text {
+                                        Layout.maximumWidth: 420
+                                        text: model.host
+                                        font.family: clipView.fontText
+                                        font.pixelSize: clipView.bodySize
+                                        font.weight: Font.DemiBold
+                                        color: drawerWin.theme.accent
+                                        elide: Text.ElideRight
+                                    }
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: model.rest
+                                        font.family: clipView.fontText
+                                        font.pixelSize: clipView.bodySize
+                                        font.weight: clipView.bodyWeight
+                                        color: drawerWin.theme.textSecondary
+                                        elide: Text.ElideRight
+                                    }
+                                }
+
+                                // everything else shows the text, in mono for code and paths
+                                Text {
+                                    visible: !row.isImage && row.kind !== "link"
+                                    Layout.fillWidth: true
+                                    text: model.preview
+                                    font.family: row.mono ? clipView.fontMono : clipView.fontText
+                                    font.pixelSize: row.mono ? clipView.monoSize : clipView.bodySize
+                                    font.weight: row.mono ? clipView.monoWeight : clipView.bodyWeight
+                                    lineHeight: row.mono ? clipView.monoLine : clipView.bodyLine
+                                    lineHeightMode: Text.ProportionalHeight
+                                    color: drawerWin.theme.textPrimary
+                                    wrapMode: row.mono ? Text.WrapAnywhere : Text.Wrap
+                                    maximumLineCount: 3
+                                    elide: Text.ElideRight
+                                }
+
+                                // meta line: KIND then the detail
+                                Row {
+                                    spacing: 0
+                                    Text {
+                                        text: model.label
+                                        font.family: clipView.fontText
+                                        font.pixelSize: clipView.metaSize
+                                        font.weight: clipView.metaWeight
+                                        font.letterSpacing: clipView.metaSpacing
+                                        font.capitalization: Font.AllUppercase
+                                        color: drawerWin.theme.textSecondary
+                                    }
+                                    Text {
+                                        visible: model.detail !== ""
+                                        text: (row.isImage ? " " : " · ") + model.detail
+                                        font.family: clipView.fontText
+                                        font.pixelSize: clipView.metaSize
+                                        font.weight: clipView.metaWeight
+                                        font.letterSpacing: clipView.metaSpacing
+                                        color: drawerWin.theme.textSecondary
+                                    }
+                                }
+                            }
+
+                            // trash button, does the same as the Delete key
+                            Item {
+                                Layout.preferredWidth: 30
+                                Layout.preferredHeight: 30
+                                Layout.alignment: Qt.AlignVCenter
+                                opacity: row.hot ? 1 : 0
+                                Behavior on opacity { NumberAnimation { duration: 140 } }
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: 15
+                                    color: trashMa.containsMouse ? drawerWin.theme.subtleFillHover : "transparent"
+                                    Behavior on color { ColorAnimation { duration: 120 } }
+                                }
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: ""
+                                    font.family: clipView.fontMono
+                                    font.pixelSize: 14
+                                    color: trashMa.containsMouse ? drawerWin.theme.accentRed : drawerWin.theme.textSecondary
+                                }
+                                MouseArea {
+                                    id: trashMa
+                                    anchors.fill: parent
+                                    enabled: parent.opacity > 0.3
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: Lib.Clipboard.remove(model.cid)
+                                }
                             }
                         }
                     }
