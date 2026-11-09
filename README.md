@@ -63,7 +63,7 @@ sudo pacman -S hyprland hypridle hyprlock hyprpicker quickshell awww \
   dunst rofi kitty thunar firefox mpv zathura fastfetch starship \
   qt6ct kvantum papirus-icon-theme qt6-5compat qt6-svg qqc2-desktop-style \
   pipewire-pulse libpulse pamixer pavucontrol playerctl brightnessctl \
-  libnotify wl-clipboard grim slurp swappy \
+  libnotify wl-clipboard cliphist grim slurp swappy \
   vdirsyncer khal curl jq pacman-contrib \
   ttf-nerd-fonts-symbols ttf-jetbrains-mono-nerd
 ```

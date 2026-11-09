@@ -10,6 +10,9 @@ import "desktop" as Desktop
 import "hub" as SystemHub
 
 ShellRoot {
+    // Touching the singleton starts the clipboard watchers at launch
+    Component.onCompleted: Lib.Clipboard.reload()
+
     Variants {
         model: Quickshell.screens
         Scope {
