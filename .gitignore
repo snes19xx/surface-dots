@@ -5,3 +5,5 @@
 .config/quickshell/**/monitors.json
 .config/quickshell/**/errors.log
 .config/quickshell/weather_api.conf
+.docs/
+docs/
