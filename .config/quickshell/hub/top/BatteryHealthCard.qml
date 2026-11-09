@@ -1,5 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Io
+import Quickshell.Services.UPower
 import "../../lib" as Lib
 
 Lib.TopCard {
@@ -37,58 +39,39 @@ Lib.TopCard {
         z: 0
     }
 
-    Lib.CommandPoll {
-        id: batteryPoll
-        running: root.active && root.visible
-        interval: 8000
+    // upower has no cycle count or design energy property, read them once per open
+    property var extra: ({ cycles: 0, energyFull: "", energyFullDesign: "" })
+    Process {
+        id: extraProc
         command: ["bash", "-lc", "DEV=$(upower -e 2>/dev/null | grep -m1 -i battery); [ -n \"$DEV\" ] && upower -i \"$DEV\" 2>/dev/null || true"]
-        parse: function(out) {
-            var info = {
-                percentage: 0,
-                capacity: 0,
-                cycles: 0,
-                energyFull: "",
-                energyFullDesign: "",
-                timeRemaining: "",
-                state: ""
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var t = String(this.text)
+                var c = t.match(/charge-cycles:\s*(\d+)/)
+                var f = t.match(/energy-full:\s*(.+)/)
+                var d = t.match(/energy-full-design:\s*(.+)/)
+                root.extra = {
+                    cycles: c ? parseInt(c[1]) : 0,
+                    energyFull: f ? f[1].trim() : "",
+                    energyFullDesign: d ? d[1].trim() : ""
+                }
             }
-
-            var lines = String(out || "").split("\n")
-            for (var i = 0; i < lines.length; i++) {
-                var line = lines[i].trim()
-                if (!line || line.indexOf(":") === -1) continue
-
-                var parts = line.split(":")
-                var key = parts.shift().trim().toLowerCase()
-                var value = parts.join(":").trim()
-
-                if (key === "percentage") info.percentage = parseFloat(value)
-                else if (key === "capacity") info.capacity = parseFloat(value)
-                else if (key === "charge cycles" || key === "charge-cycles") info.cycles = parseInt(value)
-                else if (key === "energy-full") info.energyFull = value
-                else if (key === "energy-full-design") info.energyFullDesign = value
-                else if (key === "time to empty" || key === "time to full") info.timeRemaining = value
-                else if (key === "state") info.state = value
-            }
-
-            return info
         }
     }
+    onActiveChanged: if (active && !extraProc.running) extraProc.running = true
 
-    // Null safeties
-    readonly property var batteryInfo: batteryPoll.value || ({})
     // Clamp health percentage
-    readonly property real healthPercent: Math.max(0, Math.min(100, Number(batteryInfo.capacity) || 0))
-    readonly property string cyclesText: isFinite(batteryInfo.cycles) && batteryInfo.cycles > 0
-        ? String(batteryInfo.cycles)
+    readonly property real healthPercent: Lib.Battery.healthSupported
+        ? Math.max(0, Math.min(100, Lib.Battery.healthPercent)) : 0
+    readonly property string cyclesText: extra.cycles > 0 ? String(extra.cycles) : "—"
+    readonly property string energyText: (extra.energyFull && extra.energyFullDesign)
+        ? (extra.energyFull + " / " + extra.energyFullDesign)
         : "—"
-    readonly property string energyText: (batteryInfo.energyFull && batteryInfo.energyFullDesign)
-        ? (batteryInfo.energyFull + " / " + batteryInfo.energyFullDesign)
-        : "—"
-    readonly property string timeText: batteryInfo.timeRemaining
-        || (batteryInfo.state === "fully-charged" ? "Full" : "—")
-    readonly property string stateText: batteryInfo.state
-        ? (batteryInfo.state.charAt(0).toUpperCase() + batteryInfo.state.slice(1))
+    readonly property string timeText: Lib.Battery.formatDuration(
+            Lib.Battery.state === UPowerDeviceState.Charging ? Lib.Battery.timeToFull : Lib.Battery.timeToEmpty)
+        || (Lib.Battery.state === UPowerDeviceState.FullyCharged ? "Full" : "—")
+    readonly property string stateText: Lib.Battery.present
+        ? Lib.Battery.stateText
         : "Unknown"
 
     ColumnLayout {
@@ -142,7 +125,7 @@ Lib.TopCard {
                 }
 
                 Text {
-                    text: "Charge " + Math.round(Number(batteryInfo.percentage) || 0) + "%"
+                    text: "Charge " + Lib.Battery.percent + "%"
                     color: root.textSecondary
                     font.family: root.theme ? root.theme.textFont : "Manrope"
                     font.pixelSize: 10

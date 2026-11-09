@@ -1,5 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Io
+import Quickshell.Services.UPower
 import "../lib" as Lib
 
 Lib.Card {
@@ -70,37 +72,26 @@ Lib.Card {
         parse: function(o) { return Number(String(o).trim()) || 0 }
     }
 
-    Lib.CommandPoll {
-        id: batteryPoll
-        running: root.active && root.visible
-        interval: 8000
+    // upower has no cycle count property, read it once per open
+    property int cycles: 0
+    Process {
+        id: cyclesProc
         command: ["bash", "-lc", "DEV=$(upower -e 2>/dev/null | grep -m1 -i battery); [ -n \"$DEV\" ] && upower -i \"$DEV\" 2>/dev/null || true"]
-        parse: function(out) {
-            var info = { percentage: 0, capacity: 0, cycles: 0, state: "", time: "", energy: "" }
-            var lines = String(out || "").split("\n")
-            for (var i = 0; i < lines.length; i++) {
-                var line = lines[i].trim()
-                var parts = line.split(":")
-                if (parts.length < 2) continue
-                var k = parts[0].trim().toLowerCase()
-                var v = parts[1].trim()
-                
-                if (k === "percentage") info.percentage = parseFloat(v)
-                else if (k === "capacity") info.capacity = parseFloat(v)
-                else if (k === "state") info.state = v
-                else if (k.includes("time to")) info.time = v
-                else if (k.includes("cycles")) info.cycles = parseInt(v)
-                else if (k === "energy-full") info.energy = v
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var m = String(this.text).match(/charge-cycles:\s*(\d+)/)
+                root.cycles = m ? parseInt(m[1]) : 0
             }
-            return info
         }
     }
+    onActiveChanged: if (active && !cyclesProc.running) cyclesProc.running = true
 
-    readonly property var bat: batteryPoll.value || {}
-    readonly property int batP: Math.round(bat.percentage || 0)
-    readonly property int batHealth: Math.round(bat.capacity || 100)
-    readonly property string batState: bat.state ? (bat.state.charAt(0).toUpperCase() + bat.state.slice(1)) : "Unknown"
-    readonly property bool isCharging: bat.state === "charging"
+    readonly property int batP: Lib.Battery.percent
+    readonly property int batHealth: Lib.Battery.healthSupported ? Math.round(Lib.Battery.healthPercent) : 100
+    readonly property string batState: Lib.Battery.present ? Lib.Battery.stateText : "Unknown"
+    readonly property bool isCharging: Lib.Battery.state === UPowerDeviceState.Charging
+    readonly property string remaining:
+        Lib.Battery.formatDuration(isCharging ? Lib.Battery.timeToFull : Lib.Battery.timeToEmpty)
 
 
     // HELPERS
@@ -334,7 +325,7 @@ Lib.Card {
 
                     // Extra info (Time/Energy)
                     Text {
-                        text: root.bat.time ? (root.bat.time + " remaining") : (root.bat.cycles + " Cycles")
+                        text: root.remaining ? (root.remaining + " remaining") : (root.cycles + " Cycles")
                         color: root.textSecondary
                         font.family: root.theme.textFont
                         font.pixelSize: 11
