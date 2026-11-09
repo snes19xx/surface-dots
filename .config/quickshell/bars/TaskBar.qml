@@ -138,12 +138,11 @@ PanelWindow {
     QtObject {
     id: batteryState
     
-    property string status: String(batStatus.value).trim()
-    property int rawCap: Number(batCap.value) || 0
-    property int cap: (rawCap === 0 && status !== "Discharging") ? 50 : rawCap
-    property bool plugged: (String(acOnline.value).trim() === "1")
-    property bool isCharging: plugged || status === "Charging" || status === "Full"
-    
+    property int rawCap: Lib.Battery.percent
+    property int cap: (rawCap === 0 && !Lib.Battery.discharging) ? 50 : rawCap
+    property bool plugged: Lib.Battery.plugged
+    property bool isCharging: plugged || Lib.Battery.charging
+
     property string battColor: {
         const dark = taskbar.isDarkMode
         if (isCharging) return pal.accent
@@ -258,34 +257,16 @@ PanelWindow {
     }
     
     // Battery
-    Lib.CommandPoll {
-        id: powerPoll
-        interval: {
-            const s = String(batStatus.value ?? "").trim()
-            const cap = Number(batCap.value ?? 0)
-            if (s === "Discharging" && cap <= 20) return 2000
-            return 6000
-        }
-        command: ["bash","-lc", `
-            cap=$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -n1)
-            status=$(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -n1)
-            ac=$(cat /sys/class/power_supply/AC*/online /sys/class/power_supply/ADP*/online 2>/dev/null | head -n1)
-            echo "$cap|$status|$ac"
-        `]
-        parse: function(o) {
-            var s = String(o ?? "").trim()
-            var p = s.split("|")
-            return { cap: Number(p[0]) || 0, status: (p[1] || "").trim(), ac: (p[2] || "").trim() }
-        }
-    }
-
     QtObject {
         id: batLogic
         property bool f20: false
         property bool f10: false
 
-        function check(cap, status) {
-            if (status !== "Discharging") {
+        // Already low when the shell starts
+        Component.onCompleted: check(Lib.Battery.percent, Lib.Battery.discharging)
+
+        function check(cap, discharging) {
+            if (!discharging) {
                 f20 = false; f10 = false; return
             }
             if (cap === 0) return
@@ -299,18 +280,12 @@ PanelWindow {
         }
     }
     
-    QtObject {
-        id: batCap
-        property var value: (powerPoll.value ? powerPoll.value.cap : 0)
-        onValueChanged: batLogic.check(value, batStatus.value)
+    Connections {
+        target: Lib.Battery
+        function onPercentChanged() { batLogic.check(Lib.Battery.percent, Lib.Battery.discharging) }
+        function onStateChanged()   { batLogic.check(Lib.Battery.percent, Lib.Battery.discharging) }
     }
-    QtObject {
-        id: batStatus
-        property var value: (powerPoll.value ? powerPoll.value.status : "")
-        onValueChanged: batLogic.check(batCap.value, value)
-    }
-    QtObject { id: acOnline; property var value: (powerPoll.value ? powerPoll.value.ac : "") }
-    
+
     // ----------------------------------------------- 
     // UTILITIES
     // ----------------------------------------------- 
