@@ -85,16 +85,11 @@ Lib.TopCard {
     when: !volS.pressed && !volHold.running && Lib.Audio.ready
   }
 
-  Lib.CommandPoll {
-    id: briPoll
-    running: root.active && root.visible
-    interval: 1500
-    command: sh("brightnessctl -m 2>/dev/null | cut -d, -f4 | tr -d '% ' || true")
-    parse: function(o) {
-      var n = Number(String(o).trim())
-      return isFinite(n) ? n : 50
-    }
-    onUpdated: if (!briS.pressed) briS.value = value
+  Timer { id: briHold; interval: 300 }
+  Binding {
+    target: briS; property: "value"
+    value: Lib.Brightness.available ? Lib.Brightness.percent : 50
+    when: !briS.pressed && !briHold.running
   }
 
 // --- CPU GOVERNOR (AUTO-CPUFREQ) ---
@@ -270,7 +265,8 @@ Lib.TopCard {
         accentColor: (root.theme && root.theme.isDarkMode !== undefined && !root.theme.isDarkMode)
             ? root.theme.accentSlider
             : "#83C092"
-        onUserChanged: det("brightnessctl set " + Math.round(value) + "%")
+        onPressedChanged: briHold.restart()
+        onUserChanged: { briHold.restart(); Lib.Brightness.set(value) }
       }
 
       Lib.ExpressiveSlider {

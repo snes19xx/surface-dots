@@ -1,9 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
 import Quickshell.Wayland
-import "../lib" as Lib
 
 PanelWindow {
     id: root
@@ -24,37 +22,37 @@ PanelWindow {
     visible:        false
 
     // State 
-    property int  percent:    100
     property bool osdVisible: false
-    property bool isDragging: false   // suppress file watcher during drag
-    property bool _ready:     false
-
-    // File watcher 
-    FileView {
-        id: watcher
-        path:         Quickshell.env("HOME") + "/.cache/quickshell/brightness"
-        watchChanges: true
-        preload:      true
-
-        onFileChanged: reload()
-        onLoaded:      root._ready = true
-        onTextChanged: root._handleFile(text())
+    property bool isDragging: false
+    // Drag and wheel steps build on this until the file watch catches up
+    property int  localPercent: -1
+    readonly property int percent: localPercent >= 0 ? localPercent : Math.max(0, Brightness.percent)
+    Timer {
+        id: localHold
+        interval: 400
+        onTriggered: if (!root.isDragging) root.localPercent = -1
     }
 
-    function _handleFile(raw) {
-        if (!root._ready) return
-        if (root.isDragging) return   
-        var v = parseInt(raw.trim(), 10)
-        if (isNaN(v)) return
-        percent    = Math.max(0, Math.min(100, v))
-        osdVisible = true
-        hideTimer.restart()
+    // First value read at start does not show the OSD
+    property bool _armed: false
+    Timer {
+        id: armTimer
+        interval: 500
+        onTriggered: root._armed = true
     }
-
-    Process {
-        id: setProc
-        running: false
+    Connections {
+        target: Brightness
+        function onPercentChanged() {
+            if (!root._armed) {
+                armTimer.restart()
+                return
+            }
+            if (root.isDragging) return
+            root.osdVisible = true
+            hideTimer.restart()
+        }
     }
+    Component.onCompleted: if (Brightness.available) armTimer.restart()
 
     // Throttle: only fire every 40ms during drag
     Timer {
@@ -63,24 +61,15 @@ PanelWindow {
         property int pendingPercent: -1
         onTriggered: {
             if (pendingPercent < 0) return
-            setProc.command = ["brightnessctl", "set", pendingPercent + "%"]
-            setProc.running  = true
-            // Also write cache file so the watcher doesn't flicker
-            cacheWriter.text = pendingPercent + "\n"
-            cacheWriter.save()
+            Brightness.set(pendingPercent)
             pendingPercent = -1
         }
     }
 
-    FileView {
-        id: cacheWriter
-        path: Quickshell.env("HOME") + "/.cache/quickshell/brightness"
-        // write-only 
-    }
-
     function _setBrightness(p) {
         p = Math.max(1, Math.min(100, p))
-        percent = p
+        root.localPercent = p
+        localHold.restart()
         setThrottle.pendingPercent = p
         if (!setThrottle.running) setThrottle.start()
     }
@@ -350,6 +339,7 @@ PanelWindow {
 
                             onReleased: {
                                 root.isDragging = false
+                                localHold.restart()
                                 hideTimer.restart()
                             }
 
