@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Services.Notifications
 
 // Text is copied out so the exit animation survives the sender closing it.
+// Keep the interface in step with NotifToastRounded.
 Item {
     id: toast
 
@@ -27,15 +28,11 @@ Item {
     signal closeRequested()
     signal expired()
 
-    readonly property int padX: 14
-    readonly property int padY: 12
     readonly property bool critical: urgency === NotificationUrgency.Critical
     readonly property bool low: urgency === NotificationUrgency.Low
     readonly property bool hovered: hover.hovered
     readonly property bool dragging: ma.drag.active
     readonly property color accentColor: critical ? theme.accentRed : theme.accent
-    // keeps the default from lighting
-    property int buttonsHovered: 0
 
     property real appear: 0
 
@@ -209,7 +206,7 @@ Item {
             Rectangle {
                 id: card
                 width: parent.width
-                height: content.implicitHeight + toast.padY * 2
+                height: content.implicitHeight + PopupStyle.toastPadY * 2
                 radius: PopupStyle.radiusCard
                 color: PopupStyle.surface(toast.theme)
                 antialiasing: true
@@ -247,9 +244,9 @@ Item {
 
                 ColumnLayout {
                     id: content
-                    x: toast.padX
-                    y: toast.padY
-                    width: card.width - toast.padX * 2
+                    x: PopupStyle.toastPadX
+                    y: PopupStyle.toastPadY
+                    width: card.width - PopupStyle.toastPadX * 2
                     spacing: 0
 
                     RowLayout {
@@ -257,8 +254,8 @@ Item {
                         spacing: 7
 
                         Item {
-                            Layout.preferredWidth: 18
-                            Layout.preferredHeight: 18
+                            Layout.preferredWidth: PopupStyle.toastIconSize
+                            Layout.preferredHeight: PopupStyle.toastIconSize
                             Layout.alignment: Qt.AlignVCenter
 
                             // app icons keep their colours
@@ -266,7 +263,7 @@ Item {
                                 anchors.fill: parent
                                 visible: toast.iconSource !== ""
                                 source: toast.iconSource
-                                sourceSize: Qt.size(36, 36)
+                                sourceSize: Qt.size(PopupStyle.toastIconSize * 2, PopupStyle.toastIconSize * 2)
                                 fillMode: Image.PreserveAspectFit
                                 asynchronous: true
                                 smooth: true
@@ -276,7 +273,7 @@ Item {
                                 id: glyphImg
                                 anchors.fill: parent
                                 source: toast.iconSource === "" ? Qt.resolvedUrl("notify.svg") : ""
-                                sourceSize: Qt.size(36, 36)
+                                sourceSize: Qt.size(PopupStyle.toastIconSize * 2, PopupStyle.toastIconSize * 2)
                                 fillMode: Image.PreserveAspectFit
                                 smooth: true
                                 mipmap: true
@@ -305,7 +302,7 @@ Item {
                             Layout.fillWidth: true
                             text: (toast.appName !== "" ? toast.appName : "System").toUpperCase()
                             textFormat: Text.PlainText
-                            font: PopupStyle.label
+                            font: PopupStyle.label(toast.theme)
                             renderType: Text.NativeRendering
                             color: PopupStyle.solid(toast.theme, toast.accentColor)
                             elide: Text.ElideRight
@@ -322,7 +319,7 @@ Item {
                                 anchors.right: parent.right
                                 text: toast.ageText
                                 textFormat: Text.PlainText
-                                font: PopupStyle.detail
+                                font: PopupStyle.detail(toast.theme)
                                 renderType: Text.NativeRendering
                                 color: Qt.alpha(toast.theme.textSecondary, PopupStyle.detailOpacity)
                                 opacity: toast.hovered ? 0 : 1
@@ -332,9 +329,9 @@ Item {
                                 id: closeGlyph
                                 anchors.right: parent.right
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: "x"
-                                font: PopupStyle.action
-                                renderType: Text.NativeRendering
+                                text: ""
+                                font.family: toast.theme.iconFont
+                                font.pixelSize: PopupStyle.detail(toast.theme).pixelSize
                                 color: closeMa.containsMouse
                                     ? PopupStyle.solid(toast.theme, toast.accentColor)
                                     : toast.theme.textSecondary
@@ -382,7 +379,7 @@ Item {
                                 visible: toast.body !== ""
                                 text: toast.safeBody
                                 textFormat: Text.StyledText
-                                font: PopupStyle.body
+                                font: PopupStyle.body(toast.theme)
                                 renderType: Text.NativeRendering
                                 lineHeight: PopupStyle.bodyLine
                                 lineHeightMode: Text.ProportionalHeight
@@ -396,8 +393,8 @@ Item {
                         }
 
                         Item {
-                            Layout.preferredWidth: 44
-                            Layout.preferredHeight: 44
+                            Layout.preferredWidth: PopupStyle.toastImageSize
+                            Layout.preferredHeight: PopupStyle.toastImageSize
                             Layout.alignment: Qt.AlignTop
                             visible: toast.imageSource !== ""
 
@@ -411,7 +408,7 @@ Item {
                                 anchors.fill: parent
                                 source: toast.imageSource
                                 fillMode: Image.PreserveAspectCrop
-                                sourceSize: Qt.size(88, 88)
+                                sourceSize: Qt.size(PopupStyle.toastImageSize * 2, PopupStyle.toastImageSize * 2)
                                 asynchronous: true
                                 smooth: true
                                 visible: false
@@ -443,10 +440,10 @@ Item {
                     // negative margins span full width
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.leftMargin: -toast.padX
-                        Layout.rightMargin: -toast.padX
+                        Layout.leftMargin: -PopupStyle.toastPadX
+                        Layout.rightMargin: -PopupStyle.toastPadX
                         Layout.topMargin: 10
-                        Layout.preferredHeight: 1
+                        Layout.preferredHeight: PopupStyle.rule
                         visible: toast.shownActions.length > 0
                         color: toast.theme.outline
                     }
@@ -464,11 +461,10 @@ Item {
                                 id: btn
                                 required property var modelData
                                 required property int index
-                                // first action doubles as default
+                                // card clicks never run these
                                 readonly property bool lit: btnMa.containsMouse
-                                    || (index === 0 && toast.hovered && toast.buttonsHovered === 0)
-                                width: label.implicitWidth + 24
-                                height: 26
+                                width: label.implicitWidth + PopupStyle.toastButtonPadX * 2
+                                height: PopupStyle.toastButtonHeight
                                 radius: PopupStyle.radiusInner
                                 color: lit ? PopupStyle.solid(toast.theme, toast.theme.accent) : "transparent"
                                 border.width: PopupStyle.hairline(toast.theme)
@@ -480,7 +476,7 @@ Item {
                                     anchors.centerIn: parent
                                     text: btn.modelData.text
                                     textFormat: Text.PlainText
-                                    font: PopupStyle.action
+                                    font: PopupStyle.action(toast.theme)
                                     renderType: Text.NativeRendering
                                     color: btn.lit ? toast.theme.textOnAccent : toast.theme.textPrimary
                                 }
@@ -489,7 +485,6 @@ Item {
                                     anchors.fill: parent
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
-                                    onContainsMouseChanged: toast.buttonsHovered += containsMouse ? 1 : -1
                                     onClicked: toast.invoke(btn.modelData.identifier)
                                 }
                             }

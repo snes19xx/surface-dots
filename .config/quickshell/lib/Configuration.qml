@@ -13,6 +13,8 @@ Scope {
     property bool ready: false
 
     property string barStyle:              "task"
+    // anything else reads as cassini
+    property string popupStyle:            "cassini"
     property bool   barForceWorkspaceMode: false
     property bool   barShowBattery:        true
     property bool   barShowTray:           true
@@ -177,6 +179,7 @@ Scope {
     function _flush() {
         configFile.setText(JSON.stringify({
             barStyle:                 root.barStyle,
+            popupStyle:               root.popupStyle,
             barForceWorkspaceMode:    root.barForceWorkspaceMode,
             barShowBattery:           root.barShowBattery,
             barShowTray:              root.barShowTray,
@@ -226,6 +229,7 @@ Scope {
             if (!raw || raw.length === 0) return
             var d = JSON.parse(raw)
             if (d.barStyle                 !== undefined) root.barStyle                 = d.barStyle
+            if (d.popupStyle               !== undefined) root.popupStyle               = d.popupStyle
             if (d.barForceWorkspaceMode    !== undefined) root.barForceWorkspaceMode    = d.barForceWorkspaceMode
             if (d.barShowBattery           !== undefined) root.barShowBattery           = d.barShowBattery
             if (d.barShowTray              !== undefined) root.barShowTray              = d.barShowTray

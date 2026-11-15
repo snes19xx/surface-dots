@@ -9,8 +9,9 @@ PanelWindow {
     required property var theme
 
     readonly property int toastWidth: 380
+    readonly property bool cassini: Configuration.popupStyle !== "rounded"
     // window clips the shadows otherwise
-    readonly property int shadowPad: 52
+    readonly property int shadowPad: cassini ? PopupStyle.shadowPad : 44
 
     // pinned while toasts are up
     property var targetScreen: Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
@@ -24,8 +25,8 @@ PanelWindow {
     anchors.top: true
     anchors.right: true
     // shadow padding hangs offscreen
-    margins.top: -36
-    margins.right: -28
+    margins.top: 16 - shadowPad
+    margins.right: 24 - shadowPad
 
     exclusiveZone: 0
     implicitWidth: toastWidth + shadowPad * 2
@@ -89,7 +90,23 @@ PanelWindow {
             }
         }
 
-        delegate: NotifToast {
+        // switching rebuilds visible toasts
+        delegate: win.cassini ? cassiniToast : roundedToast
+    }
+
+    Component {
+        id: cassiniToast
+        NotifToastCassini {
+            width: list.width
+            theme: win.theme
+            onCloseRequested: Notifs.dismissPopup(nid)
+            onExpired: Notifs.expirePopup(nid)
+            ListView.onRemove: playExit()
+        }
+    }
+    Component {
+        id: roundedToast
+        NotifToastRounded {
             width: list.width
             theme: win.theme
             onCloseRequested: Notifs.dismissPopup(nid)

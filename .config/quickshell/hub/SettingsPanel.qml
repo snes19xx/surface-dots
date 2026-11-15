@@ -134,6 +134,18 @@ Item {
                     checked: Lib.Configuration.reduceMotion
                     onToggled: (v) => { Lib.Configuration.reduceMotion = v; Lib.Configuration.save() }
                 }
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+                    SLabel { text: "Popup style" }
+                    Item { Layout.fillWidth: true }
+                    SBtn { label: "Cassini"; accent: Lib.Configuration.popupStyle !== "rounded"
+                        onTriggered: { Lib.Configuration.popupStyle = "cassini"; Lib.Configuration.save() }
+                    }
+                    SBtn { label: "Rounded"; accent: Lib.Configuration.popupStyle === "rounded"
+                        onTriggered: { Lib.Configuration.popupStyle = "rounded"; Lib.Configuration.save() }
+                    }
+                }
             }
 
             //  1b. WALLPAPER COLOURS
