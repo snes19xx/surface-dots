@@ -8,7 +8,6 @@ set -e
 # - KDE Plasma (when used as backup WM)
 # - Kvantum themes
 # - Wallpapers
-# - Dunst
 # - Kitty terminal
 # =============================================================================
 # THEMES
@@ -32,7 +31,6 @@ GTK4_CONF="$HOME/.config/gtk-4.0"
 KDE_GLOBALS="$HOME/.config/kdeglobals"
 STATE_FILE="$HOME/.cache/quickshell/theme_mode"
 KITTY_STATE="$HOME/.local/state/theme/kitty_theme.conf"
-DUNST_CONF="$HOME/.config/dunst/dunstrc"
 [[ "$*" == *"--quiet"* ]] && QUIET=1 || QUIET=0
 # Added --no-wallpaper flag so reading_mode can handle its own wallpapers
 [[ "$*" == *"--no-wallpaper"* ]] && NO_WALLPAPER=1 || NO_WALLPAPER=0
@@ -147,22 +145,6 @@ update_kitty() {
   kill -SIGUSR1 $(pidof kitty) 2>/dev/null || true
 }
 
-# Update Dunst notification theme
-update_dunst() {
-  local source_conf="$1"
-  # cp instead of syslinks
-  cp -f "$HOME/.config/dunst/$source_conf" "$DUNST_CONF"
-  
-  # Safely restart the daemon to prevent D-Bus locks
-  if systemctl --user is-active --quiet dunst.service; then
-    systemctl --user restart dunst.service
-  else
-    killall dunst 2>/dev/null || true
-    sleep 0.2
-    dunst >/dev/null 2>&1 &
-    disown
-  fi
-}
 # OPTIONAL: VS CODE THEME SWITCHING
 # NOTE: I prefer to handle VS Code themes natively using settings.json with:
 #   "workbench.preferredDarkColorTheme": "Everforest Dark",
@@ -210,9 +192,8 @@ apply_theme() {
   local theme_kvantum="$4"     # Kvantum theme name
   local wallpaper="$5"         # Wallpaper path
   local kitty_conf="$6"        # Kitty config file name
-  local dunst_conf="$7"        # Dunst config file name
-  local prefer_dark_bool="$8"  # "true" or "false" for gsettings
-  local gnome_scheme="$9"      # "prefer-dark" or "prefer-light"
+  local prefer_dark_bool="$7"  # "true" or "false" for gsettings
+  local gnome_scheme="$8"      # "prefer-dark" or "prefer-light"
   
   # Convert boolean to integer for GTK settings.ini
   local prefer_dark_int=0
@@ -226,10 +207,6 @@ if [[ "$QUIET" != "1" ]]; then
   echo "$mode" > "${HOME}/.cache/quickshell/theme_osd"
 fi
   
-  # ---------------------------------------------------------------------------
-  # DUNST
-  # ---------------------------------------------------------------------------
-  update_dunst "$dunst_conf"
   # ---------------------------------------------------------------------------
   # GTK 3
   # ---------------------------------------------------------------------------
@@ -335,7 +312,6 @@ if [ "$1" == "light" ]; then
     "EverforestGreenLight" \
     "$WALLPAPER_LIGHT" \
     "everforest_light.conf" \
-    "dunstrc_light" \
     "false" \
     "prefer-light"
 else
@@ -346,7 +322,6 @@ else
     "EverforestGreenDark" \
     "$WALLPAPER_DARK" \
     "everforest.conf" \
-    "dunstrc_dark" \
     "true" \
     "prefer-dark"
 fi

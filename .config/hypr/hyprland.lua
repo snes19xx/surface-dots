@@ -84,7 +84,6 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("qs")
     hl.exec_cmd("awww-daemon")
     hl.exec_cmd("hypridle")
-    hl.exec_cmd("dunst")
     hl.exec_cmd("blueman-applet")
     -- hyprpolkitagent if you have it, polkit-gnome otherwise
     hl.exec_cmd("systemctl --user start hyprpolkitagent 2>/dev/null || /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")

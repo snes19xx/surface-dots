@@ -60,7 +60,7 @@ sudo pacman -S hyprland hypridle hyprlock hyprpicker quickshell awww \
   xdg-utils xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-desktop-portal-kde \
   polkit-gnome sddm networkmanager nm-connection-editor bluez bluez-utils blueman \
   upower webkit2gtk-4.1 \
-  dunst rofi kitty thunar firefox mpv zathura fastfetch starship \
+  rofi kitty thunar firefox mpv zathura fastfetch starship \
   qt6ct kvantum papirus-icon-theme qt6-5compat qt6-svg qqc2-desktop-style \
   pipewire-pulse libpulse pamixer pavucontrol playerctl brightnessctl \
   libnotify wl-clipboard cliphist grim slurp swappy \
@@ -553,7 +553,7 @@ Binds straight to Quickshell's bluetooth module, no polling.
 - `Wi-Fi toggle` with SSID readout (right-click opens the internet panel)
 - `Bluetooth toggle` with connected device status (right-click opens the bluetooth panel)
 - `Performance profile button` (cycles Auto → Max → Powersave through `auto-cpufreq`, right-click toggles the battery health card). **Needs a sudoers rule, see below** — without one it's inert by design.
-- `DND toggle` (dunst)
+- `DND toggle` (hides toasts, history still fills)
 - `Volume and brightness sliders` (`pactl` and `brightnessctl`)
 
 #### Enabling the performance button (auto-cpufreq)
@@ -721,7 +721,7 @@ khal list now 7d
 ### Notifications
 
 - Clicking a notification dismisses it
-- Uses dunst (`dunstctl`) as the backend
+- The shell is its own notification server, so stop any other daemon (dunst, mako) first
 - Collapsed by default when the media card is active
 - `n` or the expand button opens them back up
 
