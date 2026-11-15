@@ -13,7 +13,7 @@ Lib.Card {
   signal bluetoothRequested()
   property bool active: true
   property bool autoMode: true
-  property bool dnd: false
+  readonly property bool dnd: Lib.Notifs.dnd
   
 
   // --------------------------------------------------------------------------------------------------------------
@@ -146,15 +146,7 @@ Lib.Card {
   }
   // --------------------------------------------------------------------------------------------------------------
   // DND
-  Lib.CommandPoll {
-    id: dndPoll;
-    running: root.active && root.visible; interval: 4000
-    command: Lib.Shell.sh("dunstctl is-paused 2>/dev/null || true")
-    parse: function(o) { return String(o).trim() === "true" }
-    onUpdated: root.dnd = value
-  }
-  function toggleDnd() { var next = !root.dnd;
-  root.dnd = next; Lib.Shell.det("dunstctl set-paused " + (next ? "true" : "false")) }
+  function toggleDnd() { Lib.Notifs.dnd = !Lib.Notifs.dnd }
 
   // -------------------------------------------------------------------
   // UI LAYOUT

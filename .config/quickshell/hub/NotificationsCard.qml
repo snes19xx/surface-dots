@@ -1,7 +1,5 @@
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
-import Quickshell.Io
 import "../lib" as Lib
 
 Lib.Card {
@@ -38,108 +36,10 @@ Lib.Card {
   }
 
   // ---------- Main Data ----------
-  ListModel { id: notifModel }
-  property var dismissed: ({})
-  property bool animationsEnabled: true
-
-
-
-  property var pollCommand: Lib.Shell.sh("dunstctl history 2>/dev/null || true")
-
-  property var pendingItems: null
-  property bool hasPending: false
-
-  Timer {
-    id: applyPending
-    interval: 180
-    repeat: false
-    running: root.active && root.visible
-    onTriggered: {
-      if (!hasPending) return
-      if (list.moving || list.flicking) { restart(); return }
-      hasPending = false
-      root.applyItems(pendingItems || [])
-    }
-  }
-
-  Process {
-    id: proc
-    stdout: StdioCollector {
-      onStreamFinished: {
-        if (!(root.active && root.visible)) return
-
-        var raw = this.text ?? ""
-        var items = root.parseDunstToItems(raw)
-
-        if (list.moving || list.flicking) {
-          pendingItems = items
-          hasPending = true
-          applyPending.restart()
-        } else {
-          root.applyItems(items)
-        }
-      }
-    }
-  }
-
-  // Refresh only when the hub opens. dunst stays the daemon, so there's nothing
-  // to gain from background polling.
-  //
-  // Trigger off `active` (bound to the hub window's visibility)
-  onActiveChanged: { if (active) proc.exec(root.pollCommand) }
-  onVisibleChanged: { if (visible && active) proc.exec(root.pollCommand) }
-
-  function parseDunstToItems(raw) {
-    if (!raw || raw.trim() === "") return []
-    var incoming = []
-    try {
-      var parsed = JSON.parse(raw)
-      var notifs = (parsed.data && parsed.data.length > 0) ? parsed.data[0] : []
-      
-      for (var i = 0; i < notifs.length && incoming.length < 50; i++) {
-        var n = notifs[i]
-        var id = (n.id && n.id.data !== undefined) ? Number(n.id.data) : 0
-        var app = (n.appname && n.appname.data) ? String(n.appname.data) : "SYSTEM"
-        var summary = (n.summary && n.summary.data) ? String(n.summary.data) : "Notification"
-        var body = (n.body && n.body.data) ? String(n.body.data) : ""
-
-        if (!root.dismissed[id]) {
-          incoming.push({ nId: id, app: app, summary: summary, body: body })
-        }
-      }
-    } catch(e) {
-      console.log("Dunst history parse error: " + e)
-    }
-    return incoming
-  }
-
-  function modelEquals(items) {
-    if (notifModel.count !== items.length) return false
-    for (var i = 0; i < items.length; i++) {
-      var m = notifModel.get(i)
-      var it = items[i]
-      if (m.nId !== it.nId) return false
-      if (m.app !== it.app) return false
-      if (m.summary !== it.summary) return false
-      if (m.body !== it.body) return false
-    }
-    return true
-  }
-
-  function applyItems(items) {
-    if (root.modelEquals(items)) return
-    root.animationsEnabled = false
-    notifModel.clear()
-    for (var i = 0; i < items.length; i++) notifModel.append(items[i])
-    animReenable.restart()
-  }
-
-  Timer { id: animReenable; interval: 0; onTriggered: root.animationsEnabled = true }
+  readonly property ListModel notifModel: Lib.Notifs.history
 
   function dismissOne(index, id) {
-    root.dismissed[id] = true
-    notifModel.remove(index)
-    Lib.Shell.det("dunstctl close " + id + " >/dev/null 2>&1; dunstctl history-rm " + id + " >/dev/null 2>&1 || true")
+    Lib.Notifs.dismiss(id)
   }
 
   function triggerClearAll() {
@@ -155,11 +55,7 @@ Lib.Card {
     }
     ScriptAction {
       script: {
-        for (var i = notifModel.count - 1; i >= 0; i--) {
-          root.dismissed[notifModel.get(i).nId] = true
-          notifModel.remove(i)
-        }
-        Lib.Shell.det("dunstctl close-all >/dev/null 2>&1; dunstctl history-clear >/dev/null 2>&1 || true")
+        Lib.Notifs.clearAll()
       }
     }
     PropertyAction { target: list; property: "opacity"; value: 1 }
@@ -287,7 +183,7 @@ Lib.Card {
     Text {
       visible: notifModel.count === 0 && (!root.compactMode || root.expanded)
       opacity: visible ? 1 : 0
-      text: "No new notifications"
+      text: Lib.Notifs.active ? "No new notifications" : "Another notification daemon is running"
       font.family: theme.textFont
       font.pixelSize: 11
       font.italic: true
@@ -329,11 +225,11 @@ Lib.Card {
 
         add: Transition {
           ParallelAnimation {
-            NumberAnimation { property: "opacity"; from: 0; to: 1; duration: root.animationsEnabled ? 300 : 0; easing.type: Easing.OutSine }
+            NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 300; easing.type: Easing.OutSine }
             NumberAnimation { 
               property: "scale"
               from: 0.9; to: 1.0
-              duration: root.animationsEnabled ? 400 : 0
+              duration: 400
               easing.type: Easing.OutBack
               easing.overshoot: 0.8 
             }

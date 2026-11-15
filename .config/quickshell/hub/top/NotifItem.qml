@@ -78,6 +78,7 @@ Rectangle {
 
             Text {
                 text: String(root.app).toUpperCase().replace(/\n/g, ' ')
+                textFormat: Text.PlainText
                 font.family: root.theme ? root.theme.textFont : "Manrope"
                 font.pixelSize: 9
                 font.weight: 700
@@ -88,6 +89,7 @@ Rectangle {
 
             Text {
                 text: root.summary.replace(/\n/g, ' ')
+                textFormat: Text.PlainText
                 font.family: root.theme ? root.theme.textFont : "Manrope"
                 font.pixelSize: 12
                 font.weight: 700
@@ -98,6 +100,7 @@ Rectangle {
 
             Text {
                 text: root.body.replace(/\n/g, ' ')
+                textFormat: Text.PlainText
                 visible: root.body !== ""
                 font.family: root.theme ? root.theme.textFont : "Manrope"
                 font.pixelSize: 11

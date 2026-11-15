@@ -178,22 +178,9 @@ Lib.TopCard {
   }
 
 // --- DND ---
-  property bool dnd: false
+  readonly property bool dnd: Lib.Notifs.dnd
 
-  Lib.CommandPoll {
-    id: dndPoll
-    running: root.active && root.visible
-    interval: 4000
-    command: sh("dunstctl is-paused 2>/dev/null || echo false")
-    parse: function(o) { return String(o).trim() === "true" }
-    onUpdated: root.dnd = value
-  }
-
-  function toggleDnd() {
-    var next = !root.dnd
-    root.dnd = next
-    det("dunstctl set-paused " + (next ? "true" : "false"))
-  }
+  function toggleDnd() { Lib.Notifs.dnd = !Lib.Notifs.dnd }
 
   // --- UI ---
   ColumnLayout {
