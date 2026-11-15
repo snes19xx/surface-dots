@@ -703,6 +703,7 @@ PanelWindow {
                             readonly property int metaSize: Math.round(10.5)
                             readonly property int metaWeight: Font.DemiBold
                             readonly property real metaSpacing: 0.6
+                            readonly property int linkWeight: Font.DemiBold
                             readonly property int hintSize: Math.round(10.5)
                             readonly property int hintWeight: Font.Medium
                             readonly property real hintOpacity: 0.7
@@ -1454,15 +1455,18 @@ PanelWindow {
                                     Text {
                                         Layout.maximumWidth: 420
                                         text: model.host
+                                        // plain text everywhere
+                                        textFormat: Text.PlainText
                                         font.family: clipView.fontText
                                         font.pixelSize: clipView.bodySize
-                                        font.weight: Font.DemiBold
+                                        font.weight: clipView.linkWeight
                                         color: drawerWin.theme.accent
                                         elide: Text.ElideRight
                                     }
                                     Text {
                                         Layout.fillWidth: true
                                         text: model.rest
+                                        textFormat: Text.PlainText
                                         font.family: clipView.fontText
                                         font.pixelSize: clipView.bodySize
                                         font.weight: clipView.bodyWeight
@@ -1476,6 +1480,7 @@ PanelWindow {
                                     visible: !row.isImage && row.kind !== "link"
                                     Layout.fillWidth: true
                                     text: model.preview
+                                    textFormat: Text.PlainText
                                     font.family: row.mono ? clipView.fontMono : clipView.fontText
                                     font.pixelSize: row.mono ? clipView.monoSize : clipView.bodySize
                                     font.weight: row.mono ? clipView.monoWeight : clipView.bodyWeight
@@ -1492,6 +1497,7 @@ PanelWindow {
                                     spacing: 0
                                     Text {
                                         text: model.label
+                                        textFormat: Text.PlainText
                                         font.family: clipView.fontText
                                         font.pixelSize: clipView.metaSize
                                         font.weight: clipView.metaWeight
@@ -1501,7 +1507,8 @@ PanelWindow {
                                     }
                                     Text {
                                         visible: model.detail !== ""
-                                        text: (row.isImage ? " " : " · ") + model.detail
+                                        text: (row.isImage ? " " : ", ") + model.detail
+                                        textFormat: Text.PlainText
                                         font.family: clipView.fontText
                                         font.pixelSize: clipView.metaSize
                                         font.weight: clipView.metaWeight

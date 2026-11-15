@@ -7,7 +7,7 @@ Use alongside my userChrome.css for best experience
 by snes19xx, https://github.com/snes19xx
 */
 :root {
-  --bg: #f4efe5;
+  --bg: #f3f3ec; /* #f4efe5; */
   --ink: #19140c;
   --ink-2: #3c2e1c;
   --muted: #887560;
