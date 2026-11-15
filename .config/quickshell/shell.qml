@@ -13,6 +13,10 @@ ShellRoot {
     // Touching the singleton starts the clipboard watchers at launch
     Component.onCompleted: Lib.Clipboard.reload()
 
+    // follows the focused monitor
+    Lib.ThemeEngine { id: notifTheme }
+    Lib.NotifPopups { theme: notifTheme }
+
     Variants {
         model: Quickshell.screens
         Scope {
