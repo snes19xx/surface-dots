@@ -30,24 +30,34 @@ Item {
     readonly property string fontText: theme.textFont
     readonly property string fontIcon: theme.iconFont
     // pixelSize is an int
-    readonly property int appSize: Math.round(10.5)
-    readonly property int appWeight: Font.DemiBold
-    readonly property real appSpacing: 0.8
-    readonly property int summarySize: 13
+    readonly property int labelSize: Math.round(10.5)
+    readonly property int labelWeight: Font.DemiBold
+    readonly property real labelSpacing: 0.9
+    readonly property int summarySize: 14
     readonly property int summaryWeight: Font.DemiBold
+    readonly property real summarySpacing: -0.1
     readonly property int bodySize: Math.round(12.5)
     readonly property int bodyWeight: Font.Medium
-    readonly property real bodyLine: 1.35
+    readonly property real bodyLine: 1.4
     readonly property int actionSize: 12
     readonly property int actionWeight: Font.DemiBold
 
-    readonly property int pad: 14
+    readonly property int pad: 16
     readonly property bool critical: urgency === NotificationUrgency.Critical
+    readonly property bool low: urgency === NotificationUrgency.Low
     readonly property bool hovered: hover.hovered
     readonly property bool dragging: ma.drag.active
-    readonly property real tintAlpha: theme.isDarkMode ? 0.14 : 0.12
+    readonly property color accentColor: critical ? theme.accentRed : theme.accent
 
     property real appear: 0
+
+    readonly property double born: Date.now()
+    property string ageText: "now"
+    function _age() {
+        var m = Math.floor((Date.now() - born) / 60000)
+        ageText = m < 1 ? "now" : m < 60 ? m + "m" : Math.floor(m / 60) + "h"
+    }
+    Timer { interval: 20000; repeat: true; running: true; onTriggered: toast._age() }
 
     readonly property string iconSource: {
         var name = toast.appIcon
@@ -152,9 +162,7 @@ Item {
     // paused on hover and drag
     property real elapsedMs: 0
     property bool timedOut: false
-    readonly property real remain: timeoutMs > 0 ? Math.max(0, 1 - elapsedMs / timeoutMs) : 1
     FrameAnimation {
-        id: timeoutAnim
         running: toast.timeoutMs > 0 && !toast.timedOut && toast.appear >= 1
             && !toast.hovered && !toast.dragging
         onTriggered: {
@@ -170,7 +178,7 @@ Item {
         id: lift
         width: toast.width
         height: card.height
-        opacity: toast.appear
+        opacity: toast.appear * (toast.low ? 0.82 : 1.0)
         transform: Translate { x: (1 - toast.appear) * 56 }
 
         // swipe right to dismiss
@@ -178,7 +186,9 @@ Item {
             id: slide
             width: parent.width
             height: parent.height
+            scale: ma.pressed && !ma.drag.active ? 0.985 : toast.hovered ? 1.01 : 1.0
 
+            Behavior on scale { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
             Behavior on x {
                 enabled: !ma.drag.active
                 NumberAnimation { duration: 240; easing.type: Easing.OutCubic }
@@ -193,33 +203,45 @@ Item {
                 color: "black"
                 visible: false
             }
+            // ambient shadow
             MultiEffect {
                 anchors.fill: shadowSrc
                 source: shadowSrc
                 shadowEnabled: true
                 shadowColor: "black"
-                shadowOpacity: toast.theme.isDarkMode ? 0.5 : 0.26
+                shadowOpacity: (toast.theme.isDarkMode ? 0.42 : 0.2) * (toast.hovered ? 1.25 : 1.0)
                 shadowBlur: 1.0
-                shadowVerticalOffset: 6
+                shadowVerticalOffset: toast.hovered ? 16 : 12
+                z: -2
+                Behavior on shadowVerticalOffset { NumberAnimation { duration: 180 } }
+            }
+            // contact shadow
+            MultiEffect {
+                anchors.fill: shadowSrc
+                source: shadowSrc
+                shadowEnabled: true
+                shadowColor: "black"
+                shadowOpacity: toast.theme.isDarkMode ? 0.5 : 0.22
+                shadowBlur: 0.25
+                shadowVerticalOffset: 2
                 z: -1
             }
 
             Rectangle {
                 id: card
                 width: parent.width
-                height: row.implicitHeight + toast.pad * 2 + (toast.timeoutMs > 0 ? 6 : 0)
-                radius: toast.theme.radiusOuter
+                height: row.implicitHeight + toast.pad * 2
+                radius: toast.theme.radiusOuter + 4
+
+                // lifted a step in dark
+                readonly property color base: toast.theme.isDarkMode
+                    ? Qt.tint(toast.theme.bgCard, toast.theme.subtleFill) : toast.theme.bgCard
+                readonly property color toned: toast.critical
+                    ? Qt.tint(base, Qt.alpha(toast.theme.accentRed, 0.12)) : base
                 color: ma.pressed && !ma.drag.active
-                    ? Qt.tint(toast.theme.bgCard, Qt.alpha(toast.theme.accent, toast.tintAlpha + 0.04))
-                    : toast.hovered
-                        ? Qt.tint(toast.theme.bgCard, Qt.alpha(toast.theme.accent, toast.tintAlpha))
-                        : toast.theme.bgCard
-                border.width: 1
-                border.color: toast.critical ? Qt.alpha(toast.theme.accentRed, 0.6) : toast.theme.outline
-                scale: ma.pressed && !ma.drag.active ? 0.985 : 1.0
+                    ? Qt.tint(toned, Qt.alpha(toast.theme.accent, 0.11))
+                    : toast.hovered ? Qt.tint(toned, Qt.alpha(toast.theme.accent, 0.07)) : toned
                 Behavior on color { ColorAnimation { duration: 160 } }
-                Behavior on border.color { ColorAnimation { duration: 160 } }
-                Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
 
                 HoverHandler {
                     id: hover
@@ -251,14 +273,14 @@ Item {
                     x: toast.pad
                     y: toast.pad
                     width: card.width - toast.pad * 2
-                    spacing: 12
+                    spacing: 14
 
                     Rectangle {
-                        Layout.preferredWidth: 38
-                        Layout.preferredHeight: 38
+                        Layout.preferredWidth: 40
+                        Layout.preferredHeight: 40
                         Layout.alignment: Qt.AlignTop
                         radius: 999
-                        color: toast.critical ? Qt.alpha(toast.theme.accentRed, 0.16) : toast.theme.subtleFill
+                        color: Qt.alpha(toast.accentColor, 0.16)
 
                         Image {
                             id: appImg
@@ -280,68 +302,83 @@ Item {
                             // tint can't multiply black
                             brightness: 1.0
                             colorization: 1.0
-                            colorizationColor: toast.critical ? toast.theme.accentRed : toast.theme.accent
+                            colorizationColor: toast.accentColor
                         }
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignTop
-                        spacing: 3
+                        spacing: 0
 
                         RowLayout {
                             Layout.fillWidth: true
-                            spacing: 6
+                            spacing: 8
 
                             Text {
                                 Layout.fillWidth: true
                                 text: (toast.appName !== "" ? toast.appName : "System").toUpperCase()
                                 textFormat: Text.PlainText
                                 font.family: toast.fontText
-                                font.pixelSize: toast.appSize
-                                font.weight: toast.appWeight
-                                font.letterSpacing: toast.appSpacing
-                                color: toast.critical ? toast.theme.accentRed : toast.theme.textSecondary
+                                font.pixelSize: toast.labelSize
+                                font.weight: toast.labelWeight
+                                font.letterSpacing: toast.labelSpacing
+                                color: toast.accentColor
                                 elide: Text.ElideRight
                                 maximumLineCount: 1
                             }
 
-                            Rectangle {
-                                Layout.preferredWidth: 20
-                                Layout.preferredHeight: 20
-                                Layout.topMargin: -3
-                                radius: 999
-                                color: closeMa.containsMouse ? Qt.alpha(toast.theme.accent, toast.tintAlpha) : "transparent"
-                                opacity: toast.hovered ? 1 : 0
-                                visible: opacity > 0
-                                Behavior on opacity { NumberAnimation { duration: 140 } }
-                                Behavior on color { ColorAnimation { duration: 140 } }
+                            // hover swaps age for close
+                            Item {
+                                Layout.preferredWidth: Math.max(ageLabel.implicitWidth, closeGlyph.implicitWidth)
+                                Layout.preferredHeight: ageLabel.implicitHeight
 
                                 Text {
-                                    anchors.centerIn: parent
+                                    id: ageLabel
+                                    anchors.right: parent.right
+                                    text: toast.ageText
+                                    textFormat: Text.PlainText
+                                    font.family: toast.fontText
+                                    font.pixelSize: toast.labelSize
+                                    font.weight: toast.labelWeight
+                                    font.letterSpacing: toast.labelSpacing
+                                    color: toast.theme.textSecondary
+                                    opacity: toast.hovered ? 0 : 1
+                                    Behavior on opacity { NumberAnimation { duration: 140 } }
+                                }
+                                Text {
+                                    id: closeGlyph
+                                    anchors.right: parent.right
+                                    anchors.verticalCenter: parent.verticalCenter
                                     text: ""
                                     font.family: toast.fontIcon
-                                    font.pixelSize: 10
-                                    color: toast.theme.textSecondary
-                                }
-                                MouseArea {
-                                    id: closeMa
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: toast.closeRequested()
+                                    font.pixelSize: toast.labelSize
+                                    color: closeMa.containsMouse ? toast.accentColor : toast.theme.textSecondary
+                                    opacity: toast.hovered ? 1 : 0
+                                    Behavior on opacity { NumberAnimation { duration: 140 } }
+                                    MouseArea {
+                                        id: closeMa
+                                        anchors.fill: parent
+                                        anchors.margins: -6
+                                        enabled: toast.hovered
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: toast.closeRequested()
+                                    }
                                 }
                             }
                         }
 
                         Text {
                             Layout.fillWidth: true
+                            Layout.topMargin: 4
                             visible: toast.summary !== ""
                             text: toast.summary
                             textFormat: Text.PlainText
                             font.family: toast.fontText
                             font.pixelSize: toast.summarySize
                             font.weight: toast.summaryWeight
+                            font.letterSpacing: toast.summarySpacing
                             color: toast.theme.textPrimary
                             wrapMode: Text.Wrap
                             maximumLineCount: 2
@@ -350,6 +387,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
+                            Layout.topMargin: 3
                             visible: toast.body !== ""
                             text: toast.safeBody
                             textFormat: Text.StyledText
@@ -368,9 +406,9 @@ Item {
 
                         Flow {
                             Layout.fillWidth: true
-                            Layout.topMargin: 8
+                            Layout.topMargin: 12
                             visible: toast.shownActions.length > 0
-                            spacing: 6
+                            spacing: 8
 
                             Repeater {
                                 model: toast.shownActions
@@ -378,16 +416,15 @@ Item {
                                 Rectangle {
                                     id: btn
                                     required property var modelData
-                                    width: label.implicitWidth + 28
-                                    height: 28
-                                    radius: 8
-                                    color: btnMa.pressed
-                                        ? Qt.tint(toast.theme.subtleFill, Qt.alpha(toast.theme.accent, toast.tintAlpha + 0.04))
-                                        : btnMa.containsMouse
-                                            ? Qt.tint(toast.theme.subtleFill, Qt.alpha(toast.theme.accent, toast.tintAlpha))
-                                            : toast.theme.subtleFill
-                                    border.width: 1
-                                    border.color: toast.theme.outline
+                                    required property int index
+                                    readonly property bool primary: index === 0
+                                    width: label.implicitWidth + 30
+                                    height: 30
+                                    radius: 15
+                                    color: primary
+                                        ? Qt.alpha(toast.accentColor, btnMa.pressed ? 0.30 : btnMa.containsMouse ? 0.24 : 0.16)
+                                        : Qt.tint(toast.theme.bgItem,
+                                            Qt.alpha(toast.theme.textPrimary, btnMa.pressed ? 0.12 : btnMa.containsMouse ? 0.07 : 0))
                                     Behavior on color { ColorAnimation { duration: 140 } }
 
                                     Text {
@@ -398,7 +435,7 @@ Item {
                                         font.family: toast.fontText
                                         font.pixelSize: toast.actionSize
                                         font.weight: toast.actionWeight
-                                        color: toast.theme.textPrimary
+                                        color: btn.primary ? toast.accentColor : toast.theme.textPrimary
                                     }
                                     MouseArea {
                                         id: btnMa
@@ -420,8 +457,8 @@ Item {
 
                         Rectangle {
                             anchors.fill: parent
-                            radius: 12
-                            color: toast.theme.subtleFill
+                            radius: 14
+                            color: toast.theme.bgItem
                         }
                         Image {
                             id: thumbImg
@@ -438,7 +475,7 @@ Item {
                             anchors.fill: parent
                             layer.enabled: true
                             visible: false
-                            Rectangle { anchors.fill: parent; radius: 12; color: "black" }
+                            Rectangle { anchors.fill: parent; radius: 14; color: "black" }
                         }
                         MultiEffect {
                             anchors.fill: parent
@@ -447,34 +484,6 @@ Item {
                             maskSource: thumbMask
                             visible: thumbImg.status === Image.Ready
                         }
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 12
-                            color: "transparent"
-                            border.width: 1
-                            border.color: toast.theme.outline
-                        }
-                    }
-                }
-
-                Rectangle {
-                    visible: toast.timeoutMs > 0
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    anchors.leftMargin: toast.pad
-                    anchors.rightMargin: toast.pad
-                    anchors.bottomMargin: 8
-                    height: 2
-                    radius: 1
-                    color: toast.theme.subtleFill
-
-                    Rectangle {
-                        width: parent.width * toast.remain
-                        height: parent.height
-                        radius: 1
-                        color: toast.theme.accent
-                        opacity: 0.75
                     }
                 }
             }

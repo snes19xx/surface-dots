@@ -10,7 +10,7 @@ PanelWindow {
 
     readonly property int toastWidth: 380
     // window clips the shadows otherwise
-    readonly property int shadowPad: 24
+    readonly property int shadowPad: 44
 
     // pinned while toasts are up
     property var targetScreen: Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
@@ -23,8 +23,9 @@ PanelWindow {
 
     anchors.top: true
     anchors.right: true
-    margins.top: 4
-    margins.right: 0
+    // shadow padding hangs offscreen
+    margins.top: -28
+    margins.right: -20
 
     exclusiveZone: 0
     implicitWidth: toastWidth + shadowPad * 2
@@ -77,10 +78,6 @@ PanelWindow {
         interactive: false
         spacing: 10
         model: toastModel
-
-        displaced: Transition {
-            NumberAnimation { property: "y"; duration: 260; easing.type: Easing.OutCubic }
-        }
 
         delegate: NotifToast {
             width: list.width
