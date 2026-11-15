@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 
@@ -17,11 +16,15 @@ PanelWindow {
     anchors.right:  true
 
     exclusiveZone:  0
-    implicitHeight: 160
+    // headroom for the shadow
+    implicitHeight: 210
     color:          "transparent"
     visible:        false
 
-    // State 
+    // shadow padding is click-through
+    mask: Region { item: osdCard }
+
+    // State
     property bool osdVisible: false
     property bool isDragging: false
     // Drag and wheel steps build on this until the file watch catches up
@@ -63,7 +66,7 @@ PanelWindow {
         if (!setThrottle.running) setThrottle.start()
     }
 
-    // Hide timer 
+    // Hide timer
     Timer {
         id: hideTimer
         interval: 2600
@@ -85,264 +88,51 @@ PanelWindow {
         }
     }
 
-    // Helpers 
+    // nerd-font brightness glyphs
     function brightnessIcon(p) {
-        if (p >= 75) return "󰃠"
-        if (p >= 40) return "󰃟"
-        if (p >= 10) return "󰃞"
-        return "󰃝"
+        if (p >= 75) return String.fromCodePoint(0xF00E0)
+        if (p >= 40) return String.fromCodePoint(0xF00DF)
+        if (p >= 10) return String.fromCodePoint(0xF00DE)
+        return String.fromCodePoint(0xF00DD)
     }
 
-    // --- OSD--------------------------------------------------------------------------
-    Item {
-        anchors.fill: parent
+    OsdCard {
+        id: osdCard
+        theme: root.theme
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom:           parent.bottom
+        anchors.bottomMargin:     40
 
-        Item {
-            id: card
-            width:  300
-            height: 110
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom:           parent.bottom
-            anchors.bottomMargin:     40
+        shown: root.osdVisible
+        label: "Brightness"
+        value: root.percent + "%"
+        glyph: root.brightnessIcon(root.percent)
 
-            opacity: root.osdVisible ? 1.0 : 0.0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration:    root.osdVisible ? 160 : 320
-                    easing.type: root.osdVisible ? Easing.OutQuad : Easing.InCubic
-                }
-            }
-            transform: Translate {
-                y: root.osdVisible ? 0 : 22
-                Behavior on y { SpringGentle { epsilon: 0.25 } }
-            }
+        showLevel: true
+        level: root.percent / 100.0
+        dragging: root.isDragging
 
-            // Shadow
-            Rectangle {
-                anchors.centerIn: parent
-                width:  parent.width  + 2
-                height: parent.height + 2
-                radius: root.theme.radiusOuter + 2
-                color:  "transparent"
-                border.width: 8
-                border.color: Qt.rgba(0, 0, 0, root.theme.isDarkMode ? 0.28 : 0.12)
-                opacity: 0.6
-            }
-
-            // Background
-            Rectangle {
-                anchors.fill: parent
-                radius:       root.theme.radiusOuter
-                color:        root.theme.bgCard
-                border.width: 1
-                border.color: root.theme.outline
-
-                // inner glow
-                Rectangle {
-                    anchors { fill: parent; margins: 1 }
-                    radius: root.theme.radiusOuter - 1
-                    color:  Qt.rgba(
-                        Qt.color(root.theme.accentSlider).r,
-                        Qt.color(root.theme.accentSlider).g,
-                        Qt.color(root.theme.accentSlider).b,
-                        (root.percent / 100) * (root.theme.isDarkMode ? 0.06 : 0.04)
-                    )
-                    Behavior on color { ColorAnimation { duration: 300 } }
-                }
-            }
-
-            // Content
-            RowLayout {
-                anchors {
-                    fill:         parent
-                    leftMargin:   22
-                    rightMargin:  22
-                }
-                spacing: 18
-
-                // Left: icon + percent
-                ColumnLayout {
-                    spacing: 2
-                    Layout.alignment: Qt.AlignVCenter
-
-                    Text {
-                        id: iconText
-                        text:             root.brightnessIcon(root.percent)
-                        font.family:      root.theme.iconFont
-                        font.pixelSize:   28 + Math.round((root.percent / 100) * 6)
-                        color:            root.theme.accentSlider
-                        Layout.alignment: Qt.AlignHCenter
-
-                        Behavior on font.pixelSize {
-                            NumberAnimation { duration: 200; easing.type: Easing.OutQuad }
-                        }
-
-                        SequentialAnimation {
-                            id: iconPulse
-                            NumberAnimation { target: iconText; property: "scale"; to: 1.18; duration: 90;  easing.type: Easing.OutQuad }
-                            SpringBouncy { target: iconText; property: "scale"; to: 1.0 }
-                        }
-                    }
-
-                    Text {
-                        text:             root.percent + "%"
-                        font.family:      root.theme.textFont
-                        font.pixelSize:   13
-                        font.weight:      Font.Bold
-                        color:            root.theme.textSecondary
-                        Layout.alignment: Qt.AlignHCenter
-                        opacity:          0.85
-                    }
-                }
-
-                // Right: label + bar
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
-                    spacing: 10
-
-                    Text {
-                        text:           "Brightness"
-                        font.family:    root.theme.textFont
-                        font.pixelSize: 11
-                        font.weight:    Font.Medium
-                        color:          root.theme.textSecondary
-                        opacity:        0.7
-                    }
-
-                    // bar
-                    Item {
-                        id: barArea
-                        Layout.fillWidth: true
-                        height: 20       
-
-                        // Track
-                        Rectangle {
-                            id:     barTrack
-                            width:  parent.width
-                            height: root.isDragging ? 10 : 8
-                            anchors.verticalCenter: parent.verticalCenter
-                            radius: height / 2
-                            color:  root.theme.bgItem
-
-                            Behavior on height {
-                                NumberAnimation { duration: 120; easing.type: Easing.OutQuad }
-                            }
-                        }
-
-                        // Fill
-                        Rectangle {
-                            height: barTrack.height
-                            width:  Math.max(barTrack.radius * 2,
-                                             barTrack.width * (root.percent / 100.0))
-                            radius: barTrack.radius
-                            anchors.verticalCenter: barTrack.verticalCenter
-
-                            gradient: Gradient {
-                                orientation: Gradient.Horizontal
-                                GradientStop {
-                                    position: 0.0
-                                    color: Qt.darker(root.theme.accentSlider,
-                                                     root.theme.isDarkMode ? 1.15 : 1.05)
-                                }
-                                GradientStop {
-                                    position: 1.0
-                                    color: Qt.lighter(root.theme.accentSlider,
-                                                      root.theme.isDarkMode ? 1.25 : 1.15)
-                                }
-                            }
-
-                            Behavior on width {
-                                NumberAnimation { duration: root.isDragging ? 0 : 120; easing.type: Easing.OutQuad }
-                            }
-
-                            // Thumb — pops out while dragging
-                            Rectangle {
-                                id: thumb
-                                width:  root.isDragging ? 18 : 14
-                                height: width
-                                radius: width / 2
-                                anchors {
-                                    right:          parent.right
-                                    verticalCenter: parent.verticalCenter
-                                }
-                                color: Qt.lighter(root.theme.accentSlider,
-                                                  root.theme.isDarkMode ? 1.4 : 1.1)
-
-                                Behavior on width {
-                                    NumberAnimation { duration: 120; easing.type: Easing.OutQuad }
-                                }
-
-                                Rectangle {
-                                    width:   7; height: 7; radius: 3.5
-                                    anchors.centerIn: parent
-                                    color:   "white"
-                                    opacity: root.theme.isDarkMode ? 0.75 : 0.5
-                                }
-                            }
-                        }
-
-                        // Tick marks at 25 / 50 / 75
-                        Repeater {
-                            model: [0.25, 0.50, 0.75]
-                            delegate: Rectangle {
-                                required property var modelData
-                                x:       barTrack.width * modelData - width / 2
-                                y:       (barTrack.height - height) / 2
-                                         + (barArea.height - barTrack.height) / 2
-                                width:   1
-                                height:  barTrack.height
-                                color:   root.theme.isDarkMode
-                                         ? Qt.rgba(1,1,1,0.12)
-                                         : Qt.rgba(0,0,0,0.10)
-                                visible: (root.percent / 100) < modelData
-                            }
-                        }
-
-                        // Mouse interaction
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape:  Qt.PointingHandCursor
-
-                            function percentFromX(mx) {
-                                return Math.round(Math.max(1, Math.min(100,
-                                    (mx / barTrack.width) * 100)))
-                            }
-
-                            onPressed: mouse => {
-                                root.isDragging = true
-                                root.osdVisible = true
-                                hideTimer.stop()
-                                root._setBrightness(percentFromX(mouse.x))
-                            }
-
-                            onPositionChanged: mouse => {
-                                if (!pressed) return
-                                root._setBrightness(percentFromX(mouse.x))
-                            }
-
-                            onReleased: {
-                                root.isDragging = false
-                                localHold.restart()
-                                hideTimer.restart()
-                            }
-
-                            // Scroll wheel on the bar too
-                            onWheel: wheel => {
-                                var delta = wheel.angleDelta.y > 0 ? 5 : -5
-                                root._setBrightness(root.percent + delta)
-                                root.osdVisible = true
-                                hideTimer.restart()
-                            }
-                        }
-                    }
-                }
-            }
+        onLevelPressed: frac => {
+            root.isDragging = true
+            root.osdVisible = true
+            hideTimer.stop()
+            root._setBrightness(Math.round(frac * 100))
         }
-
-        Connections {
-            target: root
-            function onPercentChanged() { iconPulse.restart() }
+        onLevelMoved: frac => root._setBrightness(Math.round(frac * 100))
+        onLevelReleased: {
+            root.isDragging = false
+            localHold.restart()
+            hideTimer.restart()
         }
+        onLevelWheeled: delta => {
+            root._setBrightness(root.percent + delta)
+            root.osdVisible = true
+            hideTimer.restart()
+        }
+    }
+
+    Connections {
+        target: root
+        function onPercentChanged() { osdCard.pulse() }
     }
 }

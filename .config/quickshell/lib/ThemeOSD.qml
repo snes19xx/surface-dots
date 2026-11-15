@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -18,14 +17,18 @@ PanelWindow {
     anchors.right:  true
 
     exclusiveZone:  0
-    implicitHeight: 180
+    // headroom for the shadow
+    implicitHeight: 190
     color:          "transparent"
     visible:        false
 
-    // OSD payload 
-    property string iconPath:    ""   
-    property string labelText:   ""   // e.g. "Dark Mode"
-    property string sublabel:    ""   // e.g. "Activated"
+    // shadow padding is click-through
+    mask: Region { item: osdCard }
+
+    // OSD payload
+    property string glyph:       ""   // nerd-font icon
+    property string labelText:   ""   // e.g. "Theme"
+    property string sublabel:    ""   // e.g. "Dark"
     property color  accentColor: root.theme.accentBlue
     property bool   osdVisible:       false
     property bool   _readyTheme:      false
@@ -64,7 +67,7 @@ PanelWindow {
     }
 
 
-    // Handlers 
+    // Handlers
     function _show() {
         root.osdVisible = true
         hideTimer.restart()
@@ -75,15 +78,15 @@ PanelWindow {
         var v = raw.trim().toLowerCase()
         if (v !== "light" && v !== "dark") return
         if (v === "light") {
-            root.iconPath    = Qt.resolvedUrl("lightmode.svg")
-            root.labelText   = "Light Mode"
+            root.glyph       = String.fromCodePoint(0xF0599)
+            root.sublabel    = "Light"
             root.accentColor = root.theme.accentBlue
         } else {
-            root.iconPath    = Qt.resolvedUrl("darkmode.svg")
-            root.labelText   = "Dark Mode"
+            root.glyph       = String.fromCodePoint(0xF0594)
+            root.sublabel    = "Dark"
             root.accentColor = root.theme.accent
         }
-        root.sublabel = "Activated"
+        root.labelText = "Theme"
         _show()
     }
 
@@ -92,12 +95,12 @@ PanelWindow {
         var v = raw.trim().toLowerCase()
         if (v !== "on" && v !== "off") return
         if (v === "on") {
-            root.iconPath    = Qt.resolvedUrl("readon.svg")
+            root.glyph       = String.fromCodePoint(0xF00BD)
             root.labelText   = "Reading Mode"
             root.sublabel    = "On"
             root.accentColor = root.theme.accentSlider
         } else {
-            root.iconPath    = Qt.resolvedUrl("readoff.svg")
+            root.glyph       = String.fromCodePoint(0xF00BD)
             root.labelText   = "Reading Mode"
             root.sublabel    = "Off"
             root.accentColor = root.theme.textSecondary
@@ -110,12 +113,12 @@ PanelWindow {
         var v = raw.trim().toLowerCase()
         if (v !== "on" && v !== "off") return
         if (v === "on") {
-            root.iconPath    = Qt.resolvedUrl("nl_on.svg")
+            root.glyph       = String.fromCodePoint(0xF059B)
             root.labelText   = "Night Light"
             root.sublabel    = "On"
             root.accentColor = root.theme.accentRed
         } else {
-            root.iconPath    = Qt.resolvedUrl("nl_off.svg")
+            root.glyph       = String.fromCodePoint(0xF059B)
             root.labelText   = "Night Light"
             root.sublabel    = "Off"
             root.accentColor = root.theme.textSecondary
@@ -130,7 +133,7 @@ PanelWindow {
         onTriggered: root.osdVisible = false
     }
 
-    // Unmap window after fade-out completes 
+    // Unmap window after fade-out completes
     Timer {
         id: windowHideTimer
         interval: 240
@@ -146,159 +149,25 @@ PanelWindow {
         }
     }
 
-    // OSD Visual 
-    Item {
-        anchors.fill: parent
+    OsdCard {
+        id: osdCard
+        theme: root.theme
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom:           parent.bottom
+        anchors.bottomMargin:     52
 
-        Item {
-            id: card
-            width:  290
-            height: 90
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom:           parent.bottom
-            anchors.bottomMargin:     52
+        shown: root.osdVisible
+        fadeInMs: 140
+        fadeOutMs: 230
+        slideY: 20
+        label: root.labelText
+        value: root.sublabel
+        accentColor: root.accentColor
+        glyph: root.glyph
+    }
 
-            // Fade
-            opacity: root.osdVisible ? 1.0 : 0.0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration:    root.osdVisible ? 140 : 230
-                    easing.type: root.osdVisible ? Easing.OutQuad : Easing.InCubic
-                }
-            }
-
-            // Slide
-            transform: Translate {
-                y: root.osdVisible ? 0 : 20
-                Behavior on y { SpringGentle { epsilon: 0.25 } }
-            }
-
-            // Shadow 
-            Rectangle {
-                anchors.centerIn: parent
-                width:  parent.width  + 2
-                height: parent.height + 2
-                radius: root.theme.radiusOuter + 2
-                color:  "transparent"
-                border.width: 8
-                border.color: Qt.rgba(0, 0, 0, root.theme.isDarkMode ? 0.30 : 0.13)
-                opacity: 0.55
-            }
-
-            // Background
-            Rectangle {
-                anchors.fill: parent
-                radius:       root.theme.radiusOuter
-                color:        root.theme.bgCard
-                border.width: 1
-                border.color: root.theme.outline
-
-                // Accent tint that morphs with mode color
-                Rectangle {
-                    anchors { fill: parent; margins: 1 }
-                    radius: root.theme.radiusOuter - 1
-                    color:  Qt.rgba(
-                        root.accentColor.r,
-                        root.accentColor.g,
-                        root.accentColor.b,
-                        root.theme.isDarkMode ? 0.08 : 0.05
-                    )
-                    Behavior on color { ColorAnimation { duration: 300 } }
-                }
-            }
-
-            // Content 
-            RowLayout {
-                anchors {
-                    fill:         parent
-                    leftMargin:   20
-                    rightMargin:  20
-                }
-                spacing: 16
-
-                Item {
-                    implicitWidth:  64
-                    implicitHeight: 64
-                    Layout.alignment: Qt.AlignVCenter
-
-                    // Circle behind icon
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width:  54
-                        height: 54
-                        radius: 27
-                        color:  Qt.rgba(
-                            root.accentColor.r,
-                            root.accentColor.g,
-                            root.accentColor.b,
-                            root.theme.isDarkMode ? 0.15 : 0.10
-                        )
-                        Behavior on color { ColorAnimation { duration: 300 } }
-                    }
-
-                    // The SVG itself — sourceSize forces high-res rasterisation
-                    Image {
-                        id:               modeIcon
-                        anchors.centerIn: parent
-                        source:           root.iconPath
-                        sourceSize:       Qt.size(40, 40)
-                        width:            40
-                        height:           40
-                        smooth:           true
-                        antialiasing:     true
-                        fillMode:         Image.PreserveAspectFit
-
-                        // Tint the SVG with the accent color via ColorOverlay-style layer
-                        //layer.enabled: true
-                        //layer.effect: null  // SVGs with own colors = keep as-is
-
-                        // Pop in when icon changes
-                        SequentialAnimation {
-                            id: iconSwap
-                            running: false
-                            SpringSnappy {
-                                target: modeIcon; property: "scale"
-                                from: 0.7; to: 1.0
-                            }
-                        }
-                    }
-
-                    // Trigger pop animation on source change
-                    Connections {
-                        target: root
-                        function onIconPathChanged() { iconSwap.restart() }
-                    }
-                }
-
-                // Text column
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
-                    spacing:          3
-
-                    Text {
-                        text:              root.labelText
-                        font.family:       root.theme.textFont
-                        font.pixelSize:    17
-                        font.weight:       Font.Bold
-                        color:             root.theme.textPrimary
-                        Layout.fillWidth:  true
-                        elide:             Text.ElideRight
-                    }
-
-                    Text {
-                        text:             root.sublabel
-                        font.family:      root.theme.textFont
-                        font.pixelSize:   13
-                        font.weight:      Font.Medium
-                        color:            root.accentColor
-                        Layout.fillWidth: true
-                        opacity:          0.90
-
-                        Behavior on color { ColorAnimation { duration: 300 } }
-                    }
-                }
-            }
-        }
+    Connections {
+        target: root
+        function onGlyphChanged() { osdCard.swap() }
     }
 }

@@ -1,6 +1,4 @@
 import QtQuick
-import QtQuick.Layouts
-import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 
@@ -18,9 +16,13 @@ PanelWindow {
     anchors.right:  true
 
     exclusiveZone:  0
-    implicitHeight: 160
+    // headroom for the shadow
+    implicitHeight: 220
     color:          "transparent"
-    visible:        false  
+    visible:        false
+
+    // shadow padding is click-through
+    mask: Region { item: osdCard }
 
     // State
     property bool isDragging: false
@@ -88,7 +90,7 @@ PanelWindow {
         hideTimer.restart()
     }
 
-    // Auto-hide 
+    // Auto-hide
     Timer {
         id: hideTimer
         interval: 2600
@@ -110,324 +112,59 @@ PanelWindow {
         }
     }
 
-    // Slider color
-    readonly property color sliderColor: {
-        var t  = Math.max(0, Math.min(1, (root.volume - 50) / 50.0))
-        var c1 = Qt.color(root.theme.accentSlider)
-        var c2 = Qt.color(root.theme.accentSlider2)
-        return Qt.rgba(
-            c1.r + (c2.r - c1.r) * t,
-            c1.g + (c2.g - c1.g) * t,
-            c1.b + (c2.b - c1.b) * t,
-            1.0
-        )
-    }
-
-    // Icon helper
+    // nerd-font speaker glyphs
     function volumeIcon(vol, muted) {
-        if (muted || vol === 0) return "󰝟"
-        if (vol < 35)           return "󰕿"
-        if (vol < 70)           return "󰖀"
-        return "󰕾"
+        if (muted || vol === 0) return String.fromCodePoint(0xF075F)
+        if (vol < 35)           return String.fromCodePoint(0xF057F)
+        if (vol < 70)           return String.fromCodePoint(0xF0580)
+        return String.fromCodePoint(0xF057E)
     }
 
-    // OSD 
-    Item {
-        anchors.fill: parent
+    OsdCard {
+        id: osdCard
+        theme: root.theme
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom:           parent.bottom
+        anchors.bottomMargin:     48
 
-        Item {
-            id: card
-            width:  300
-            height: 110
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom:           parent.bottom
-            anchors.bottomMargin:     48
+        shown: root.osdVisible
+        label: "Volume"
+        value: root.muted ? "Muted" : root.volume + "%"
+        secondary: Audio.bluetoothName
+        // muted looks like critical toast
+        accentColor: root.muted ? root.theme.accentRed : root.theme.accent
+        glyph: root.volumeIcon(root.volume, root.muted)
+        iconSource: root.isHeadphones ? Qt.resolvedUrl("vol_headphones.svg") : ""
+        iconClickable: true
+        onIconClicked: root._toggleMute()
 
-            opacity: root.osdVisible ? 1.0 : 0.0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration:    root.osdVisible ? 160 : 320
-                    easing.type: root.osdVisible ? Easing.OutQuad : Easing.InCubic
-                }
-            }
-            transform: Translate {
-                y: root.osdVisible ? 0 : 22
-                Behavior on y { SpringGentle { epsilon: 0.25 } }
-            }
+        showLevel: true
+        level: root.volume / 100.0
+        dimLevel: root.muted
+        dragging: root.isDragging
 
-            // Shadow
-            Rectangle {
-                anchors.centerIn: parent
-                width:  parent.width  + 2
-                height: parent.height + 2
-                radius: root.theme.radiusOuter + 2
-                color:  "transparent"
-                border.width: 8
-                border.color: Qt.rgba(0, 0, 0, root.theme.isDarkMode ? 0.28 : 0.12)
-                opacity: 0.6
-            }
-
-            // Background
-            Rectangle {
-                anchors.fill: parent
-                radius:       root.theme.radiusOuter
-                color:        root.theme.bgCard
-                border.width: 1
-                border.color: root.theme.outline
-
-                Rectangle {
-                    anchors { fill: parent; margins: 1 }
-                    radius: root.theme.radiusOuter - 1
-                    color: Qt.rgba(
-                        Qt.color(root.theme.accentBlue).r,
-                        Qt.color(root.theme.accentBlue).g,
-                        Qt.color(root.theme.accentBlue).b,
-                        root.muted ? 0.0 :
-                        (root.volume / 100) * (root.theme.isDarkMode ? 0.05 : 0.03)
-                    )
-                    Behavior on color { ColorAnimation { duration: 300 } }
-                }
-            }
-
-            // Content 
-            RowLayout {
-                anchors {
-                    fill:         parent
-                    leftMargin:   22
-                    rightMargin:  22
-                }
-                spacing: 18
-
-                // Left: icon + percent \ click to mute
-                Item {
-                    Layout.alignment: Qt.AlignVCenter
-                    implicitWidth:    48
-                    implicitHeight:   60
-
-                    ColumnLayout {
-                        anchors.centerIn: parent
-                        spacing: 3
-
-                        // Icon: glyph when speakers, SVG when headphones
-                        Item {
-                            id: volIconWrapper
-                            implicitWidth:  34
-                            implicitHeight: 34
-                            Layout.alignment: Qt.AlignHCenter
-
-                            // Pulse animation 
-                            SequentialAnimation {
-                                id: volIconPulse
-                                NumberAnimation {
-                                    target:   volIconWrapper
-                                    property: "scale"
-                                    to:       1.22
-                                    duration: 80
-                                    easing.type: Easing.OutQuad
-                                }
-                                SpringBouncy {
-                                    target:   volIconWrapper
-                                    property: "scale"
-                                    to:       1.0
-                                }
-                            }
-
-                            // Nerd-font glyph (speakers / muted)
-                            Text {
-                                id: volIcon
-                                anchors.centerIn: parent
-                                visible:          !root.isHeadphones
-                                text:             root.volumeIcon(root.volume, root.muted)
-                                font.family:      root.theme.iconFont
-                                font.pixelSize:   28
-                                color:            root.muted
-                                                  ? root.theme.accentRed
-                                                  : root.sliderColor
-                                Behavior on color { ColorAnimation { duration: 200 } }
-                            }
-
-                            // SVG headphone icon 
-                            Item {
-                                id: hpIcon
-                                anchors.centerIn: parent
-                                width:  30
-                                height: 30
-                                visible: root.isHeadphones
-
-                                Image {
-                                    id: hpImg
-                                    anchors.fill: parent
-                                    source:       Qt.resolvedUrl("vol_headphones.svg")
-                                    sourceSize:   Qt.size(30, 30)
-                                    smooth:       true
-                                    mipmap:       true
-                                    visible:      false
-                                }
-                                MultiEffect {
-                                    anchors.fill: hpImg
-                                    source:       hpImg
-                                    colorization: 1.0
-                                    brightness:   1.0   // vol_headphones.svg is black
-                                    colorizationColor: root.muted
-                                                  ? root.theme.accentRed
-                                                  : root.sliderColor
-                                    Behavior on colorizationColor { ColorAnimation { duration: 200 } }
-                                }
-                            }
-                        }
-
-                        Text {
-                            text:             root.muted ? "muted" : root.volume + "%"
-                            font.family:      root.theme.textFont
-                            font.pixelSize:   11
-                            font.weight:      Font.Bold
-                            color:            root.muted
-                                              ? root.theme.accentRed
-                                              : root.theme.textSecondary
-                            Layout.alignment: Qt.AlignHCenter
-                            opacity:          0.85
-                            Behavior on color { ColorAnimation { duration: 200 } }
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape:  Qt.PointingHandCursor
-                        onClicked:    root._toggleMute()
-                    }
-                }
-
-                // Right: label + bar
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
-                    spacing: 10
-
-                    Text {
-                        text:           "Volume"
-                        font.family:    root.theme.textFont
-                        font.pixelSize: 11
-                        font.weight:    Font.Medium
-                        color:          root.theme.textSecondary
-                        opacity:        0.7
-                    }
-
-                    Item {
-                        id: barArea
-                        Layout.fillWidth: true
-                        height: 20
-                        opacity: root.muted ? 0.35 : 1.0
-                        Behavior on opacity { NumberAnimation { duration: 200 } }
-
-                        Rectangle {
-                            id:     barTrack
-                            width:  parent.width
-                            height: root.isDragging ? 10 : 8
-                            anchors.verticalCenter: parent.verticalCenter
-                            radius: height / 2
-                            color:  root.theme.bgItem
-                            Behavior on height {
-                                NumberAnimation { duration: 120; easing.type: Easing.OutQuad }
-                            }
-                        }
-
-                        Rectangle {
-                            height: barTrack.height
-                            width:  Math.max(barTrack.radius * 2,
-                                             barTrack.width * (root.volume / 100.0))
-                            radius: barTrack.radius
-                            anchors.verticalCenter: barTrack.verticalCenter
-
-                            color: root.sliderColor
-                            Behavior on color {
-                                ColorAnimation { duration: 400; easing.type: Easing.OutQuad }
-                            }
-
-                            Behavior on width {
-                                NumberAnimation {
-                                    duration:    root.isDragging ? 0 : 120
-                                    easing.type: Easing.OutQuad
-                                }
-                            }
-
-                            Rectangle {
-                                width:  root.isDragging ? 18 : 14
-                                height: width
-                                radius: width / 2
-                                anchors {
-                                    right:          parent.right
-                                    verticalCenter: parent.verticalCenter
-                                }
-                                color: Qt.lighter(root.sliderColor,
-                                                  root.theme.isDarkMode ? 1.4 : 1.1)
-                                Behavior on width {
-                                    NumberAnimation { duration: 120; easing.type: Easing.OutQuad }
-                                }
-                                Rectangle {
-                                    width: 7; height: 7; radius: 3.5
-                                    anchors.centerIn: parent
-                                    color:   "white"
-                                    opacity: root.theme.isDarkMode ? 0.75 : 0.5
-                                }
-                            }
-                        }
-
-                        Repeater {
-                            model: [0.25, 0.5, 0.75]
-                            delegate: Rectangle {
-                                required property var modelData
-                                x:       barTrack.width * modelData - 0.5
-                                y:       (barTrack.height - height) / 2
-                                         + (barArea.height - barTrack.height) / 2
-                                width:   1
-                                height:  barTrack.height
-                                color:   root.theme.isDarkMode
-                                         ? Qt.rgba(1,1,1,0.12)
-                                         : Qt.rgba(0,0,0,0.10)
-                                visible: (root.volume / 100) < modelData
-                            }
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape:  Qt.PointingHandCursor
-
-                            function volFromX(mx) {
-                                return Math.round(Math.max(0, Math.min(100,
-                                    (mx / barTrack.width) * 100)))
-                            }
-
-                            onPressed: mouse => {
-                                root.isDragging = true
-                                root.osdVisible = true
-                                hideTimer.stop()
-                                root._setVolume(volFromX(mouse.x))
-                            }
-                            onPositionChanged: mouse => {
-                                if (!pressed) return
-                                root._setVolume(volFromX(mouse.x))
-                            }
-                            onReleased: {
-                                root.isDragging = false
-                                localHold.restart()
-                                hideTimer.restart()
-                            }
-                            onWheel: wheel => {
-                                var delta = wheel.angleDelta.y > 0 ? 5 : -5
-                                root._setVolume(root.volume + delta)
-                                root.osdVisible = true
-                                hideTimer.restart()
-                            }
-                        }
-                    }
-                }
-            }
+        onLevelPressed: frac => {
+            root.isDragging = true
+            root.osdVisible = true
+            hideTimer.stop()
+            root._setVolume(Math.round(frac * 100))
         }
-
-        Connections {
-            target: root
-            function onVolumeChanged() { volIconPulse.restart() }
-            function onMutedChanged()  { volIconPulse.restart() }
+        onLevelMoved: frac => root._setVolume(Math.round(frac * 100))
+        onLevelReleased: {
+            root.isDragging = false
+            localHold.restart()
+            hideTimer.restart()
         }
+        onLevelWheeled: delta => {
+            root._setVolume(root.volume + delta)
+            root.osdVisible = true
+            hideTimer.restart()
+        }
+    }
+
+    Connections {
+        target: root
+        function onVolumeChanged() { osdCard.pulse() }
+        function onMutedChanged()  { osdCard.pulse() }
     }
 }
