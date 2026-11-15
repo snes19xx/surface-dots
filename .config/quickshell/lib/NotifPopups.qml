@@ -10,7 +10,7 @@ PanelWindow {
 
     readonly property int toastWidth: 380
     // window clips the shadows otherwise
-    readonly property int shadowPad: 44
+    readonly property int shadowPad: 52
 
     // pinned while toasts are up
     property var targetScreen: Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
@@ -24,8 +24,8 @@ PanelWindow {
     anchors.top: true
     anchors.right: true
     // shadow padding hangs offscreen
-    margins.top: -28
-    margins.right: -20
+    margins.top: -36
+    margins.right: -28
 
     exclusiveZone: 0
     implicitWidth: toastWidth + shadowPad * 2

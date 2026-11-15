@@ -27,27 +27,15 @@ Item {
     signal closeRequested()
     signal expired()
 
-    readonly property string fontText: theme.textFont
-    readonly property string fontIcon: theme.iconFont
-    // pixelSize is an int
-    readonly property int labelSize: Math.round(10.5)
-    readonly property int labelWeight: Font.DemiBold
-    readonly property real labelSpacing: 0.9
-    readonly property int summarySize: 14
-    readonly property int summaryWeight: Font.DemiBold
-    readonly property real summarySpacing: -0.1
-    readonly property int bodySize: Math.round(12.5)
-    readonly property int bodyWeight: Font.Medium
-    readonly property real bodyLine: 1.4
-    readonly property int actionSize: 12
-    readonly property int actionWeight: Font.DemiBold
-
-    readonly property int pad: 16
+    readonly property int padX: 14
+    readonly property int padY: 12
     readonly property bool critical: urgency === NotificationUrgency.Critical
     readonly property bool low: urgency === NotificationUrgency.Low
     readonly property bool hovered: hover.hovered
     readonly property bool dragging: ma.drag.active
     readonly property color accentColor: critical ? theme.accentRed : theme.accent
+    // keeps the default from lighting
+    property int buttonsHovered: 0
 
     property real appear: 0
 
@@ -190,9 +178,7 @@ Item {
             id: slide
             width: parent.width
             height: parent.height
-            scale: ma.pressed && !ma.drag.active ? 0.985 : toast.hovered ? 1.01 : 1.0
 
-            Behavior on scale { SpringSnappy {} }
             Behavior on x {
                 enabled: !ma.drag.active
                 SpringSmooth { epsilon: 0.25 }
@@ -204,48 +190,35 @@ Item {
                 anchors.fill: card
                 anchors.margins: 1
                 radius: card.radius
-                color: "black"
+                color: PopupStyle.surface(toast.theme)
                 visible: false
             }
-            // ambient shadow
             MultiEffect {
                 anchors.fill: shadowSrc
                 source: shadowSrc
                 shadowEnabled: true
-                shadowColor: "black"
-                shadowOpacity: (toast.theme.isDarkMode ? 0.42 : 0.2) * (toast.hovered ? 1.25 : 1.0)
-                shadowBlur: 1.0
-                shadowVerticalOffset: toast.hovered ? 16 : 12
-                z: -2
-                Behavior on shadowVerticalOffset { NumberAnimation { duration: 180 } }
-            }
-            // contact shadow
-            MultiEffect {
-                anchors.fill: shadowSrc
-                source: shadowSrc
-                shadowEnabled: true
-                shadowColor: "black"
-                shadowOpacity: toast.theme.isDarkMode ? 0.5 : 0.22
-                shadowBlur: 0.25
-                shadowVerticalOffset: 2
+                shadowColor: PopupStyle.shadowColor(toast.theme)
+                shadowBlur: PopupStyle.shadowBlur
+                blurMax: PopupStyle.shadowBlurMax
+                shadowVerticalOffset: PopupStyle.shadowOffset
+                shadowHorizontalOffset: 0
+                autoPaddingEnabled: true
                 z: -1
             }
 
             Rectangle {
                 id: card
                 width: parent.width
-                height: row.implicitHeight + toast.pad * 2
-                radius: toast.theme.radiusOuter + 4
-
-                // lifted a step in dark
-                readonly property color base: toast.theme.isDarkMode
-                    ? Qt.tint(toast.theme.bgCard, toast.theme.subtleFill) : toast.theme.bgCard
-                readonly property color toned: toast.critical
-                    ? Qt.tint(base, Qt.alpha(toast.theme.accentRed, 0.12)) : base
-                color: ma.pressed && !ma.drag.active
-                    ? Qt.tint(toned, Qt.alpha(toast.theme.accent, 0.11))
-                    : toast.hovered ? Qt.tint(toned, Qt.alpha(toast.theme.accent, 0.07)) : toned
-                Behavior on color { ColorAnimation { duration: 160 } }
+                height: content.implicitHeight + toast.padY * 2
+                radius: PopupStyle.radiusCard
+                color: PopupStyle.surface(toast.theme)
+                antialiasing: true
+                border.width: PopupStyle.hairline(toast.theme)
+                border.color: toast.hovered || ma.pressed
+                    ? PopupStyle.solid(toast.theme, toast.accentColor)
+                    : toast.critical ? PopupStyle.solid(toast.theme, toast.theme.accentRed)
+                    : toast.theme.outline
+                Behavior on border.color { ColorAnimation { duration: 140 } }
 
                 HoverHandler {
                     id: hover
@@ -272,221 +245,254 @@ Item {
                     }
                 }
 
-                RowLayout {
-                    id: row
-                    x: toast.pad
-                    y: toast.pad
-                    width: card.width - toast.pad * 2
-                    spacing: 14
+                ColumnLayout {
+                    id: content
+                    x: toast.padX
+                    y: toast.padY
+                    width: card.width - toast.padX * 2
+                    spacing: 0
 
-                    Rectangle {
-                        Layout.preferredWidth: 40
-                        Layout.preferredHeight: 40
-                        Layout.alignment: Qt.AlignTop
-                        radius: 999
-                        color: Qt.alpha(toast.accentColor, 0.16)
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 7
 
-                        Image {
-                            id: appImg
-                            anchors.centerIn: parent
-                            width: 22
-                            height: 22
-                            source: toast.iconSource !== "" ? toast.iconSource : Qt.resolvedUrl("notify.svg")
-                            sourceSize: Qt.size(44, 44)
-                            fillMode: Image.PreserveAspectFit
-                            asynchronous: true
-                            smooth: true
+                        Item {
+                            Layout.preferredWidth: 18
+                            Layout.preferredHeight: 18
+                            Layout.alignment: Qt.AlignVCenter
+
+                            // app icons keep their colours
+                            Image {
+                                anchors.fill: parent
+                                visible: toast.iconSource !== ""
+                                source: toast.iconSource
+                                sourceSize: Qt.size(36, 36)
+                                fillMode: Image.PreserveAspectFit
+                                asynchronous: true
+                                smooth: true
+                            }
                             // black fallback svg, tinted below
-                            visible: toast.iconSource !== ""
+                            Image {
+                                id: glyphImg
+                                anchors.fill: parent
+                                source: toast.iconSource === "" ? Qt.resolvedUrl("notify.svg") : ""
+                                sourceSize: Qt.size(36, 36)
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                                mipmap: true
+                                layer.enabled: true
+                                visible: false
+                            }
+                            Rectangle {
+                                id: glyphTint
+                                anchors.fill: parent
+                                color: toast.theme.textPrimary
+                                layer.enabled: true
+                                visible: false
+                            }
+                            MultiEffect {
+                                anchors.fill: parent
+                                visible: toast.iconSource === ""
+                                source: glyphTint
+                                maskEnabled: true
+                                maskSource: glyphImg
+                                maskThresholdMin: 0.5
+                                maskSpreadAtMin: 1.0
+                            }
                         }
-                        MultiEffect {
-                            anchors.fill: appImg
-                            source: appImg
-                            visible: toast.iconSource === ""
-                            // tint can't multiply black
-                            brightness: 1.0
-                            colorization: 1.0
-                            colorizationColor: toast.accentColor
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: (toast.appName !== "" ? toast.appName : "System").toUpperCase()
+                            textFormat: Text.PlainText
+                            font: PopupStyle.label
+                            renderType: Text.NativeRendering
+                            color: PopupStyle.solid(toast.theme, toast.accentColor)
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
+                        }
+
+                        // hover swaps age for close
+                        Item {
+                            Layout.preferredWidth: Math.max(ageLabel.implicitWidth, closeGlyph.implicitWidth)
+                            Layout.preferredHeight: ageLabel.implicitHeight
+
+                            Text {
+                                id: ageLabel
+                                anchors.right: parent.right
+                                text: toast.ageText
+                                textFormat: Text.PlainText
+                                font: PopupStyle.detail
+                                renderType: Text.NativeRendering
+                                color: Qt.alpha(toast.theme.textSecondary, PopupStyle.detailOpacity)
+                                opacity: toast.hovered ? 0 : 1
+                                Behavior on opacity { NumberAnimation { duration: 140 } }
+                            }
+                            Text {
+                                id: closeGlyph
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "x"
+                                font: PopupStyle.action
+                                renderType: Text.NativeRendering
+                                color: closeMa.containsMouse
+                                    ? PopupStyle.solid(toast.theme, toast.accentColor)
+                                    : toast.theme.textSecondary
+                                opacity: toast.hovered ? 1 : 0
+                                Behavior on opacity { NumberAnimation { duration: 140 } }
+                                MouseArea {
+                                    id: closeMa
+                                    anchors.fill: parent
+                                    anchors.margins: -6
+                                    enabled: toast.hovered
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: toast.closeRequested()
+                                }
+                            }
                         }
                     }
 
-                    ColumnLayout {
+                    RowLayout {
                         Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignTop
-                        spacing: 0
+                        Layout.topMargin: 8
+                        spacing: 12
 
-                        RowLayout {
+                        ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 8
+                            Layout.alignment: Qt.AlignTop
+                            spacing: 0
 
                             Text {
                                 Layout.fillWidth: true
-                                text: (toast.appName !== "" ? toast.appName : "System").toUpperCase()
+                                visible: toast.summary !== ""
+                                text: toast.summary
                                 textFormat: Text.PlainText
-                                font.family: toast.fontText
-                                font.pixelSize: toast.labelSize
-                                font.weight: toast.labelWeight
-                                font.letterSpacing: toast.labelSpacing
-                                color: toast.accentColor
+                                font: PopupStyle.title
+                                renderType: Text.NativeRendering
+                                color: toast.theme.textPrimary
+                                wrapMode: Text.Wrap
+                                maximumLineCount: 2
                                 elide: Text.ElideRight
-                                maximumLineCount: 1
                             }
 
-                            // hover swaps age for close
+                            Text {
+                                Layout.fillWidth: true
+                                Layout.topMargin: 4
+                                visible: toast.body !== ""
+                                text: toast.safeBody
+                                textFormat: Text.StyledText
+                                font: PopupStyle.body
+                                renderType: Text.NativeRendering
+                                lineHeight: PopupStyle.bodyLine
+                                lineHeightMode: Text.ProportionalHeight
+                                color: toast.theme.textSecondary
+                                linkColor: PopupStyle.solid(toast.theme, toast.theme.accent)
+                                wrapMode: Text.Wrap
+                                maximumLineCount: 3
+                                elide: Text.ElideRight
+                                onLinkActivated: link => toast.openLink(link)
+                            }
+                        }
+
+                        Item {
+                            Layout.preferredWidth: 44
+                            Layout.preferredHeight: 44
+                            Layout.alignment: Qt.AlignTop
+                            visible: toast.imageSource !== ""
+
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: PopupStyle.radiusInner
+                                color: toast.theme.bgItem
+                            }
+                            Image {
+                                id: thumbImg
+                                anchors.fill: parent
+                                source: toast.imageSource
+                                fillMode: Image.PreserveAspectCrop
+                                sourceSize: Qt.size(88, 88)
+                                asynchronous: true
+                                smooth: true
+                                visible: false
+                            }
                             Item {
-                                Layout.preferredWidth: Math.max(ageLabel.implicitWidth, closeGlyph.implicitWidth)
-                                Layout.preferredHeight: ageLabel.implicitHeight
-
-                                Text {
-                                    id: ageLabel
-                                    anchors.right: parent.right
-                                    text: toast.ageText
-                                    textFormat: Text.PlainText
-                                    font.family: toast.fontText
-                                    font.pixelSize: toast.labelSize
-                                    font.weight: toast.labelWeight
-                                    font.letterSpacing: toast.labelSpacing
-                                    color: toast.theme.textSecondary
-                                    opacity: toast.hovered ? 0 : 1
-                                    Behavior on opacity { NumberAnimation { duration: 140 } }
-                                }
-                                Text {
-                                    id: closeGlyph
-                                    anchors.right: parent.right
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    text: ""
-                                    font.family: toast.fontIcon
-                                    font.pixelSize: toast.labelSize
-                                    color: closeMa.containsMouse ? toast.accentColor : toast.theme.textSecondary
-                                    opacity: toast.hovered ? 1 : 0
-                                    Behavior on opacity { NumberAnimation { duration: 140 } }
-                                    MouseArea {
-                                        id: closeMa
-                                        anchors.fill: parent
-                                        anchors.margins: -6
-                                        enabled: toast.hovered
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: toast.closeRequested()
-                                    }
-                                }
+                                id: thumbMask
+                                anchors.fill: parent
+                                layer.enabled: true
+                                visible: false
+                                Rectangle { anchors.fill: parent; radius: PopupStyle.radiusInner; color: "black" }
                             }
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            Layout.topMargin: 4
-                            visible: toast.summary !== ""
-                            text: toast.summary
-                            textFormat: Text.PlainText
-                            font.family: toast.fontText
-                            font.pixelSize: toast.summarySize
-                            font.weight: toast.summaryWeight
-                            font.letterSpacing: toast.summarySpacing
-                            color: toast.theme.textPrimary
-                            wrapMode: Text.Wrap
-                            maximumLineCount: 2
-                            elide: Text.ElideRight
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            Layout.topMargin: 3
-                            visible: toast.body !== ""
-                            text: toast.safeBody
-                            textFormat: Text.StyledText
-                            font.family: toast.fontText
-                            font.pixelSize: toast.bodySize
-                            font.weight: toast.bodyWeight
-                            lineHeight: toast.bodyLine
-                            lineHeightMode: Text.ProportionalHeight
-                            color: toast.theme.textSecondary
-                            linkColor: toast.theme.accent
-                            wrapMode: Text.Wrap
-                            maximumLineCount: 3
-                            elide: Text.ElideRight
-                            onLinkActivated: link => toast.openLink(link)
-                        }
-
-                        Flow {
-                            Layout.fillWidth: true
-                            Layout.topMargin: 12
-                            visible: toast.shownActions.length > 0
-                            spacing: 8
-
-                            Repeater {
-                                model: toast.shownActions
-
-                                Rectangle {
-                                    id: btn
-                                    required property var modelData
-                                    required property int index
-                                    readonly property bool primary: index === 0
-                                    width: label.implicitWidth + 30
-                                    height: 30
-                                    radius: 15
-                                    color: primary
-                                        ? Qt.alpha(toast.accentColor, btnMa.pressed ? 0.30 : btnMa.containsMouse ? 0.24 : 0.16)
-                                        : Qt.tint(toast.theme.bgItem,
-                                            Qt.alpha(toast.theme.textPrimary, btnMa.pressed ? 0.12 : btnMa.containsMouse ? 0.07 : 0))
-                                    Behavior on color { ColorAnimation { duration: 140 } }
-
-                                    Text {
-                                        id: label
-                                        anchors.centerIn: parent
-                                        text: btn.modelData.text
-                                        textFormat: Text.PlainText
-                                        font.family: toast.fontText
-                                        font.pixelSize: toast.actionSize
-                                        font.weight: toast.actionWeight
-                                        color: btn.primary ? toast.accentColor : toast.theme.textPrimary
-                                    }
-                                    MouseArea {
-                                        id: btnMa
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: toast.invoke(btn.modelData.identifier)
-                                    }
-                                }
+                            MultiEffect {
+                                anchors.fill: parent
+                                source: thumbImg
+                                maskEnabled: true
+                                maskSource: thumbMask
+                                visible: thumbImg.status === Image.Ready
+                            }
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: PopupStyle.radiusInner
+                                color: "transparent"
+                                border.width: PopupStyle.hairline(toast.theme)
+                                border.color: toast.theme.outline
                             }
                         }
                     }
 
-                    Item {
-                        Layout.preferredWidth: 56
-                        Layout.preferredHeight: 56
-                        Layout.alignment: Qt.AlignTop
-                        visible: toast.imageSource !== ""
+                    // negative margins span full width
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: -toast.padX
+                        Layout.rightMargin: -toast.padX
+                        Layout.topMargin: 10
+                        Layout.preferredHeight: 1
+                        visible: toast.shownActions.length > 0
+                        color: toast.theme.outline
+                    }
 
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 14
-                            color: toast.theme.bgItem
-                        }
-                        Image {
-                            id: thumbImg
-                            anchors.fill: parent
-                            source: toast.imageSource
-                            fillMode: Image.PreserveAspectCrop
-                            sourceSize: Qt.size(112, 112)
-                            asynchronous: true
-                            smooth: true
-                            visible: false
-                        }
-                        Item {
-                            id: thumbMask
-                            anchors.fill: parent
-                            layer.enabled: true
-                            visible: false
-                            Rectangle { anchors.fill: parent; radius: 14; color: "black" }
-                        }
-                        MultiEffect {
-                            anchors.fill: parent
-                            source: thumbImg
-                            maskEnabled: true
-                            maskSource: thumbMask
-                            visible: thumbImg.status === Image.Ready
+                    Flow {
+                        Layout.fillWidth: true
+                        Layout.topMargin: 10
+                        visible: toast.shownActions.length > 0
+                        spacing: 8
+
+                        Repeater {
+                            model: toast.shownActions
+
+                            Rectangle {
+                                id: btn
+                                required property var modelData
+                                required property int index
+                                // first action doubles as default
+                                readonly property bool lit: btnMa.containsMouse
+                                    || (index === 0 && toast.hovered && toast.buttonsHovered === 0)
+                                width: label.implicitWidth + 24
+                                height: 26
+                                radius: PopupStyle.radiusInner
+                                color: lit ? PopupStyle.solid(toast.theme, toast.theme.accent) : "transparent"
+                                border.width: PopupStyle.hairline(toast.theme)
+                                border.color: lit ? color : toast.theme.outline
+                                Behavior on color { ColorAnimation { duration: 120 } }
+
+                                Text {
+                                    id: label
+                                    anchors.centerIn: parent
+                                    text: btn.modelData.text
+                                    textFormat: Text.PlainText
+                                    font: PopupStyle.action
+                                    renderType: Text.NativeRendering
+                                    color: btn.lit ? toast.theme.textOnAccent : toast.theme.textPrimary
+                                }
+                                MouseArea {
+                                    id: btnMa
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onContainsMouseChanged: toast.buttonsHovered += containsMouse ? 1 : -1
+                                    onClicked: toast.invoke(btn.modelData.identifier)
+                                }
+                            }
                         }
                     }
                 }
