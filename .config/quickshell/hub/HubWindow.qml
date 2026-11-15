@@ -20,6 +20,7 @@ PanelWindow {
         // Only one content panel is up at a time
         function clearPanels() {
             win.wallpaperMode = false
+            win.paletteMode = false
             win.settingsPanelOpen = false
             win.monitorsMode = false
             win.wifiMode = false
@@ -30,6 +31,7 @@ PanelWindow {
         function showMonitors()  { win.clearPanels(); win.monitorsMode = true }
         function showWifi()      { win.clearPanels(); win.wifiMode = true }
         function showBluetooth() { win.clearPanels(); win.bluetoothMode = true }
+        function showPalette()   { win.clearPanels(); win.paletteMode = true }
 
         function closeAll() {
             win.clearPanels()
@@ -107,6 +109,9 @@ PanelWindow {
         win._wpTransitioning = true
         wpTransTimer.restart()
     }
+    property bool paletteMode: false
+    property bool _palEverOpened: false
+    onPaletteModeChanged: if (win.paletteMode) win._palEverOpened = true
     property bool _settingsEverOpened: false
     onSettingsPanelOpenChanged: if (win.settingsPanelOpen) win._settingsEverOpened = true
     property bool monitorsMode: false
@@ -126,11 +131,13 @@ PanelWindow {
     // How far the panel's drop shadow spreads past its edges
     readonly property int shadowSpread: 30
     readonly property string contentMode: win.wallpaperMode ? "wallpaper"
+        : win.paletteMode ? "palette"
         : win.settingsPanelOpen ? "settings"
         : win.monitorsMode ? "monitors"
         : win.wifiMode ? "wifi"
         : win.bluetoothMode ? "bluetooth" : "cards"
     property int panelW: win.contentMode === "wallpaper" ? 540
+        : win.contentMode === "palette" ? 560
         : win.contentMode === "settings" ? 620
         : win.contentMode === "monitors" ? 560
         : win.contentMode === "wifi" ? 460
@@ -147,7 +154,7 @@ PanelWindow {
                 // Press 'S' to toggle settings panel.
                 if (event.key === Qt.Key_S) {
                     var wasSettings = win.settingsPanelOpen
-                    var fromWallpaper = win.wallpaperMode
+                    var fromWallpaper = win.wallpaperMode || win.paletteMode
                     win.clearPanels()
                     win.settingsPanelOpen = fromWallpaper || !wasSettings
                     event.accepted = true
@@ -412,7 +419,7 @@ PanelWindow {
                     }
                     onSettingsRequested: {
                         var wasSettings = win.settingsPanelOpen
-                        var fromWallpaper = win.wallpaperMode
+                        var fromWallpaper = win.wallpaperMode || win.paletteMode
                         win.clearPanels()
                         win.settingsPanelOpen = fromWallpaper || !wasSettings
                     }
@@ -426,6 +433,7 @@ PanelWindow {
                     // Height of whichever panel is showing
                     readonly property var activeLoader: ({
                         "wallpaper": wallpaperLoader,
+                        "palette":   paletteLoader,
                         "settings":  settingsLoader,
                         "monitors":  monitorsLoader,
                         "wifi":      wifiLoader,
@@ -512,6 +520,10 @@ PanelWindow {
                             win.monitorsMode = false
                             win.wallpaperMode = true
                         }
+                        function onPaletteRequested() {
+                            win.clearPanels()
+                            win.paletteMode = true
+                        }
                         function onToastRequested(msg) {
                             panel.triggerToast(msg)
                         }
@@ -535,6 +547,29 @@ PanelWindow {
                             width: wallpaperLoader.width
                             live: !win._wpTransitioning
                             onCloseRequested: win.wallpaperMode = false
+                        }
+                    }
+
+                    // PALETTE LOADER
+                    Loader {
+                        id: paletteLoader
+                        active: win._palEverOpened
+                        width: parent.width
+                        height: Math.min(item ? item.implicitHeight : 0, contentArea.maxContentH)
+                        opacity: win.contentMode === "palette" ? 1 : 0
+                        visible: opacity > 0.01
+                        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+                        sourceComponent: palettePanelComponent
+                    }
+
+                    Component {
+                        id: palettePanelComponent
+                        PalettePanel {
+                            theme: win.hubTheme
+                            width: paletteLoader.width
+                            height: paletteLoader.height
+                            // back goes to settings, since that's where it opens from
+                            onCloseRequested: { win.clearPanels(); win.settingsPanelOpen = true }
                         }
                     }
 
