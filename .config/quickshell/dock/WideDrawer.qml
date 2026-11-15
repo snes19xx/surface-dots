@@ -1131,10 +1131,8 @@ PanelWindow {
                         MultiEffect {
                             anchors.fill: appImg
                             source: appImg
-                            brightness: -1.0
-                            colorization: 1.0
+                            colorization: 0x22 / 255
                             colorizationColor: "black"
-                            opacity: 0x22 / 255
                             visible: !drawerWin.theme.isDarkMode
                         }
                     }

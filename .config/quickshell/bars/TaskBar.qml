@@ -1303,10 +1303,8 @@ PanelWindow {
                 MultiEffect {
                     anchors.fill: launcherIcon
                     source: launcherIcon
-                    brightness: -1.0
-                    colorization: 1.0
+                    colorization: 0x5b / 255
                     colorizationColor: "black"
-                    opacity: 0x5b / 255
                     visible: !taskbar.isDarkMode
                 }
             }
@@ -1442,10 +1440,8 @@ PanelWindow {
         MultiEffect {
             anchors.fill: appIconImg
             source: appIconImg
-            brightness: -1.0
-            colorization: 1.0
+            colorization: 0x25 / 255
             colorizationColor: "black"
-            opacity: 0x25 / 255
             visible: !taskbar.isDarkMode
         }
         
