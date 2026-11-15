@@ -491,7 +491,7 @@ PanelWindow {
         z: 1
 
         property real activeHeight: drawerWin.isOpen ? height : 0
-        Behavior on activeHeight { NumberAnimation { duration: 360; easing.type: Easing.OutQuint } }
+        Behavior on activeHeight { Lib.SpringGentle { epsilon: 0.25 } }
 
         opacity: drawerWin.isOpen ? 1.0 : 0.0
         Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutQuart } }
@@ -934,7 +934,7 @@ PanelWindow {
                                 x: drawerWin.tabOrder.indexOf(drawerWin.currentTab) * seg + 3
                                 radius: 7
                                 color: drawerWin.theme.accent
-                                Behavior on x { NumberAnimation { duration: 240; easing.type: Easing.OutBack; easing.overshoot: 1.1 } }
+                                Behavior on x { Lib.SpringSmooth { epsilon: 0.25 } }
                             }
 
                             Row {
@@ -1094,9 +1094,9 @@ PanelWindow {
                 Behavior on color { ColorAnimation { duration: 160 } }
 
                 scale: am.pressed ? 0.93 : (am.containsMouse ? 1.05 : 1.0)
-                Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack; easing.overshoot: 1.3 } }
+                Behavior on scale { Lib.SpringSnappy {} }
                 y: am.pressed ? 2 : (am.containsMouse ? -3 : 0)
-                Behavior on y { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                Behavior on y { Lib.SpringSnappy { epsilon: 0.25 } }
 
                 Text {
                     visible: tile.showPin && drawerWin.isPinned(tile.tFile)
@@ -1339,7 +1339,7 @@ PanelWindow {
                     anchors.fill: parent
                     opacity: row.appear
                     scale: rm.pressed ? 0.98 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                    Behavior on scale { Lib.SpringSnappy {} }
                     transform: Translate { y: (1 - row.appear) * 8 }
 
                     Rectangle {
@@ -1639,9 +1639,9 @@ PanelWindow {
                     Behavior on color { ColorAnimation { duration: 160 } }
 
                     scale: sm.pressed ? 0.93 : (sm.containsMouse ? 1.05 : 1.0)
-                    Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack; easing.overshoot: 1.3 } }
+                    Behavior on scale { Lib.SpringSnappy {} }
                     y: sm.pressed ? 2 : (sm.containsMouse ? -3 : 0)
-                    Behavior on y { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                    Behavior on y { Lib.SpringSnappy { epsilon: 0.25 } }
 
                     Column {
                         anchors.centerIn: parent

@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Effects
 import "../theme.js" as Theme
+import "../lib" as Lib
 
 Item {
     id: root
@@ -112,8 +113,8 @@ Item {
     
     scale: (hover.hovered ? 1.06 : 1.0) * (press.pressed ? 0.94 : 1.0)
     y: press.pressed ? 2 : (hover.hovered ? -1 : 0)
-    Behavior on scale { NumberAnimation { duration: 240; easing.type: Easing.OutBack; easing.overshoot: 1.18 } }
-    Behavior on y { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+    Behavior on scale { Lib.SpringSnappy {} }
+    Behavior on y { Lib.SpringSnappy { epsilon: 0.25 } }
 
     RowLayout {
         id: layout

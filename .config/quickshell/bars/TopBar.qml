@@ -256,7 +256,7 @@ PanelWindow {
                 Layout.preferredHeight: 36
                 Layout.alignment: Qt.AlignVCenter
                 scale: launchPress.pressed ? 0.94 : 1.0
-                Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
+                Behavior on scale { Lib.SpringSnappy {} }
                 HoverHandler { id: hoverLaunch }
                 
                 Rectangle {
@@ -297,9 +297,9 @@ PanelWindow {
                     rotation: hoverLaunch.hovered ? -14 : 0
                     scale: hoverLaunch.hovered ? 1.20 : 1.0
                     y: hoverLaunch.hovered ? -2 : 0
-                    Behavior on rotation { NumberAnimation { duration: 240; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
-                    Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
-                    Behavior on y { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+                    Behavior on rotation { Lib.SpringSnappy {} }
+                    Behavior on scale { Lib.SpringSnappy {} }
+                    Behavior on y { Lib.SpringSnappy { epsilon: 0.25 } }
                     Behavior on color { ColorAnimation { duration: 160 } }
                 }
                 MouseArea {
@@ -338,8 +338,8 @@ PanelWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     radius: 13
                     color: pal.activePill
-                    Behavior on x { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
-                    Behavior on width { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+                    Behavior on x { Lib.SpringSmooth { epsilon: 0.25 } }
+                    Behavior on width { Lib.SpringSmooth { epsilon: 0.25 } }
                 }
 
                 // HOVER PILL
@@ -358,8 +358,8 @@ PanelWindow {
                             GradientStop { position: 0.45; color: pal.hoverPillG1 }
                             GradientStop { position: 1.0; color: pal.hoverPillG2 }
                         }
-                        Behavior on x { NumberAnimation { duration: 260; easing.type: Easing.OutBack; easing.overshoot: 1.10 } }
-                        Behavior on width { NumberAnimation { duration: 240; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
+                        Behavior on x { Lib.SpringSmooth { epsilon: 0.25 } }
+                        Behavior on width { Lib.SpringSmooth { epsilon: 0.25 } }
                     }
                 }
 
@@ -379,8 +379,8 @@ PanelWindow {
                         radius: 13
                         color: Qt.rgba(pal.textPrimary.r, pal.textPrimary.g, pal.textPrimary.b, 1)
                         opacity: 0.10
-                        Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-                        Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                        Behavior on x { Lib.SpringSmooth { epsilon: 0.25 } }
+                        Behavior on width { Lib.SpringSmooth { epsilon: 0.25 } }
                     }
                 }
 
@@ -415,8 +415,8 @@ PanelWindow {
 
                             y: wsPress.pressed ? 1 : ((!isActive && wsHover.hovered) ? -2 : 0)
                             scale: (wsPress.pressed ? 0.96 : 1.0) * ((!isActive && wsHover.hovered) ? 1.10 : 1.0)
-                            Behavior on y { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-                            Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
+                            Behavior on y { Lib.SpringSnappy { epsilon: 0.25 } }
+                            Behavior on scale { Lib.SpringSnappy {} }
 
                             Text {
                                 anchors.centerIn: parent
@@ -467,7 +467,7 @@ PanelWindow {
                                             layer.mipmap: true
                                             Behavior on color { enabled: !modelData.urgent; ColorAnimation { duration: 140 } }
                                             scale: (wsDelegate.isActive && wsHover.hovered) ? 1.25 : 1.0
-                                            Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.5 } }
+                                            Behavior on scale { Lib.SpringSnappy {} }
                                             color: wsDelegate.isActive ? "#2d353b" :
                                                    (modelData.urgent ? flashColor.val :
                                                    (wsHover.hovered ? (win.isDarkMode ? "#f2f2f2" : pal.accent) :
@@ -579,7 +579,7 @@ PanelWindow {
                             id: trayDelegate
                             width: 20; height: 20
                             scale: trayPress.pressed ? 0.94 : (trayPress.containsMouse ? 1.06 : 1.0)
-                            Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
+                            Behavior on scale { Lib.SpringSnappy {} }
 
                             Rectangle {
                                 anchors.fill: parent
@@ -683,8 +683,8 @@ PanelWindow {
                 
                 scale: clockArea.pressed ? 0.98 : (clockArea.containsMouse ? 1.02 : 1.0)
                 y: clockArea.pressed ? 1 : 0
-                Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.05 } }
-                Behavior on y { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+                Behavior on scale { Lib.SpringSnappy {} }
+                Behavior on y { Lib.SpringSnappy { epsilon: 0.25 } }
 
                 // MASKED BACKGROUND LAYER 
                 Item {

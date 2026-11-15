@@ -372,7 +372,7 @@ PanelWindow {
         height: 56
         
         Behavior on width {
-            NumberAnimation { duration: 400; easing.type: Easing.OutQuint }
+            Lib.SpringSmooth { epsilon: 0.25 }
         }
         
         // ----------------------------------------------- 
@@ -491,7 +491,7 @@ PanelWindow {
                     
                     // Visual feedback scaling
                     scale: dockClockSegment.containsMouse ? 1.05 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
+                    Behavior on scale { Lib.SpringSnappy {} }
 
                     onXChanged: taskbar.scheduleHitRects()
                     onWidthChanged: taskbar.scheduleHitRects()
@@ -645,8 +645,8 @@ PanelWindow {
                         onXChanged: taskbar.scheduleHitRects()
                         onYChanged: taskbar.scheduleHitRects()
 
-                        Behavior on hoverScale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                        Behavior on iconHoverScale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                        Behavior on hoverScale { Lib.SpringSnappy {} }
+                        Behavior on iconHoverScale { Lib.SpringSnappy {} }
 
                         scale: pressScale * hoverScale
 
@@ -716,7 +716,7 @@ PanelWindow {
                             rotation: launchRoot.iconSpin
 
                             Behavior on anchors.verticalCenterOffset {
-                                NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+                                Lib.SpringSnappy { epsilon: 0.25 }
                             }
                         }
 
@@ -728,8 +728,8 @@ PanelWindow {
 
                         ParallelAnimation {
                             id: launchReleaseAnim
-                            NumberAnimation { target: launchRoot; property: "pressScale"; to: 1.0; duration: 460; easing.type: Easing.OutBack; easing.overshoot: 3.0 }
-                            NumberAnimation { target: launchRoot; property: "iconPressScale"; to: 1.0; duration: 540; easing.type: Easing.OutBack; easing.overshoot: 4.0 }
+                            Lib.SpringSnappy { target: launchRoot; property: "pressScale"; to: 1.0 }
+                            Lib.SpringBouncy { target: launchRoot; property: "iconPressScale"; to: 1.0 }
                         }
 
                         SequentialAnimation {
@@ -750,7 +750,7 @@ PanelWindow {
                             ParallelAnimation {
                                 NumberAnimation { target: launchFlash; property: "scale"; to: 1.0; duration: 340; easing.type: Easing.OutQuad }
                                 NumberAnimation { target: launchFlash; property: "opacity"; to: 0.0; duration: 400; easing.type: Easing.OutCubic }
-                                NumberAnimation { target: launchRoot; property: "iconSpin"; to: 0; duration: 620; easing.type: Easing.OutElastic; easing.amplitude: 1.0; easing.period: 0.45 }
+                                Lib.SpringBouncy { target: launchRoot; property: "iconSpin"; to: 0 }
                             }
                         }
 
@@ -760,9 +760,10 @@ PanelWindow {
                             hoverEnabled: true
                             acceptedButtons: Qt.LeftButton
 
-                            onPressed: { launchPulseAnim.stop(); launchPressAnim.restart() }
-                            onReleased: launchReleaseAnim.restart()
-                            onCanceled: launchReleaseAnim.restart()
+                            // spring won't stop the other
+                            onPressed: { launchPulseAnim.stop(); launchReleaseAnim.stop(); launchPressAnim.restart() }
+                            onReleased: { launchPressAnim.stop(); launchReleaseAnim.restart() }
+                            onCanceled: { launchPressAnim.stop(); launchReleaseAnim.restart() }
 
                             onClicked: (mouse) => {
                                 if (mouse.button === Qt.LeftButton) {
@@ -801,8 +802,8 @@ PanelWindow {
                             anchors.verticalCenter: parent.verticalCenter
                             radius: 9
                             color: pal.activePill
-                            Behavior on x { enabled: activePill.pillReady; NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
-                            Behavior on width { enabled: activePill.pillReady; NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+                            Behavior on x { enabled: activePill.pillReady; Lib.SpringSmooth { epsilon: 0.25 } }
+                            Behavior on width { enabled: activePill.pillReady; Lib.SpringSmooth { epsilon: 0.25 } }
                         }
 
                         Item {
@@ -824,8 +825,8 @@ PanelWindow {
                                     GradientStop { position: 0.45; color: pal.hoverPillG1 }
                                     GradientStop { position: 1.0; color: pal.hoverPillG2 }
                                 }
-                                Behavior on x { NumberAnimation { duration: 260; easing.type: Easing.OutBack; easing.overshoot: 1.10 } }
-                                Behavior on width { NumberAnimation { duration: 240; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
+                                Behavior on x { Lib.SpringSmooth { epsilon: 0.25 } }
+                                Behavior on width { Lib.SpringSmooth { epsilon: 0.25 } }
                             }
                         }
 
@@ -845,8 +846,8 @@ PanelWindow {
                                 radius: 9
                                 color: Qt.rgba(pal.textPrimary.r, pal.textPrimary.g, pal.textPrimary.b, 1)
                                 opacity: 0.10
-                                Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-                                Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                                Behavior on x { Lib.SpringSmooth { epsilon: 0.25 } }
+                                Behavior on width { Lib.SpringSmooth { epsilon: 0.25 } }
                             }
                         }
 
@@ -881,8 +882,8 @@ PanelWindow {
 
                                     y: wsPress.pressed ? 1 : ((!isActive && wsHover.hovered) ? -2 : 0)
                                     scale: (wsPress.pressed ? 0.96 : 1.0) * ((!isActive && wsHover.hovered) ? 1.10 : 1.0)
-                                    Behavior on y { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-                                    Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
+                                    Behavior on y { Lib.SpringSnappy { epsilon: 0.25 } }
+                                    Behavior on scale { Lib.SpringSnappy {} }
 
                                     Text {
                                         anchors.centerIn: parent
@@ -941,7 +942,7 @@ PanelWindow {
                                                     layer.mipmap: true
                                                     Behavior on color { enabled: !modelData.urgent; ColorAnimation { duration: 140 } }
                                                     scale: (wsDelegate.isActive && wsHover.hovered) ? 1.25 : 1.0
-                                                    Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.5 } }
+                                                    Behavior on scale { Lib.SpringSnappy {} }
                                                     color: wsDelegate.isActive ? '#2b3033' :
                                                            (modelData.urgent ? flashColor.val :
                                                            (wsHover.hovered ? (taskbar.isDarkMode ? "#f2f2f2" : "#2d353b") :
@@ -1071,7 +1072,7 @@ PanelWindow {
                                     width: 16
                                     height: 16
                                     scale: trayPress.pressed ? 0.94 : (trayPress.containsMouse ? 1.06 : 1.0)
-                                    Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
+                                    Behavior on scale { Lib.SpringSnappy {} }
 
                                     Rectangle {
                                         anchors.fill: parent
@@ -1154,7 +1155,7 @@ PanelWindow {
                         
                         // Effects
                         scale: clockArea.pressed ? 0.82 : (clockHover.hovered ? 1.03 : 1.0)
-                        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
+                        Behavior on scale { Lib.SpringSnappy {} }
 
                         // Background
                         Rectangle {
@@ -1239,7 +1240,7 @@ PanelWindow {
         hoverEnabled: true
 
         Behavior on hoverScale {
-            NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+            Lib.SpringSnappy {}
         }
 
         // Play the press animation without a press, for drawer toggles that did
@@ -1250,9 +1251,11 @@ PanelWindow {
             dockPulseAnim.restart()
         }
 
-        onPressed: { dockPulseAnim.stop(); dockPressAnim.restart() }
-        onCanceled: dockReleaseAnim.restart()
+        // spring won't stop the other
+        onPressed: { dockPulseAnim.stop(); dockReleaseAnim.stop(); dockPressAnim.restart() }
+        onCanceled: { dockPressAnim.stop(); dockReleaseAnim.restart() }
         onReleased: {
+            dockPressAnim.stop()
             dockReleaseAnim.restart()
             if (btn.containsMouse) dockBurstAnim.restart()
         }
@@ -1318,8 +1321,8 @@ PanelWindow {
 
         ParallelAnimation {
             id: dockReleaseAnim
-            NumberAnimation { target: btn; property: "pressScale"; to: 1.0; duration: 450; easing.type: Easing.OutBack; easing.overshoot: 3.0 }
-            NumberAnimation { target: btn; property: "iconPressScale"; to: 1.0; duration: 530; easing.type: Easing.OutBack; easing.overshoot: 4.0 }
+            Lib.SpringSnappy { target: btn; property: "pressScale"; to: 1.0 }
+            Lib.SpringBouncy { target: btn; property: "iconPressScale"; to: 1.0 }
         }
 
         SequentialAnimation {
@@ -1340,7 +1343,7 @@ PanelWindow {
             ParallelAnimation {
                 NumberAnimation { target: dockFlash; property: "scale"; to: 1.0; duration: 340; easing.type: Easing.OutQuad }
                 NumberAnimation { target: dockFlash; property: "opacity"; to: 0.0; duration: 400; easing.type: Easing.OutCubic }
-                NumberAnimation { target: btn; property: "iconSpin"; to: 0; duration: 620; easing.type: Easing.OutElastic; easing.amplitude: 1.0; easing.period: 0.45 }
+                Lib.SpringBouncy { target: btn; property: "iconSpin"; to: 0 }
             }
         }
 
@@ -1365,13 +1368,13 @@ PanelWindow {
             }
             
             Behavior on scale {
-                NumberAnimation { duration: 150; easing.type: Easing.OutBack; easing.overshoot: 1.1 }
+                Lib.SpringSnappy {}
             }
-            
+
             transform: Translate {
                 y: parent.containsMouse ? 0 : -4
                 Behavior on y {
-                    NumberAnimation { duration: 150; easing.type: Easing.OutQuart }
+                    Lib.SpringSnappy { epsilon: 0.25 }
                 }
             }
             
@@ -1400,14 +1403,11 @@ PanelWindow {
     y: iconPress.pressed ? 2 : (iconHover.hovered ? -5 : 0)
     
     Behavior on scale {
-        NumberAnimation { duration: 240; 
-        easing.type: Easing.OutBack; 
-        easing.overshoot: 1.4 }
+        Lib.SpringSnappy {}
     }
-    
+
     Behavior on y {
-        NumberAnimation { duration: 220; 
-        easing.type: Easing.OutCubic }
+        Lib.SpringSnappy { epsilon: 0.25 }
     }
     
     Rectangle {
@@ -1475,13 +1475,13 @@ PanelWindow {
         }
         
         Behavior on scale {
-            NumberAnimation { duration: 180; easing.type: Easing.OutBack; easing.overshoot: 1.1 }
+            Lib.SpringSnappy {}
         }
-        
+
         transform: Translate {
             y: iconHover.hovered ? 0 : -6
             Behavior on y {
-                NumberAnimation { duration: 180; easing.type: Easing.OutQuart }
+                Lib.SpringSnappy { epsilon: 0.25 }
             }
         }
         
@@ -1515,7 +1515,7 @@ PanelWindow {
         HoverHandler { id: hover }
         
         scale: press.pressed ? 0.94 : (hover.hovered ? 1.06 : 1.0)
-        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.08 } }
+        Behavior on scale { Lib.SpringSnappy {} }
 
         RowLayout {
             id: layout
