@@ -40,9 +40,10 @@ QtObject {
     property color _textPrimary:   _w("on_surface", isDarkMode ? "#dde5dfc5" : "#252E33")
     property color _textSecondary: _w("on_surface_variant", isDarkMode ? "#9da9a0" : "#546670")
     property color _textOnAccent:  _w("on_primary", isDarkMode ? "#232a2e" : "#F0ECE6")
-    property color _accent: _w("primary", Configuration.useCustomAccent
+    readonly property color _accentTarget: _w("primary", Configuration.useCustomAccent
         ? customAccent
         : (isDarkMode ? "#99a7c080" : "#4A6B70"))
+    property color _accent: _accentTarget
     property color _accentBlue: _w("primary", Configuration.useCustomAccent
         ? customAccent
         : "#7AA1A6")
@@ -66,6 +67,10 @@ QtObject {
     Behavior on _accentSlider2 { ColorAnimation { duration: 300 } }
     Behavior on _outline       { ColorAnimation { duration: 300 } }
     Behavior on _barAccent     { ColorAnimation { duration: 300 } }
+
+    // for the colour pickers, otherwise they read a colour halfway through the fade
+    readonly property color bgMainTarget:  _bgMainTarget
+    readonly property color accentTarget:  _accentTarget
 
     readonly property color bgMain:        _bgMain
     readonly property color bgCard:        _bgCard

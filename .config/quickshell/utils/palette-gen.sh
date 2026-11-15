@@ -33,7 +33,7 @@ if [[ -s "$CACHE/$KEY-$IDX.json" ]]; then
 fi
 
 TMP="$(mktemp -d)" || exit 1
-trap 'rm -rf "$TMP"' EXIT
+trap 'rm -rf "$TMP"; rm -f "$CACHE/$KEY-$IDX.json.tmp$$"' EXIT
 
 for id in "${SCHEMES[@]}"; do
     (

@@ -98,13 +98,13 @@ Item {
                     CPicker {
                         Layout.fillWidth: true; label: "Hub accent"
                         enabled: !root.wpControl; opacity: root.wpControl ? 0.4 : 1
-                        currentHex: root.theme ? root.flatHex(root.theme.accent, root.theme.bgMain) : "#759b61"
+                        currentHex: root.theme ? root.flatHex(root.theme.accentTarget, root.theme.bgMainTarget) : "#759b61"
                         onPicked: (hex) => Lib.Configuration.setCustomAccent(!root.theme || root.theme.isDarkMode, hex)
                     }
                     CPicker {
                         Layout.fillWidth: true; label: "Background"
                         enabled: !root.wpControl; opacity: root.wpControl ? 0.4 : 1
-                        currentHex: root.theme ? root.hex6(root.theme.bgMain) : "#141719"
+                        currentHex: root.theme ? root.hex6(root.theme.bgMainTarget) : "#141719"
                         onPicked: (hex) => Lib.Configuration.setCustomBg(!root.theme || root.theme.isDarkMode, hex)
                     }
                     CPicker {

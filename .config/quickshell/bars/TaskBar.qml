@@ -122,13 +122,13 @@ PanelWindow {
         property color textPrimary:   String(theme.textPrimary)
         property color textSecondary: String(theme.textSecondary)
         property color textAlternate: taskbar.isDarkMode ? "#2b3033" : '#2b3033'
-        property color accent:        String(Lib.Configuration.taskbarAccent)
-        property color activePill:    String(Lib.Configuration.taskbarAccent)
+        property color accent:        String(theme.barAccent)
+        property color activePill:    String(theme.barAccent)
         property color hoverSpotlight:String(theme.hoverSpotlight)
         property color border:        String(theme.outline)
-        property color hoverPillG0:   Qt.rgba(Lib.Configuration.taskbarAccent.r, Lib.Configuration.taskbarAccent.g, Lib.Configuration.taskbarAccent.b, 0.35)
-        property color hoverPillG1:   Qt.rgba(Lib.Configuration.taskbarAccent.r, Lib.Configuration.taskbarAccent.g, Lib.Configuration.taskbarAccent.b, 0.55)
-        property color hoverPillG2:   Qt.rgba(Lib.Configuration.taskbarAccent.r, Lib.Configuration.taskbarAccent.g, Lib.Configuration.taskbarAccent.b, 0.35)
+        property color hoverPillG0:   Qt.rgba(theme.barAccent.r, theme.barAccent.g, theme.barAccent.b, 0.35)
+        property color hoverPillG1:   Qt.rgba(theme.barAccent.r, theme.barAccent.g, theme.barAccent.b, 0.55)
+        property color hoverPillG2:   Qt.rgba(theme.barAccent.r, theme.barAccent.g, theme.barAccent.b, 0.35)
     }
 
     // -----------------------------------------------

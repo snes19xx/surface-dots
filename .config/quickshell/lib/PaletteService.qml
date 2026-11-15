@@ -15,6 +15,7 @@ Scope {
     property bool _available: false
     property bool _busy: false
     property bool _again: false
+    property int  _cycle: 0
     property bool _warned: false
     property bool _watchReady: false
     property bool _loadRequested: false
@@ -59,10 +60,20 @@ Scope {
 
     function refresh() {
         if (!_available) return
-        if (_busy) { _again = true; return }
+        // a process that's still exiting counts as busy, otherwise its late output looks like this run's
+        if (_busy || wpProc.running || genProc.running) { _again = true; return }
         _busy = true
+        _cycle++
         guard.restart()
+        wpProc.cycle = _cycle
         wpProc.running = true
+    }
+
+    function _retry() {
+        if (_again && !_busy && !wpProc.running && !genProc.running) {
+            _again = false
+            refresh()
+        }
     }
 
     function _fail(msg) {
@@ -73,7 +84,7 @@ Scope {
     function _finish() {
         _busy = false
         guard.stop()
-        if (_again) { _again = false; refresh() }
+        _retry()
     }
 
     // FileView can only watch a file that exists, so this creates it too
@@ -91,9 +102,18 @@ Scope {
 
     Process {
         id: wpProc
-        command: ["bash", "-c", "awww query | sed -n 's/.*image: //p' | head -1"]
+        // wallpaper on the focused monitor, or the first one if that doesn't match
+        command: ["bash", "-c",
+            "mon=$(hyprctl monitors -j 2>/dev/null | jq -r '.[] | select(.focused) | .name' 2>/dev/null | head -1); " +
+            "q=$(awww query 2>/dev/null); " +
+            "p=$(printf '%s\\n' \"$q\" | grep -F -- \": $mon:\" | sed -n 's/.*image: //p' | head -1); " +
+            "[ -n \"$p\" ] || p=$(printf '%s\\n' \"$q\" | sed -n 's/.*image: //p' | head -1); " +
+            "printf '%s\\n' \"$p\""]
+        property int cycle: -1
+        onExited: root._retry()
         stdout: StdioCollector {
             onStreamFinished: {
+                if (wpProc.cycle !== root._cycle) return
                 var path = String(this.text || "").trim()
                 if (path === "") {
                     root._fail("no wallpaper path from awww")
@@ -102,6 +122,7 @@ Scope {
                 }
                 root._wallpaper = path
                 genProc.command = [root.scriptPath, path, String(Configuration.paletteSeed)]
+                genProc.cycle = root._cycle
                 genProc.running = true
             }
         }
@@ -109,8 +130,11 @@ Scope {
 
     Process {
         id: genProc
+        property int cycle: -1
+        onExited: root._retry()
         stdout: StdioCollector {
             onStreamFinished: {
+                if (genProc.cycle !== root._cycle) return
                 var d = null
                 try { d = JSON.parse(String(this.text || "").trim()) } catch (e) { d = null }
                 if (d && d.schemes && d.seeds && d.seeds.length > 0) {
@@ -125,8 +149,20 @@ Scope {
         }
     }
 
-    // a stuck matugen would otherwise block every refresh after it
-    Timer { id: guard; interval: 20000; onTriggered: root._finish() }
+    // a stuck matugen would otherwise block every refresh after it.
+    // bumping _cycle means whatever the killed processes still print gets ignored
+    Timer {
+        id: guard
+        interval: 20000
+        onTriggered: {
+            root._cycle++
+            wpProc.running = false
+            genProc.running = false
+            root._fail("palette generation timed out")
+            root._busy = false
+            root._retry()
+        }
+    }
 
     FileView {
         path: root._watchReady ? root.changedPath : ""
