@@ -23,7 +23,16 @@ PanelWindow {
     visible:        false
 
     // shadow padding is click-through
-    mask: Region { item: osdCard }
+    mask: Region { item: maskRect }
+    // untransformed, so slide can't shift
+    Item {
+        id: maskRect
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom:           parent.bottom
+        anchors.bottomMargin:     osdCard.anchors.bottomMargin
+        width:  osdCard.width
+        height: osdCard.height
+    }
 
     // OSD payload
     property string glyph:       ""   // nerd-font icon
@@ -100,7 +109,7 @@ PanelWindow {
             root.sublabel    = "On"
             root.accentColor = root.theme.accentSlider
         } else {
-            root.glyph       = String.fromCodePoint(0xF00BD)
+            root.glyph       = String.fromCodePoint(0xF1694)
             root.labelText   = "Reading Mode"
             root.sublabel    = "Off"
             root.accentColor = root.theme.textSecondary
@@ -113,12 +122,12 @@ PanelWindow {
         var v = raw.trim().toLowerCase()
         if (v !== "on" && v !== "off") return
         if (v === "on") {
-            root.glyph       = String.fromCodePoint(0xF059B)
+            root.glyph       = String.fromCodePoint(0xF1A4C)
             root.labelText   = "Night Light"
             root.sublabel    = "On"
             root.accentColor = root.theme.accentRed
         } else {
-            root.glyph       = String.fromCodePoint(0xF059B)
+            root.glyph       = String.fromCodePoint(0xF1A4D)
             root.labelText   = "Night Light"
             root.sublabel    = "Off"
             root.accentColor = root.theme.textSecondary

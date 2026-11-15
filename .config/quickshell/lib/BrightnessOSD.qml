@@ -22,7 +22,16 @@ PanelWindow {
     visible:        false
 
     // shadow padding is click-through
-    mask: Region { item: osdCard }
+    mask: Region { item: maskRect }
+    // untransformed, so slide can't shift
+    Item {
+        id: maskRect
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom:           parent.bottom
+        anchors.bottomMargin:     osdCard.anchors.bottomMargin
+        width:  osdCard.width
+        height: osdCard.height
+    }
 
     // State
     property bool osdVisible: false

@@ -121,6 +121,17 @@ Item {
                 id: hover
             }
 
+            // before row, so bar wins
+            MouseArea {
+                x: row.x + textCol.x
+                y: row.y + textCol.y
+                width: textCol.width
+                height: valueRow.y + valueRow.height
+                enabled: osd.iconClickable
+                cursorShape: Qt.PointingHandCursor
+                onClicked: osd.iconClicked()
+            }
+
             RowLayout {
                 id: row
                 x: osd.pad
@@ -210,6 +221,7 @@ Item {
                 }
 
                 ColumnLayout {
+                    id: textCol
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignVCenter
                     spacing: 0
@@ -229,6 +241,7 @@ Item {
                     }
 
                     RowLayout {
+                        id: valueRow
                         Layout.fillWidth: true
                         Layout.topMargin: 4
                         spacing: 8
