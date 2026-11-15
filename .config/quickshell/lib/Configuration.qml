@@ -52,6 +52,26 @@ Scope {
         save()
     }
 
+    // Wallpaper palettes
+    property bool   useWallpaperColors: false
+    property string paletteScheme:      "tonal-spot"
+    property int    paletteSeed:        0
+    property var    paletteOverrides:   ({ dark: {}, light: {} })
+
+    function setPaletteOverride(dark, role, hex) {
+        // has to be a new object, otherwise bindings on paletteOverrides don't update
+        var o = { dark: Object.assign({}, paletteOverrides.dark || {}),
+                  light: Object.assign({}, paletteOverrides.light || {}) }
+        o[dark ? "dark" : "light"][role] = hex
+        paletteOverrides = o
+        save()
+    }
+
+    function clearPaletteOverrides() {
+        paletteOverrides = { dark: {}, light: {} }
+        save()
+    }
+
     // Weather
     property string weatherApiKey: ""
     property string weatherLat:    ""
@@ -170,6 +190,10 @@ Scope {
             customAccentLight:        String(root.customAccentLight),
             customBgDark:             String(root.customBgDark),
             customBgLight:            String(root.customBgLight),
+            useWallpaperColors:       root.useWallpaperColors,
+            paletteScheme:            root.paletteScheme,
+            paletteSeed:              root.paletteSeed,
+            paletteOverrides:         root.paletteOverrides,
             currentShader:            root.currentShader,
             weatherApiKey:            root.weatherApiKey,
             weatherLat:               root.weatherLat,
@@ -225,6 +249,10 @@ Scope {
             if (d.customAccentLight        !== undefined) root.customAccentLight        = d.customAccentLight
             if (d.customBgDark             !== undefined) root.customBgDark             = d.customBgDark
             if (d.customBgLight            !== undefined) root.customBgLight            = d.customBgLight
+            if (d.useWallpaperColors       !== undefined) root.useWallpaperColors       = d.useWallpaperColors
+            if (d.paletteScheme            !== undefined) root.paletteScheme            = d.paletteScheme
+            if (d.paletteSeed              !== undefined) root.paletteSeed              = d.paletteSeed
+            if (d.paletteOverrides         !== undefined) root.paletteOverrides         = { dark: (d.paletteOverrides || {}).dark || {}, light: (d.paletteOverrides || {}).light || {} }
             if (d.currentShader            !== undefined) root.currentShader            = d.currentShader
             if (d.weatherApiKey            !== undefined) root.weatherApiKey            = d.weatherApiKey
             if (d.weatherLat               !== undefined) root.weatherLat               = d.weatherLat
