@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import Quickshell
 import "../lib" as Lib
 import "../config.js" as Config
@@ -51,10 +51,10 @@ Item {
         Item {
           width: 32; height: 32
           Layout.alignment: Qt.AlignVCenter
-          Rectangle { id: pfpMask; anchors.fill: parent; radius: 8; visible: false }
+          Rectangle { id: pfpMask; anchors.fill: parent; radius: 8; visible: false; layer.enabled: true; layer.smooth: true }
           Item {
             anchors.fill: parent; layer.enabled: root.visible; layer.smooth: true
-            layer.effect: OpacityMask { maskSource: pfpMask }
+            layer.effect: MultiEffect { maskEnabled: true; maskSource: pfpMask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
             Image {
               anchors.fill: parent
               fillMode: Image.PreserveAspectCrop

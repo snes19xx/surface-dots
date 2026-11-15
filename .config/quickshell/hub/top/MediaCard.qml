@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import Quickshell.Io
 import Quickshell
 import Quickshell.Services.Mpris
@@ -34,8 +34,16 @@ Rectangle {
     // Mask only while visible
     layer.enabled: root.visible
     layer.smooth: true
-    layer.effect: OpacityMask {
-        maskSource: Rectangle { width: root.width; height: root.height; radius: root.radius }
+    layer.effect: MultiEffect {
+        maskEnabled: true
+        maskSource: rootClipMask
+        maskThresholdMin: 0.5
+        maskSpreadAtMin: 1.0
+    }
+    Rectangle {
+        id: rootClipMask
+        width: root.width; height: root.height; radius: root.radius
+        layer.enabled: true; layer.smooth: true; visible: false
     }
 
     // =========================
@@ -487,12 +495,13 @@ Rectangle {
             sourceSize.height: 256
         }
 
-        FastBlur {
+        MultiEffect {
             anchors.fill: bgArt
             source: bgArt
-            radius: 80
+            blurEnabled: true
+            blur: Math.min(1, 80 / 64)
+            blurMax: 64
             visible: root.visible && root.effectiveArtUrl !== ""
-            cached: true
         }
 
         Rectangle { anchors.fill: parent; color: (root.effectiveArtUrl !== "") ? Qt.rgba(0,0,0,0.65) : Theme.bgCard }
@@ -521,6 +530,13 @@ Rectangle {
             Layout.preferredHeight: 92
             Layout.alignment: Qt.AlignVCenter
 
+            Rectangle {
+                id: artClipMask
+                anchors.centerIn: parent
+                width: 92; height: 92; radius: 12
+                layer.enabled: true; layer.smooth: true; visible: false
+            }
+
             Image {
                 anchors.centerIn: parent
                 width: 92
@@ -531,7 +547,12 @@ Rectangle {
                 // Mask only while visible and only if art exists
                 layer.enabled: root.visible && root.effectiveArtUrl !== ""
                 layer.smooth: true
-                layer.effect: OpacityMask { maskSource: Rectangle { width: 92; height: 92; radius: 12 } }
+                layer.effect: MultiEffect {
+                    maskEnabled: true
+                    maskSource: artClipMask
+                    maskThresholdMin: 0.5
+                    maskSpreadAtMin: 1.0
+                }
 
                 cache: true
                 asynchronous: true

@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import "../lib" as Lib
@@ -71,9 +71,10 @@ Item {
                                 Item {
                                     anchors.centerIn: parent; width: 18; height: 18
                                     Image { id: darkIcon; anchors.fill: parent; source: "../lib/darkmode.svg"; sourceSize: Qt.size(30,30); visible: false }
-                                    ColorOverlay { anchors.fill: darkIcon; source: darkIcon
-                                        color: root.theme && root.theme.isDarkMode ? root.theme.textOnAccent : root.theme ? root.theme.textSecondary : "#888"
-                                        Behavior on color { ColorAnimation { duration: 180 } } }
+                                    MultiEffect { anchors.fill: darkIcon; source: darkIcon
+                                        brightness: 1.0; colorization: 1.0
+                                        colorizationColor: root.theme && root.theme.isDarkMode ? root.theme.textOnAccent : root.theme ? root.theme.textSecondary : "#888"
+                                        Behavior on colorizationColor { ColorAnimation { duration: 180 } } }
                                 }
                             }
                             Rectangle {
@@ -83,9 +84,10 @@ Item {
                                 Item {
                                     anchors.centerIn: parent; width: 18; height: 18
                                     Image { id: lightIcon; anchors.fill: parent; source: "../lib/lightmode.svg"; sourceSize: Qt.size(28,28); visible: false }
-                                    ColorOverlay { anchors.fill: lightIcon; source: lightIcon
-                                        color: root.theme && !root.theme.isDarkMode ? root.theme.textOnAccent : root.theme ? root.theme.textSecondary : "#888"
-                                        Behavior on color { ColorAnimation { duration: 180 } } }
+                                    MultiEffect { anchors.fill: lightIcon; source: lightIcon
+                                        brightness: 1.0; colorization: 1.0
+                                        colorizationColor: root.theme && !root.theme.isDarkMode ? root.theme.textOnAccent : root.theme ? root.theme.textSecondary : "#888"
+                                        Behavior on colorizationColor { ColorAnimation { duration: 180 } } }
                                 }
                             }
                         }

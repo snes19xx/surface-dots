@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import "../lib" as Lib
 import "../config.js" as Config
 // Lib.Configuration singleton provides persistent settings
@@ -256,27 +256,32 @@ PanelWindow {
             ]
 
             Item {
+                id: shadowSrc
                 x: win.shadowSpread
                 y: win.shadowSpread
                 width: panel.width
                 height: panel.height
-
+                visible: false
                 layer.enabled: true
-                layer.effect: DropShadow {
-                    transparentBorder: true
-                    radius: 26
-                    samples: 31
-                    color: "#70000000"
-                    horizontalOffset: 0
-                    // ~ half the radius
-                    verticalOffset: 12
-                }
 
                 Rectangle {
                     anchors.fill: parent
                     radius: panel.radius
                     color: "black"
                 }
+            }
+
+            MultiEffect {
+                source: shadowSrc
+                anchors.fill: shadowSrc
+                shadowEnabled: true
+                shadowColor: "#70000000"
+                shadowBlur: Math.min(1, 26 / 32)
+                blurMax: 32
+                shadowHorizontalOffset: 0
+                // ~ half the radius
+                shadowVerticalOffset: 12
+                autoPaddingEnabled: true
             }
         }
 
