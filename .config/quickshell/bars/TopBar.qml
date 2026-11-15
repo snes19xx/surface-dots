@@ -292,7 +292,7 @@ PanelWindow {
                         anchors.fill: parent
                         color: parent.color
                         layer.enabled: true
-                        layer.effect: MultiEffect { maskEnabled: true; maskSource: lImg }
+                        layer.effect: MultiEffect { maskEnabled: true; maskSource: lImg; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
                     }
                     rotation: hoverLaunch.hovered ? -14 : 0
                     scale: hoverLaunch.hovered ? 1.20 : 1.0
@@ -596,7 +596,7 @@ PanelWindow {
                                 color: trayPress.containsMouse ? pal.accent : pal.textPrimary
                                 Behavior on color { ColorAnimation { duration: 150 } }
                                 layer.enabled: true
-                                layer.effect: MultiEffect { maskEnabled: true; maskSource: trayImg }
+                                layer.effect: MultiEffect { maskEnabled: true; maskSource: trayImg; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
                             }
                             MouseArea {
                                 id: trayPress

@@ -523,8 +523,9 @@ PanelWindow {
                 layer.effect: MultiEffect {
                     shadowEnabled: true
                     shadowColor: "#70000000"
-                    shadowBlur: Math.min(1, 26 / 32)
-                    blurMax: 32
+                    // 1.7x matches old DropShadow
+                    shadowBlur: Math.min(1, 26 * 1.7 / 64)
+                    blurMax: 64
                     shadowHorizontalOffset: 0
                     shadowVerticalOffset: 6
                     autoPaddingEnabled: true
@@ -1667,7 +1668,7 @@ PanelWindow {
                                 color: sm.containsMouse ? drawerWin.theme.accent : drawerWin.theme.textPrimary
                                 Behavior on color { ColorAnimation { duration: 160 } }
                                 layer.enabled: true
-                                layer.effect: MultiEffect { maskEnabled: true; maskSource: shImg }
+                                layer.effect: MultiEffect { maskEnabled: true; maskSource: shImg; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
                             }
                         }
                         Text {

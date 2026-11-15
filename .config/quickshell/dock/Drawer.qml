@@ -207,8 +207,9 @@ PanelWindow {
                 layer.effect: MultiEffect {
                     shadowEnabled: true
                     shadowColor: "#60000000"
-                    shadowBlur: Math.min(1, 20 / 32)
-                    blurMax: 32
+                    // 1.7x matches old DropShadow
+                    shadowBlur: Math.min(1, 20 * 1.7 / 64)
+                    blurMax: 64
                     shadowHorizontalOffset: 0
                     shadowVerticalOffset: 4
                     autoPaddingEnabled: true
