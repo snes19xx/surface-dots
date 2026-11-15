@@ -52,6 +52,8 @@ Scope {
         save()
     }
 
+    property bool   reduceMotion: false
+
     // Wallpaper palettes
     property bool   useWallpaperColors: false
     property string paletteScheme:      "tonal-spot"
@@ -192,6 +194,7 @@ Scope {
             customBgLight:            String(root.customBgLight),
             useWallpaperColors:       root.useWallpaperColors,
             paletteScheme:            root.paletteScheme,
+            reduceMotion:             root.reduceMotion,
             paletteSeed:              root.paletteSeed,
             paletteOverrides:         root.paletteOverrides,
             currentShader:            root.currentShader,
@@ -273,6 +276,7 @@ Scope {
             if (d.powerMenuLifeLight       !== undefined) root.powerMenuLifeLight       = d.powerMenuLifeLight
             if (d.powerMenuCassiniDark     !== undefined) root.powerMenuCassiniDark     = d.powerMenuCassiniDark
             if (d.powerMenuCassiniLight    !== undefined) root.powerMenuCassiniLight    = d.powerMenuCassiniLight
+            if (d.reduceMotion             !== undefined) root.reduceMotion             = d.reduceMotion
         } catch(e) {
             console.warn("[Configuration] load failed:", e)
         }

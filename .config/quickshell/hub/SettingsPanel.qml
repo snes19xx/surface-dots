@@ -130,6 +130,10 @@ Item {
                     Item { Layout.fillWidth: true }
                     SBtn { label: " Wallpaper"; accent: true; onTriggered: root.wallpaperRequested() }
                 }
+                SToggle { label: "Reduce motion"
+                    checked: Lib.Configuration.reduceMotion
+                    onToggled: (v) => { Lib.Configuration.reduceMotion = v; Lib.Configuration.save() }
+                }
             }
 
             //  1b. WALLPAPER COLOURS
