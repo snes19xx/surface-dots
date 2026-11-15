@@ -64,7 +64,7 @@ sudo pacman -S hyprland hypridle hyprlock hyprpicker quickshell awww \
   qt6ct kvantum papirus-icon-theme qt6-5compat qt6-svg qqc2-desktop-style \
   pipewire-pulse libpulse pamixer pavucontrol playerctl brightnessctl \
   libnotify wl-clipboard cliphist grim slurp swappy \
-  vdirsyncer khal curl jq pacman-contrib \
+  vdirsyncer khal curl jq matugen pacman-contrib \
   ttf-nerd-fonts-symbols ttf-jetbrains-mono-nerd
 ```
 
