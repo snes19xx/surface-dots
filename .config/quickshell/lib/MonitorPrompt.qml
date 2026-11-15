@@ -238,7 +238,11 @@ PanelWindow {
                                         anchors.fill: tileIcon
                                         source: tileIcon
                                         colorization: 1.0
-                                        colorizationColor: tileHover.hovered ? win.theme.accent : win.theme.textPrimary
+                                        readonly property color base: tileHover.hovered ? win.theme.accent : win.theme.textPrimary
+                                        // old ColorOverlay alpha blend
+                                        colorizationColor: Qt.rgba(base.r * base.a + (1 - base.a),
+                                                                   base.g * base.a + (1 - base.a),
+                                                                   base.b * base.a + (1 - base.a), 1)
                                         Behavior on colorizationColor { ColorAnimation { duration: 200 } }
                                     }
                                 }

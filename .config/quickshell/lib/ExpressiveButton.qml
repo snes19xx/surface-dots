@@ -77,12 +77,13 @@ Item {
                 // exact tint for any fill
                 Rectangle {
                     anchors.fill: iconImg
-                    opacity: 0.8
-                    color: root.active
+                    readonly property color base: root.active
                         ? (root.theme ? root.theme.textOnAccent : Theme.fgOnAccent)
                         : (root.hasCustomColor
                             ? root.customIconColor
                             : (root.theme ? root.theme.textPrimary : Theme.fgMain))
+                    // 0.8 tint over 0.13 black
+                    color: Qt.rgba(base.r * 0.8 + 0.026, base.g * 0.8 + 0.026, base.b * 0.8 + 0.026, 1)
                     layer.enabled: true
                     layer.effect: MultiEffect {
                         maskEnabled: true
