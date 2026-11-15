@@ -70,10 +70,13 @@ Item {
     readonly property string imageSource: {
         var src = toast.image
         if (src === "") return ""
-        return src.charAt(0) === "/" ? "file://" + src : src
+        if (src.charAt(0) === "/") return "file://" + src
+        // local only, no network fetches
+        if (src.indexOf("image://") === 0) return src.indexOf("://", 8) < 0 ? src : ""
+        if (src.indexOf("file://") === 0) return src
+        return ""
     }
-    // img tags load remote images
-    readonly property string safeBody: toast.body.replace(/<img\b[^>]*>/gi, "")
+    readonly property string safeBody: Notifs.safeBody(toast.body)
     readonly property var shownActions: toast.actionList.filter(a => a.identifier !== "default" && a.text !== "")
 
     implicitHeight: card.height
@@ -137,6 +140,7 @@ Item {
         function onAppNameChanged() { toast._sync() }
         function onAppIconChanged() { toast._sync() }
         function onImageChanged() { toast._sync() }
+        function onUrgencyChanged() { toast._sync() }
         function onActionsChanged() { toast._sync() }
         function onClosed() { toast.notif = null }
     }

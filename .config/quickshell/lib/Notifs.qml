@@ -101,14 +101,51 @@ Scope {
         }
     }
 
+    // critical ones are never dropped
     function _trimPopups() {
         while (_popups.length > maxPopups) {
-            var at = _popups.length - 1
+            var at = -1
             for (var i = _popups.length - 1; i >= 0; i--) {
                 if (_popups[i].urgency !== NotificationUrgency.Critical) { at = i; break }
             }
+            if (at < 0) return
             expirePopup(_popups[at].id)
         }
+    }
+
+    // One pass, never rescanned, so split fragments can't form a tag.
+    readonly property var _allowedTag: /^(<\/?[biu]>|<br\s*\/?>|<\/a>|<a\s+href\s*=\s*(["'])(https?:\/\/|mailto:)[^"'<>]*\2\s*>)/i
+
+    function safeBody(s) {
+        s = String(s || "")
+        var out = ""
+        for (var i = 0; i < s.length; i++) {
+            var ch = s.charAt(i)
+            if (ch !== "<") { out += ch; continue }
+            var m = _allowedTag.exec(s.slice(i, i + 600))
+            if (m) { out += m[0]; i += m[0].length - 1 }
+            else out += "&lt;"
+        }
+        return out
+    }
+
+    function _watch(n) {
+        var id = n.id
+        n.closed.connect(() => root._dropPopup(id))
+        n.summaryChanged.connect(() => root._syncHistory(n))
+        n.bodyChanged.connect(() => root._syncHistory(n))
+        n.appNameChanged.connect(() => root._syncHistory(n))
+        n.appIconChanged.connect(() => root._syncHistory(n))
+        n.imageChanged.connect(() => root._syncHistory(n))
+    }
+
+    function _pushHistory(n) {
+        // reused id moves to top
+        for (var i = 0; i < _history.count; i++) {
+            if (_history.get(i).nId === n.id) { _history.remove(i); break }
+        }
+        _history.insert(0, _historyEntry(n))
+        while (_history.count > maxHistory) _history.remove(_history.count - 1)
     }
 
     function _onNotification(n) {
@@ -116,8 +153,7 @@ Scope {
         var id = n.id
         var critical = n.urgency === NotificationUrgency.Critical
 
-        _history.insert(0, _historyEntry(n))
-        while (_history.count > maxHistory) _history.remove(_history.count - 1)
+        _pushHistory(n)
 
         if (dnd && !critical) {
             // nothing is going to show it, so let the sender know it's gone
@@ -125,23 +161,42 @@ Scope {
             return
         }
 
-        n.closed.connect(() => root._dropPopup(id))
-        n.summaryChanged.connect(() => root._syncHistory(n))
-        n.bodyChanged.connect(() => root._syncHistory(n))
-        n.appNameChanged.connect(() => root._syncHistory(n))
-        n.appIconChanged.connect(() => root._syncHistory(n))
-        n.imageChanged.connect(() => root._syncHistory(n))
+        _watch(n)
+
+        // reused id keeps its slot
+        for (var i = 0; i < _popups.length; i++) {
+            if (_popups[i].id === id) {
+                var next = _popups.slice()
+                next[i] = n
+                _popups = next
+                return
+            }
+        }
 
         _popups = [n].concat(_popups)
         _trimPopups()
     }
 
+    // Notifications survive a reload, so they go back to history without toasts.
+    function _restore() {
+        var live = server.trackedNotifications.values
+        for (var i = 0; i < live.length; i++) {
+            var n = live[i]
+            _watch(n)
+            _pushHistory(n)
+            n.expire()
+        }
+    }
+
+    Component.onCompleted: _restore()
+
     NotificationServer {
+        id: server
         keepOnReload: true
         bodySupported: true
         bodyMarkupSupported: true
         bodyHyperlinksSupported: true
-        // the toast strips img tags, so don't advertise inline images
+        // safeBody drops img tags
         bodyImagesSupported: false
         actionsSupported: true
         imageSupported: true
