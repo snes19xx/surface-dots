@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 
@@ -270,13 +270,15 @@ PanelWindow {
                                     mipmap:       true
                                     visible:      false
                                 }
-                                ColorOverlay {
+                                MultiEffect {
                                     anchors.fill: hpImg
                                     source:       hpImg
-                                    color:        root.muted
+                                    colorization: 1.0
+                                    brightness:   1.0   // vol_headphones.svg is black
+                                    colorizationColor: root.muted
                                                   ? root.theme.accentRed
                                                   : root.sliderColor
-                                    Behavior on color { ColorAnimation { duration: 200 } }
+                                    Behavior on colorizationColor { ColorAnimation { duration: 200 } }
                                 }
                             }
                         }

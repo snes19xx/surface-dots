@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects 
+import QtQuick.Effects
 import "../theme.js" as Theme
 
 Item {
@@ -93,12 +93,13 @@ Item {
                     mipmap: true
                 }
 
-                ColorOverlay {
+                MultiEffect {
                     anchors.fill: iconImg
                     source: iconImg
-                    cached: true
+                    colorization: 1.0
+                    brightness: 1.0   // dark svg, lift to white
                     // Fill always encloses icon, so always use on-accent color
-                    color: root.theme ? root.theme.textOnAccent : Theme.fgOnAccent
+                    colorizationColor: root.theme ? root.theme.textOnAccent : Theme.fgOnAccent
                     transformOrigin: Item.Center
                     scale: slider.hovered || slider.pressed ? 1.3 : 1.0
                     Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }

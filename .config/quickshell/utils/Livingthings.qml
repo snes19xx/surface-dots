@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 
 Item {
     id: skin
@@ -30,6 +30,7 @@ Item {
         id: bgMask
         anchors.fill: parent
         radius: 20
+        layer.enabled: true
         visible: false
     }
 
@@ -37,7 +38,12 @@ Item {
     Item {
         anchors.fill: parent
         layer.enabled: true
-        layer.effect: OpacityMask { maskSource: bgMask }
+        layer.effect: MultiEffect {
+            maskEnabled: true
+            maskSource: bgMask
+            maskThresholdMin: 0.5
+            maskSpreadAtMin: 1.0
+        }
 
         Rectangle {
             anchors.fill: parent

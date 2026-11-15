@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 
 // "Cassini" skin : editorial black & white.
 Item {
@@ -43,14 +43,16 @@ Item {
     }
 
     // Drop shadow targeting the clean geometry
-    DropShadow {
+    MultiEffect {
         anchors.fill: card
-        horizontalOffset: 0
-        verticalOffset: 8
-        radius: 16
-        samples: 25
-        color: skin.dark ? "#aa000000" : "#55000000"
         source: shadowSource
+        shadowEnabled: true
+        shadowColor: skin.dark ? "#aa000000" : "#55000000"
+        shadowBlur: Math.min(1, 16 / 32)
+        blurMax: 32
+        shadowVerticalOffset: 8
+        shadowHorizontalOffset: 0
+        autoPaddingEnabled: true
     }
 
     // Rounded mask: QML clip ignores radius
@@ -58,6 +60,7 @@ Item {
         id: cardMask
         anchors.fill: parent
         radius: 9
+        layer.enabled: true
         visible: false
     }
 
@@ -66,7 +69,12 @@ Item {
         id: card
         anchors.fill: parent
         layer.enabled: true
-        layer.effect: OpacityMask { maskSource: cardMask }
+        layer.effect: MultiEffect {
+            maskEnabled: true
+            maskSource: cardMask
+            maskThresholdMin: 0.5
+            maskSpreadAtMin: 1.0
+        }
 
         Rectangle {
             anchors.fill: parent

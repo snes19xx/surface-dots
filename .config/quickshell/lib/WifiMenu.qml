@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -720,18 +720,22 @@ PanelWindow {
     // -------- UI --------
     // Shadows
     Rectangle {
-        id: menuShadow
+        id: menuShadowSource
         anchors.fill: menuCard
         color: cCard
         radius: cRadius
-        layer.enabled: true
-        layer.effect: DropShadow {
-            radius: 44
-            samples: 64
-            horizontalOffset: 0
-            verticalOffset: 18
-            color: Qt.rgba(0, 0, 0, root.isDarkMode ? 0.55 : 0.22)
-        }
+        visible: false
+    }
+    MultiEffect {
+        anchors.fill: menuShadowSource
+        source: menuShadowSource
+        shadowEnabled: true
+        shadowColor: Qt.rgba(0, 0, 0, root.isDarkMode ? 0.55 : 0.22)
+        shadowBlur: Math.min(1, 44 / 32)
+        blurMax: 32
+        shadowVerticalOffset: 18
+        shadowHorizontalOffset: 0
+        autoPaddingEnabled: true
     }
 
     // Main Menu Card
@@ -992,8 +996,10 @@ PanelWindow {
                                 running: scanRunning
                                 visible: scanRunning
                                 layer.enabled: true
-                                layer.effect: ColorOverlay {
-                                    color: isDarkMode ? cGreen : cMuted
+                                layer.effect: MultiEffect {
+                                    colorization: 1.0
+                                    brightness: 1.0   // default spinner is dark
+                                    colorizationColor: isDarkMode ? cGreen : cMuted
                                 }
                             }
                         }

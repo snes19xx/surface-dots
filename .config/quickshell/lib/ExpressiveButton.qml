@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import "../theme.js" as Theme
 
 Item {
@@ -73,18 +73,17 @@ Item {
                     visible: false
                 }
 
-                ColorOverlay {
+                MultiEffect {
                     anchors.fill: iconImg
                     source: iconImg
-                    color: {
-    var baseColor = root.active 
-        ? (root.theme ? root.theme.textOnAccent : Theme.fgOnAccent) 
-        : (root.hasCustomColor 
-            ? root.customIconColor 
-            : (root.theme ? root.theme.textPrimary : Theme.fgMain))
-
-    return Qt.rgba(baseColor.r, baseColor.g, baseColor.b, 0.8)
-}
+                    colorization: 1.0
+                    brightness: 1.0   // dark svg, lift to white
+                    opacity: 0.8
+                    colorizationColor: root.active
+                        ? (root.theme ? root.theme.textOnAccent : Theme.fgOnAccent)
+                        : (root.hasCustomColor
+                            ? root.customIconColor
+                            : (root.theme ? root.theme.textPrimary : Theme.fgMain))
 
                     
                     // ICON POP EFFECT

@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 
 PanelWindow {
     id: win
@@ -234,11 +234,12 @@ PanelWindow {
                                         smooth:     true
                                         visible:    false
                                     }
-                                    ColorOverlay {
+                                    MultiEffect {
                                         anchors.fill: tileIcon
                                         source: tileIcon
-                                        color:  tileHover.hovered ? win.theme.accent : win.theme.textPrimary
-                                        Behavior on color { ColorAnimation { duration: 200 } }
+                                        colorization: 1.0
+                                        colorizationColor: tileHover.hovered ? win.theme.accent : win.theme.textPrimary
+                                        Behavior on colorizationColor { ColorAnimation { duration: 200 } }
                                     }
                                 }
 
