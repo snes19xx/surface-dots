@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import "../theme.js" as Theme
 
 Item {
@@ -43,7 +43,8 @@ Item {
         anchors.fill: parent
         radius: 17
         visible: false
-        antialiasing: true 
+        layer.enabled: true
+        antialiasing: true
     }
 
     // BACKGROUND & SHIMMER LAYER
@@ -51,7 +52,7 @@ Item {
         anchors.fill: parent
         layer.enabled: true
         layer.smooth: true
-        layer.effect: OpacityMask { maskSource: mask }
+        layer.effect: MultiEffect { maskEnabled: true; maskSource: mask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
 
         Rectangle {
             anchors.fill: parent
@@ -141,11 +142,12 @@ Item {
                 visible: false
             }
 
-            ColorOverlay {
+            MultiEffect {
                 anchors.fill: parent
                 source: iSrc
-                color: (toggleable && checked) ? checkedIconColor : root.iconColor
-                cached: true
+                brightness: 1.0
+                colorization: 1.0
+                colorizationColor: (toggleable && checked) ? checkedIconColor : root.iconColor
                 antialiasing: true
             }
         }

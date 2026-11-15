@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -280,18 +280,19 @@ PanelWindow {
                         id: lImg
                         source: "../lib/arch.svg"
                         visible: false
+                        layer.enabled: true
                         anchors.fill: parent
                         fillMode: Image.PreserveAspectFit
                         // Rasterize at 2x (44px) relative to container (22px)
                         sourceSize: Qt.size(44, 44)
                         smooth: false
                     }
-                    ColorOverlay {
+                    // colorization would dim the blue
+                    Rectangle {
                         anchors.fill: parent
-                        source: lImg
                         color: parent.color
-                        cached: true
-                        antialiasing: true
+                        layer.enabled: true
+                        layer.effect: MultiEffect { maskEnabled: true; maskSource: lImg }
                     }
                     rotation: hoverLaunch.hovered ? -14 : 0
                     scale: hoverLaunch.hovered ? 1.20 : 1.0
@@ -588,13 +589,14 @@ PanelWindow {
                                 Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
                             }
 
-                            Image { id: trayImg; anchors.centerIn: parent; width: 16; height: 16; source: modelData.icon; sourceSize: Qt.size(32, 32); fillMode: Image.PreserveAspectFit; visible: false }
-                            ColorOverlay {
+                            Image { id: trayImg; anchors.centerIn: parent; width: 16; height: 16; source: modelData.icon; sourceSize: Qt.size(32, 32); fillMode: Image.PreserveAspectFit; visible: false; layer.enabled: true }
+                            // tray icons vary in colour
+                            Rectangle {
                                 anchors.fill: trayImg
-                                source: trayImg
                                 color: trayPress.containsMouse ? pal.accent : pal.textPrimary
-                                cached: true
                                 Behavior on color { ColorAnimation { duration: 150 } }
+                                layer.enabled: true
+                                layer.effect: MultiEffect { maskEnabled: true; maskSource: trayImg }
                             }
                             MouseArea {
                                 id: trayPress
@@ -688,7 +690,7 @@ PanelWindow {
                 Item {
                     anchors.fill: parent
                     layer.enabled: true
-                    layer.effect: OpacityMask { maskSource: clockMask }
+                    layer.effect: MultiEffect { maskEnabled: true; maskSource: clockMask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
 
                     Rectangle {
                         anchors.fill: parent
@@ -722,6 +724,7 @@ PanelWindow {
                     anchors.fill: parent
                     radius: 17
                     visible: false
+                    layer.enabled: true
                     antialiasing: true
                 }
 

@@ -4,7 +4,7 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import Qt.labs.folderlistmodel
 import "../lib" as Lib
 
@@ -520,11 +520,14 @@ PanelWindow {
                 height: clipped.height
 
                 layer.enabled: true
-                layer.effect: DropShadow {
-                    transparentBorder: true
-                    radius: 26; samples: 31
-                    color: "#70000000"
-                    horizontalOffset: 0; verticalOffset: 6
+                layer.effect: MultiEffect {
+                    shadowEnabled: true
+                    shadowColor: "#70000000"
+                    shadowBlur: Math.min(1, 26 / 32)
+                    blurMax: 32
+                    shadowHorizontalOffset: 0
+                    shadowVerticalOffset: 6
+                    autoPaddingEnabled: true
                 }
                 Rectangle { anchors.fill: parent; radius: 16; color: "black" }
             }
@@ -588,8 +591,15 @@ PanelWindow {
                                     smooth: true; mipmap: true; cache: true
                                     visible: false
                                 }
-                                Rectangle { id: avatarMask; anchors.fill: parent; radius: width / 2; visible: false }
-                                OpacityMask { anchors.fill: parent; source: avatarImg; maskSource: avatarMask }
+                                Rectangle { id: avatarMask; anchors.fill: parent; radius: width / 2; visible: false; layer.enabled: true }
+                                MultiEffect {
+                                    anchors.fill: parent
+                                    source: avatarImg
+                                    maskEnabled: true
+                                    maskSource: avatarMask
+                                    maskThresholdMin: 0.5
+                                    maskSpreadAtMin: 1.0
+                                }
                                 Rectangle {
                                     anchors.fill: parent; radius: width / 2
                                     color: "transparent"
@@ -1117,10 +1127,13 @@ PanelWindow {
                             property bool errored: false
                             onStatusChanged: { if (status === Image.Error && !errored) { errored = true; source = "image://icon/application-x-executable" } }
                         }
-                        ColorOverlay {
+                        MultiEffect {
                             anchors.fill: appImg
                             source: appImg
-                            color: "#22000000"
+                            brightness: -1.0
+                            colorization: 1.0
+                            colorizationColor: "black"
+                            opacity: 0x22 / 255
                             visible: !drawerWin.theme.isDarkMode
                         }
                     }
@@ -1389,11 +1402,14 @@ PanelWindow {
                                     smooth: true
                                     visible: false
                                 }
-                                Rectangle { id: thumbMask; anchors.fill: parent; radius: 10; visible: false }
-                                OpacityMask {
+                                Rectangle { id: thumbMask; anchors.fill: parent; radius: 10; visible: false; layer.enabled: true }
+                                MultiEffect {
                                     anchors.fill: parent
                                     source: thumbImg
+                                    maskEnabled: true
                                     maskSource: thumbMask
+                                    maskThresholdMin: 0.5
+                                    maskSpreadAtMin: 1.0
                                     visible: thumbImg.status === Image.Ready
                                 }
                                 Rectangle {
@@ -1643,12 +1659,15 @@ PanelWindow {
                                 smooth: true; mipmap: true; cache: true
                                 sourceSize: Qt.size(96, 96)
                                 visible: false
+                                layer.enabled: true
                             }
-                            ColorOverlay {
+                            // icons mix black and white
+                            Rectangle {
                                 anchors.fill: shImg
-                                source: shImg
                                 color: sm.containsMouse ? drawerWin.theme.accent : drawerWin.theme.textPrimary
                                 Behavior on color { ColorAnimation { duration: 160 } }
+                                layer.enabled: true
+                                layer.effect: MultiEffect { maskEnabled: true; maskSource: shImg }
                             }
                         }
                         Text {

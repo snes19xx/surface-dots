@@ -4,7 +4,7 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import "../lib" as Lib
 import "../theme.js" as Theme      // will  consolidate to theme engine soon!            
 
@@ -204,13 +204,14 @@ PanelWindow {
                 height: clippedContent.height
 
                 layer.enabled: true
-                layer.effect: DropShadow {
-                    transparentBorder: true
-                    radius: 20
-                    samples: 25
-                    color: "#60000000"
-                    horizontalOffset: 0
-                    verticalOffset: 4
+                layer.effect: MultiEffect {
+                    shadowEnabled: true
+                    shadowColor: "#60000000"
+                    shadowBlur: Math.min(1, 20 / 32)
+                    blurMax: 32
+                    shadowHorizontalOffset: 0
+                    shadowVerticalOffset: 4
+                    autoPaddingEnabled: true
                 }
 
                 Rectangle {
@@ -422,10 +423,13 @@ PanelWindow {
                                             }
                                         }
                                         
-                                        ColorOverlay {
+                                        MultiEffect {
                                             anchors.fill: dIcon
                                             source: dIcon
-                                            color: "#33000000"
+                                            brightness: -1.0
+                                            colorization: 1.0
+                                            colorizationColor: "black"
+                                            opacity: 0x33 / 255
                                             visible: !drawerWin.isDarkMode
                                         }
                                     }

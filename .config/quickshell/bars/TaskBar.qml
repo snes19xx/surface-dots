@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -699,17 +699,18 @@ PanelWindow {
                                 id: lImg
                                 source: "../lib/arch.svg"
                                 visible: false
+                                layer.enabled: true
                                 anchors.fill: parent
                                 fillMode: Image.PreserveAspectFit
                                 sourceSize: Qt.size(44, 44)
                                 smooth: false
                             }
-                            ColorOverlay {
+                            // colorization would dim the blue
+                            Rectangle {
                                 anchors.fill: parent
-                                source: lImg
                                 color: parent.color
-                                cached: true
-                                antialiasing: true
+                                layer.enabled: true
+                                layer.effect: MultiEffect { maskEnabled: true; maskSource: lImg }
                             }
                             scale: launchRoot.iconPressScale * launchRoot.iconHoverScale
                             rotation: launchRoot.iconSpin
@@ -1089,13 +1090,15 @@ PanelWindow {
                                         sourceSize: Qt.size(28, 28)
                                         fillMode: Image.PreserveAspectFit
                                         visible: false
+                                        layer.enabled: true
                                     }
-                                    ColorOverlay {
+                                    // tray icons vary in colour
+                                    Rectangle {
                                         anchors.fill: trayImg
-                                        source: trayImg
                                         color: trayPress.containsMouse ? pal.accent : pal.textPrimary
-                                        cached: true
                                         Behavior on color { ColorAnimation { duration: 150 } }
+                                        layer.enabled: true
+                                        layer.effect: MultiEffect { maskEnabled: true; maskSource: trayImg }
                                     }
 
                                     MouseArea {
@@ -1297,10 +1300,13 @@ PanelWindow {
                     visible: taskbar.isDarkMode
                 }
 
-                ColorOverlay {
+                MultiEffect {
                     anchors.fill: launcherIcon
                     source: launcherIcon
-                    color: '#5b000000'
+                    brightness: -1.0
+                    colorization: 1.0
+                    colorizationColor: "black"
+                    opacity: 0x5b / 255
                     visible: !taskbar.isDarkMode
                 }
             }
@@ -1433,10 +1439,13 @@ PanelWindow {
             visible: taskbar.isDarkMode
         }
 
-        ColorOverlay {
+        MultiEffect {
             anchors.fill: appIconImg
             source: appIconImg
-            color: '#25000000'
+            brightness: -1.0
+            colorization: 1.0
+            colorizationColor: "black"
+            opacity: 0x25 / 255
             visible: !taskbar.isDarkMode
         }
         
@@ -1539,11 +1548,12 @@ PanelWindow {
                     visible: false
                 }
 
-                ColorOverlay {
+                MultiEffect {
                     anchors.fill: parent
                     source: iSrc
-                    color: root.iconColor
-                    cached: true
+                    brightness: 1.0
+                    colorization: 1.0
+                    colorizationColor: root.iconColor
                     antialiasing: true
                 }
             }
