@@ -79,6 +79,16 @@ PanelWindow {
         spacing: 10
         model: toastModel
 
+        displaced: Transition {
+            SpringAnimation {
+                property: "y"
+                spring: Motion.smooth.spring
+                damping: Motion.smooth.damping
+                mass: Motion.smooth.mass
+                epsilon: 0.25
+            }
+        }
+
         delegate: NotifToast {
             width: list.width
             theme: win.theme

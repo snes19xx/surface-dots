@@ -108,7 +108,7 @@ Item {
                     }
                     transformOrigin: Item.Center
                     scale: slider.hovered || slider.pressed ? 1.3 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
+                    Behavior on scale { SpringSnappy {} }
                 }
             }
         }

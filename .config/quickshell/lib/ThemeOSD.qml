@@ -170,12 +170,7 @@ PanelWindow {
             // Slide
             transform: Translate {
                 y: root.osdVisible ? 0 : 20
-                Behavior on y {
-                    NumberAnimation {
-                        duration:    root.osdVisible ? 200 : 260
-                        easing.type: root.osdVisible ? Easing.OutCubic : Easing.InCubic
-                    }
-                }
+                Behavior on y { SpringGentle { epsilon: 0.25 } }
             }
 
             // Shadow 
@@ -261,10 +256,9 @@ PanelWindow {
                         SequentialAnimation {
                             id: iconSwap
                             running: false
-                            NumberAnimation {
+                            SpringSnappy {
                                 target: modeIcon; property: "scale"
-                                from: 0.7; to: 1.0; duration: 220
-                                easing.type: Easing.OutBack; easing.overshoot: 1.4
+                                from: 0.7; to: 1.0
                             }
                         }
                     }

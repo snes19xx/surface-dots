@@ -80,7 +80,7 @@ ColumnLayout {
         Layout.fillWidth: true
         implicitHeight: cp._open ? sliderCol.implicitHeight + 4 : 0
         clip: true
-        Behavior on implicitHeight { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+        Behavior on implicitHeight { SpringSmooth { epsilon: 0.25 } }
         ColumnLayout {
             id: sliderCol; width: parent.width; spacing: 5
             CSlider { label: "H"; value: cp._h/360

@@ -63,5 +63,5 @@ Rectangle {
     
     // ---SQUISH EFFECT ---
     scale: mouse.pressed ? 0.90 : 1.0
-    Behavior on scale { NumberAnimation { duration: 110; easing.type: Easing.OutBack } }
+    Behavior on scale { SpringSnappy {} }
 }

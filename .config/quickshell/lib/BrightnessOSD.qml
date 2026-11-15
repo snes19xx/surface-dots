@@ -114,12 +114,7 @@ PanelWindow {
             }
             transform: Translate {
                 y: root.osdVisible ? 0 : 22
-                Behavior on y {
-                    NumberAnimation {
-                        duration:    root.osdVisible ? 240 : 340
-                        easing.type: root.osdVisible ? Easing.OutCubic : Easing.InCubic
-                    }
-                }
+                Behavior on y { SpringGentle { epsilon: 0.25 } }
             }
 
             // Shadow
@@ -185,7 +180,7 @@ PanelWindow {
                         SequentialAnimation {
                             id: iconPulse
                             NumberAnimation { target: iconText; property: "scale"; to: 1.18; duration: 90;  easing.type: Easing.OutQuad }
-                            NumberAnimation { target: iconText; property: "scale"; to: 1.0;  duration: 180; easing.type: Easing.OutElastic }
+                            SpringBouncy { target: iconText; property: "scale"; to: 1.0 }
                         }
                     }
 

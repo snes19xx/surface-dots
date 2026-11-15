@@ -28,8 +28,8 @@ Item {
         origin.y: root.height / 2
         xScale: mouse.pressed ? 0.9 : 1.0
         yScale: mouse.pressed ? 0.9 : 1.0
-        Behavior on xScale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
-        Behavior on yScale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
+        Behavior on xScale { SpringSnappy {} }
+        Behavior on yScale { SpringSnappy {} }
     }
 
     Rectangle {
@@ -96,7 +96,7 @@ Item {
                     // ICON POP EFFECT
                     transformOrigin: Item.Center
                     scale: mouse.containsMouse ? 1.20 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
+                    Behavior on scale { SpringSnappy {} }
                 }
 
                     // Padding adjustments handled via Layout margins if needed, 

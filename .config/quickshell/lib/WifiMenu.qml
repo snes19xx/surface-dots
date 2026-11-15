@@ -756,7 +756,7 @@ PanelWindow {
         border.color: cBorder
         clip: true
 
-        Behavior on height { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
+        Behavior on height { SpringSmooth { epsilon: 0.25 } }
 
         ColumnLayout {
             id: mainLayout
@@ -804,7 +804,7 @@ PanelWindow {
                         color: cCard
                         anchors.verticalCenter: parent.verticalCenter
                         x: wifiEnabled ? parent.width - width - 3 : 3
-                        Behavior on x { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+                        Behavior on x { SpringSmooth { epsilon: 0.25 } }
                     }
 
                     MouseArea {
@@ -1335,7 +1335,7 @@ PanelWindow {
 
         opacity: disabled ? 0.55 : 1.0
 
-        Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
+        Behavior on scale { SpringSnappy {} }
         Behavior on color { ColorAnimation { duration: 120 } }
         Behavior on border.color { ColorAnimation { duration: 120 } }
 

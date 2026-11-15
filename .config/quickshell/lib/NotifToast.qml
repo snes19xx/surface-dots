@@ -192,10 +192,10 @@ Item {
             height: parent.height
             scale: ma.pressed && !ma.drag.active ? 0.985 : toast.hovered ? 1.01 : 1.0
 
-            Behavior on scale { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+            Behavior on scale { SpringSnappy {} }
             Behavior on x {
                 enabled: !ma.drag.active
-                NumberAnimation { duration: 240; easing.type: Easing.OutCubic }
+                SpringSmooth { epsilon: 0.25 }
             }
 
             // inset to hide under card

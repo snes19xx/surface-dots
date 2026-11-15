@@ -18,7 +18,7 @@ Rectangle {
 
     // Lift
     scale: hoverHandler.hovered ? 1.005 : 1.0
-    Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
+    Behavior on scale { SpringSnappy {} }
 
     // Border
     border.width: (isDark ? 1 : (hoverHandler.hovered ? 1 : 0))

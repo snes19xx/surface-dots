@@ -126,7 +126,7 @@ PanelWindow {
             id: card
             width:  win.phase === "toast" ? 340 : 470
             height: win.phase === "pick" ? 196 : (win.phase === "confirm" ? 150 : 64)
-            Behavior on width { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+            Behavior on width { SpringSmooth { epsilon: 0.25 } }
             radius: win.theme.radiusOuter
             color:  win.theme.bgCard
             border.width: 1
@@ -136,7 +136,7 @@ PanelWindow {
             anchors.bottom:           parent.bottom
             anchors.bottomMargin:     52
 
-            Behavior on height { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+            Behavior on height { SpringSmooth { epsilon: 0.25 } }
 
             opacity: win.shown ? 1.0 : 0.0
             Behavior on opacity {
@@ -152,12 +152,12 @@ PanelWindow {
                     yScale: win.shown ? 1.0 : 0.97
                     origin.x: card.width / 2
                     origin.y: card.height
-                    Behavior on xScale { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
-                    Behavior on yScale { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
+                    Behavior on xScale { SpringGentle {} }
+                    Behavior on yScale { SpringGentle {} }
                 },
                 Translate {
                     y: win.shown ? 0 : card.height
-                    Behavior on y { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
+                    Behavior on y { SpringGentle { epsilon: 0.25 } }
                 }
             ]
 
@@ -212,7 +212,7 @@ PanelWindow {
                             Behavior on color { ColorAnimation { duration: 200 } }
 
                             scale: tileHover.hovered ? 1.017 : 1.0
-                            Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
+                            Behavior on scale { SpringSnappy {} }
 
                             HoverHandler { id: tileHover }
                             TapHandler { onTapped: win.choose(modelData.key) }
