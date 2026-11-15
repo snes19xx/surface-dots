@@ -278,7 +278,7 @@ Item {
                         Behavior on color { ColorAnimation { duration: 200 } }
 
                         scale: segHover.hovered ? 1.017 : 1.0
-                        Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
+                        Behavior on scale { Lib.SpringSnappy {} }
 
                         HoverHandler { id: segHover }
                         TapHandler {
@@ -352,7 +352,7 @@ Item {
                         font.pixelSize: 11
                         color:          panel.theme.textSecondary
                         rotation:       resField.open ? 180 : 0
-                        Behavior on rotation { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                        Behavior on rotation { Lib.SpringSmooth {} }
                     }
                 }
 
@@ -502,7 +502,7 @@ Item {
                 Behavior on color { ColorAnimation { duration: 200 } }
 
                 scale: applyHover.hovered ? 1.017 : 1.0
-                Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
+                Behavior on scale { Lib.SpringSnappy {} }
 
                 HoverHandler { id: applyHover }
                 TapHandler { onTapped: panel.applyMode() }

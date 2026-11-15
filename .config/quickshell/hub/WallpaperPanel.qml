@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
+import "../lib" as Lib
 
 Item {
     id: root
@@ -269,7 +270,7 @@ Item {
                         }
 
                         scale: swHov.hovered ? 1.14 : 1.0
-                        Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutBack; easing.overshoot: 1.3 } }
+                        Behavior on scale { Lib.SpringSnappy {} }
 
                         Rectangle {
                             anchors.fill: parent; radius: 7
@@ -383,7 +384,7 @@ Item {
             x: 5; y: wpt.isHovered ? 10 : 6
             width: parent.width - 10; height: parent.height - 10; radius: 8
             color: "black"; opacity: wpt.isHovered ? 0.30 : 0.07
-            Behavior on y       { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
+            Behavior on y       { Lib.SpringSmooth { epsilon: 0.25 } }
             Behavior on opacity { NumberAnimation { duration: 280 } }
             layer.enabled: wpt.live
             layer.effect: MultiEffect { blurEnabled: true; blur: 1.0; blurMax: 20 }
@@ -393,7 +394,7 @@ Item {
             id: wptC
             x: 4; y: wpt.isHovered ? 2 : 5
             width: parent.width - 8; height: parent.height - 8
-            Behavior on y { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+            Behavior on y { Lib.SpringSmooth { epsilon: 0.25 } }
 
             Rectangle { anchors.fill: parent; radius: 7; color: root.rItem }
 
@@ -405,7 +406,7 @@ Item {
                 opacity: status === Image.Ready ? 1.0 : 0.0
                 scale: wpt.isHovered ? 1.04 : 1.0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
-                Behavior on scale   { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+                Behavior on scale   { Lib.SpringSmooth {} }
                 // Masked-rounded layer
                 layer.enabled: wpt.live
                 layer.effect: MultiEffect {
@@ -453,7 +454,7 @@ Item {
                 opacity: wpt.isSelected ? 1.0 : 0.0
                 scale:   wpt.isSelected ? 1.0 : 0.5
                 Behavior on opacity { NumberAnimation { duration: 180 } }
-                Behavior on scale   { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.5 } }
+                Behavior on scale   { Lib.SpringSnappy {} }
                 Rectangle { anchors.fill: parent; radius: 9; color: root.rAccent }
                 Text { anchors.centerIn: parent; text: "✓"; color: "white"; font.pixelSize: 9; font.bold: true }
             }

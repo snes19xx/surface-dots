@@ -254,7 +254,7 @@ Item {
         Behavior on color { ColorAnimation { duration: 200 } }
 
         scale: btnHover.hovered && !btn.disabled ? 1.017 : 1.0
-        Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
+        Behavior on scale { Lib.SpringSnappy {} }
 
         HoverHandler { id: btnHover; enabled: !btn.disabled; cursorShape: Qt.PointingHandCursor }
         TapHandler { enabled: !btn.disabled; onTapped: btn.triggered() }
@@ -398,7 +398,7 @@ Item {
                         color: panel.adapterOn ? panel.theme.textOnAccent : panel.theme.textSecondary
                         anchors.verticalCenter: parent.verticalCenter
                         x: panel.adapterOn ? parent.width - width - 3 : 3
-                        Behavior on x { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+                        Behavior on x { Lib.SpringSmooth { epsilon: 0.25 } }
                     }
 
                     HoverHandler { enabled: !panel.adapterBusy; cursorShape: Qt.PointingHandCursor }

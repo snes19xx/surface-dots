@@ -371,7 +371,7 @@ Item {
                 border.width: 1; border.color: root.rOutline
                 Rectangle {
                     x: tog.checked ? parent.width - width - 3 : 3; y: 3; width: 18; height: 18; radius: 9; color: "white"
-                    Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                    Behavior on x { Lib.SpringSmooth { epsilon: 0.25 } }
                 }
                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: tog.toggled(!tog.checked) }
             }
@@ -383,7 +383,7 @@ Item {
         signal triggered()
         implicitWidth: bTxt.implicitWidth + 22; implicitHeight: 30
         scale: bMa.containsPress ? 0.91 : (bMa.containsMouse ? 1.04 : 1.0)
-        Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.OutBack; easing.overshoot: 1.4 } }
+        Behavior on scale { Lib.SpringSnappy {} }
         Rectangle {
             anchors.fill: parent; radius: 8
             color: sb.accent

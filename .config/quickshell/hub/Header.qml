@@ -102,7 +102,7 @@ Item {
                     border.width: 1
                     border.color: root.batteryActive ? theme.accent : root._outline
                     scale: statsTap.pressed ? 0.95 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
+                    Behavior on scale { Lib.SpringSnappy {} }
                     Behavior on color  { ColorAnimation { duration: 150 } }
                     Behavior on border.color { ColorAnimation { duration: 150 } }
 
@@ -131,7 +131,7 @@ Item {
                     border.width: 1
                     border.color: root.settingsOpen ? theme.accent : root._outline
                     scale: settingsTap.pressed ? 0.95 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
+                    Behavior on scale { Lib.SpringSnappy {} }
                     Behavior on color  { ColorAnimation { duration: 150 } }
                     Behavior on border.color { ColorAnimation { duration: 150 } }
 
@@ -160,7 +160,7 @@ Item {
                     border.width: 1
                     border.color: root.monitorsOpen ? theme.accent : root._outline
                     scale: monTap.pressed ? 0.95 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
+                    Behavior on scale { Lib.SpringSnappy {} }
                     Behavior on color  { ColorAnimation { duration: 150 } }
                     Behavior on border.color { ColorAnimation { duration: 150 } }
 
@@ -188,7 +188,7 @@ Item {
                           : (snapHover.hovered ? root._subtleFillHover : root._subtleFill)
                     border.width: 1; border.color: root._outline
                     scale: snapTap.pressed ? 0.95 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
+                    Behavior on scale { Lib.SpringSnappy {} }
                     Behavior on color { ColorAnimation { duration: 150 } }
                     
                     Text { 

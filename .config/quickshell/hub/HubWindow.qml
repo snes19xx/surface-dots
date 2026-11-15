@@ -288,7 +288,7 @@ PanelWindow {
         Rectangle {
             id: panel
             width: win.panelW
-            Behavior on width { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+            Behavior on width { Lib.SpringSmooth { epsilon: 0.25 } }
             readonly property int maxH: Math.round(panel.parent.height - 20)
             height: Math.min(Math.ceil(layout.implicitHeight + 24), maxH)
             radius: win.topAnchored ? 24 : 12
@@ -447,7 +447,7 @@ PanelWindow {
                     implicitHeight: (activeLoader && activeLoader.height > 0)
                         ? activeLoader.height
                         : cardsColumn.implicitHeight
-                    Behavior on implicitHeight { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+                    Behavior on implicitHeight { Lib.SpringSmooth { epsilon: 0.25 } }
 
                     // Task style keeps its own two-column card set; top style uses
                     // the original top-bar cards under hub/top, which are a different

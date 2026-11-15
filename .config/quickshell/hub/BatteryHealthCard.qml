@@ -21,7 +21,7 @@ Lib.Card {
     property real contentHeight: mainLayout.implicitHeight + (root.pad * 2) 
 
     implicitHeight: root.active ? contentHeight : 0
-    Behavior on implicitHeight { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+    Behavior on implicitHeight { Lib.SpringSmooth { epsilon: 0.25 } }
 
     opacity: root.active ? 1.0 : 0.0
     Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutQuad } }

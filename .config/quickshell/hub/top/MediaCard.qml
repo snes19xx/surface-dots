@@ -21,7 +21,7 @@ Rectangle {
     signal closeRequested()
 
     implicitHeight: animH
-    Behavior on animH { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+    Behavior on animH { Lib.SpringSmooth { epsilon: 0.25 } }
 
     visible: animH > 1
     opacity: root.active ? 1.0 : 0.0
@@ -701,7 +701,7 @@ Rectangle {
             }
 
             scale: playArea.pressed ? 0.90 : 1.0
-            Behavior on scale { NumberAnimation { duration: 110; easing.type: Easing.OutCubic } }
+            Behavior on scale { Lib.SpringSnappy {} }
         }
     }
 }

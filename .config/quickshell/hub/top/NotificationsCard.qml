@@ -126,7 +126,7 @@ Lib.TopCard {
           color: root.cFgMain
           rotation: root.expanded ? 180 : 0
           // Springy rotation
-          Behavior on rotation { SpringAnimation { spring: 3; damping: 0.45; mass: 0.5 } }
+          Behavior on rotation { Lib.SpringSnappy {} }
         }
 
         MouseArea {
@@ -139,7 +139,7 @@ Lib.TopCard {
 
         scale: expandArea.pressed ? 0.92 : 1.0
         // Springy click feedback
-        Behavior on scale { SpringAnimation { spring: 4; damping: 0.4; mass: 0.5; epsilon: 0.005 } }
+        Behavior on scale { Lib.SpringSnappy {} }
       }
 
       // Clear Button
@@ -178,7 +178,7 @@ Lib.TopCard {
 
         scale: clearArea.pressed ? 0.94 : 1.0
         // Springy click feedback
-        Behavior on scale { SpringAnimation { spring: 4; damping: 0.4; mass: 0.5; epsilon: 0.005 } }
+        Behavior on scale { Lib.SpringSnappy {} }
       }
     }
 
@@ -212,7 +212,7 @@ Lib.TopCard {
         : 0
 
       Layout.preferredHeight: viewHeight
-      Behavior on Layout.preferredHeight { NumberAnimation { duration: 450; easing.type: Easing.OutExpo } }
+      Behavior on Layout.preferredHeight { Lib.SpringSmooth { epsilon: 0.25 } }
       height: Layout.preferredHeight
 
       ListView {
@@ -228,13 +228,7 @@ Lib.TopCard {
         add: Transition {
           ParallelAnimation {
             NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 300; easing.type: Easing.OutSine }
-            NumberAnimation { 
-              property: "scale"
-              from: 0.9; to: 1.0
-              duration: 400
-              easing.type: Easing.OutBack
-              easing.overshoot: 0.8 
-            }
+            Lib.SpringSmooth { property: "scale"; from: 0.9; to: 1.0 }
           }
         }
 
@@ -246,8 +240,8 @@ Lib.TopCard {
         }
 
         displaced: Transition {
-          SpringAnimation { property: "y"; spring: 4; damping: 0.6; epsilon: 0.1 }
-          SpringAnimation { property: "x"; spring: 4; damping: 0.6; epsilon: 0.1 }
+          Lib.SpringSmooth { property: "y"; epsilon: 0.25 }
+          Lib.SpringSmooth { property: "x"; epsilon: 0.25 }
         }
 
         delegate: NotifItem {

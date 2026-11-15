@@ -470,7 +470,7 @@ Item {
                 border.width: 1; border.color: root.theme ? root.theme.outline : "#333"
                 Rectangle {
                     x: tog.checked ? parent.width-width-3 : 3; y: 3; width: 18; height: 18; radius: 9; color: "white"
-                    Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                    Behavior on x { Lib.SpringSmooth { epsilon: 0.25 } }
                 }
                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: tog.toggled(!tog.checked) }
             }
@@ -541,7 +541,7 @@ Item {
             anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter }
             height: slHov.hovered ? 7 : 5; radius: 3
             color: root.theme ? root.theme.bgItem : "#2d353b"; border.width: 1; border.color: root.theme ? root.theme.outline : "#333"
-            Behavior on height { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+            Behavior on height { Lib.SpringSmooth { epsilon: 0.25 } }
             Rectangle {
                 width: (ssl.value-ssl.from)/Math.max(1,ssl.to-ssl.from)*parent.width
                 height: parent.height; radius: parent.radius
@@ -558,7 +558,7 @@ Item {
                         : slHov.hovered ? Qt.rgba(root.theme ? root.theme.accent.r : 0.46, root.theme ? root.theme.accent.g : 0.61, root.theme ? root.theme.accent.b : 0.38, 0.6)
                         : Qt.rgba(0,0,0,0.25)
             scale: sDrag.pressed ? 1.18 : (slHov.hovered ? 1.09 : 1.0)
-            Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutBack; easing.overshoot: 1.3 } }
+            Behavior on scale { Lib.SpringSnappy {} }
             Behavior on border.color { ColorAnimation { duration: 150 } }
         }
         MouseArea {
@@ -573,7 +573,7 @@ Item {
         signal triggered()
         implicitWidth: bTxt.implicitWidth+22; implicitHeight: 30
         scale: bMa.containsPress ? 0.91 : (bMa.containsMouse ? 1.04 : 1.0)
-        Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.OutBack; easing.overshoot: 1.4 } }
+        Behavior on scale { Lib.SpringSnappy {} }
         Rectangle {
             anchors.fill: parent; radius: 8
             color: sb.accent

@@ -32,7 +32,7 @@ Rectangle {
 
     // subtle lift on hover
     scale: pressed ? 0.985 : (hovered ? 1.01 : 1.0)
-    Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+    Behavior on scale { Lib.SpringSnappy {} }
     Behavior on color { ColorAnimation { duration: 140 } }
 
     // tiny highlight
