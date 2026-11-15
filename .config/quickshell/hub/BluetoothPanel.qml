@@ -98,7 +98,7 @@ Item {
         if (dev.state === BluetoothDeviceState.Disconnecting) return "Disconnecting…"
         if (dev.connected) {
             const bat = panel.batteryText(dev)
-            return bat ? "Connected · " + bat : "Connected"
+            return bat ? "Connected, " + bat : "Connected"
         }
         if (dev.paired || dev.bonded) return "Paired"
         return panel.isAnonymous(dev) ? "Unnamed device" : dev.address
@@ -460,7 +460,7 @@ Item {
                             text: {
                                 if (connCard.dev) {
                                     const bat = panel.batteryText(connCard.dev)
-                                    return bat ? "Connected · " + bat + " battery" : "Connected"
+                                    return bat ? "Connected, " + bat + " battery" : "Connected"
                                 }
                                 if (panel.adapterBlocked) return "Unblock with rfkill to use Bluetooth"
                                 if (!panel.adapterOn) return "Turn Bluetooth on to see devices"

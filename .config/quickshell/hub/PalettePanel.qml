@@ -246,7 +246,7 @@ Item {
                 // Overrides for each role
                 SCard {
                     label: Lib.PaletteService.schemeName(Lib.Configuration.paletteScheme)
-                        + " · " + (root.rDark ? "dark" : "light")
+                        + ", " + (root.rDark ? "dark" : "light")
                     Repeater {
                         model: root.roleNames
                         delegate: Lib.ColorPicker {

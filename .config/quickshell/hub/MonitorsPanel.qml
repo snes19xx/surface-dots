@@ -231,8 +231,8 @@ Item {
                             Layout.fillWidth: true
                         }
                         Text {
-                            text: modelData.name + "  ·  " + modelData.width + " × " + modelData.height
-                                  + "  ·  " + Math.round(modelData.refreshRate) + " Hz  ·  " + modelData.scale + "×"
+                            text: modelData.name + ", " + modelData.width + " × " + modelData.height
+                                  + ", " + Math.round(modelData.refreshRate) + " Hz, " + modelData.scale + "×"
                             font.family:    panel.theme.textFont
                             font.pixelSize: 11
                             color:          panel.theme.textSecondary

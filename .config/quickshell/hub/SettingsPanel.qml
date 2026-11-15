@@ -225,7 +225,7 @@ Item {
                 CPicker {
                     readonly property bool _cassini: Lib.Configuration.powerMenuStyle === "cassini"
                     readonly property bool _dark: !!(root.theme && root.theme.isDarkMode)
-                    label: (_cassini ? "Cassini" : "Living") + " accent · " + (_dark ? "dark" : "light")
+                    label: (_cassini ? "Cassini" : "Living") + " accent, " + (_dark ? "dark" : "light")
                     currentHex: root.hex6(_cassini
                         ? (_dark ? Lib.Configuration.powerMenuCassiniDark : Lib.Configuration.powerMenuCassiniLight)
                         : (_dark ? Lib.Configuration.powerMenuLifeDark    : Lib.Configuration.powerMenuLifeLight))

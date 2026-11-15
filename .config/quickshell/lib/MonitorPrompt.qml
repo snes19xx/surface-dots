@@ -32,7 +32,7 @@ PanelWindow {
 
     readonly property string monTitle: mon ? (mon.description || mon.name) : ""
     readonly property string monSub: mon
-        ? (mon.name + "  ·  " + mon.width + "x" + mon.height)
+        ? (mon.name + ", " + mon.width + "x" + mon.height)
         : ""
 
     function open(m) {
