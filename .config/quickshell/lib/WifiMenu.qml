@@ -731,7 +731,7 @@ PanelWindow {
         source: menuShadowSource
         shadowEnabled: true
         shadowColor: Qt.rgba(0, 0, 0, root.isDarkMode ? 0.55 : 0.22)
-        shadowBlur: 44 / 64
+        shadowBlur: Math.min(1, 44 * 1.7 / 64)
         blurMax: 64
         shadowVerticalOffset: 18
         shadowHorizontalOffset: 0

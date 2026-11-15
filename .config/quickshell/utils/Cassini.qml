@@ -48,8 +48,8 @@ Item {
         source: shadowSource
         shadowEnabled: true
         shadowColor: skin.dark ? "#aa000000" : "#55000000"
-        shadowBlur: Math.min(1, 16 / 32)
-        blurMax: 32
+        shadowBlur: Math.min(1, 16 * 1.7 / 64)
+        blurMax: 64
         shadowVerticalOffset: 8
         shadowHorizontalOffset: 0
         autoPaddingEnabled: true
