@@ -70,20 +70,26 @@ Item {
                     source: root.icon
                     sourceSize: Qt.size(width, height)
                     anchors.fill: parent
+                    layer.enabled: true
                     visible: false
                 }
 
-                MultiEffect {
+                // exact tint for any fill
+                Rectangle {
                     anchors.fill: iconImg
-                    source: iconImg
-                    colorization: 1.0
-                    brightness: 1.0   // dark svg, lift to white
                     opacity: 0.8
-                    colorizationColor: root.active
+                    color: root.active
                         ? (root.theme ? root.theme.textOnAccent : Theme.fgOnAccent)
                         : (root.hasCustomColor
                             ? root.customIconColor
                             : (root.theme ? root.theme.textPrimary : Theme.fgMain))
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        maskEnabled: true
+                        maskSource: iconImg
+                        maskThresholdMin: 0.5
+                        maskSpreadAtMin: 1.0
+                    }
 
                     
                     // ICON POP EFFECT

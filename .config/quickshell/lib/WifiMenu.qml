@@ -731,8 +731,8 @@ PanelWindow {
         source: menuShadowSource
         shadowEnabled: true
         shadowColor: Qt.rgba(0, 0, 0, root.isDarkMode ? 0.55 : 0.22)
-        shadowBlur: Math.min(1, 44 / 32)
-        blurMax: 32
+        shadowBlur: 44 / 64
+        blurMax: 64
         shadowVerticalOffset: 18
         shadowHorizontalOffset: 0
         autoPaddingEnabled: true
@@ -992,14 +992,29 @@ PanelWindow {
                                 color: cMuted
                                 Layout.fillWidth: true
                             }
-                            BusyIndicator { 
-                                running: scanRunning
+                            Item {
+                                implicitWidth: savedSpin.implicitWidth
+                                implicitHeight: savedSpin.implicitHeight
                                 visible: scanRunning
-                                layer.enabled: true
-                                layer.effect: MultiEffect {
-                                    colorization: 1.0
-                                    brightness: 1.0   // default spinner is dark
-                                    colorizationColor: isDarkMode ? cGreen : cMuted
+
+                                // mask only, hence opacity 0
+                                BusyIndicator {
+                                    id: savedSpin
+                                    anchors.fill: parent
+                                    running: scanRunning
+                                    layer.enabled: true
+                                    opacity: 0
+                                }
+                                Rectangle {
+                                    anchors.fill: parent
+                                    color: isDarkMode ? cGreen : cMuted
+                                    layer.enabled: true
+                                    layer.effect: MultiEffect {
+                                        maskEnabled: true
+                                        maskSource: savedSpin
+                                        maskThresholdMin: 0.5
+                                        maskSpreadAtMin: 1.0
+                                    }
                                 }
                             }
                         }

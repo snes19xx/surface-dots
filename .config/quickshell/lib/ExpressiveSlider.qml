@@ -88,18 +88,24 @@ Item {
                     source: root.icon
                     sourceSize: Qt.size(width, height)
                     anchors.fill: parent
+                    layer.enabled: true
                     visible: false
                     smooth: true
                     mipmap: true
                 }
 
-                MultiEffect {
+                // exact tint for any fill
+                Rectangle {
                     anchors.fill: iconImg
-                    source: iconImg
-                    colorization: 1.0
-                    brightness: 1.0   // dark svg, lift to white
                     // Fill always encloses icon, so always use on-accent color
-                    colorizationColor: root.theme ? root.theme.textOnAccent : Theme.fgOnAccent
+                    color: root.theme ? root.theme.textOnAccent : Theme.fgOnAccent
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        maskEnabled: true
+                        maskSource: iconImg
+                        maskThresholdMin: 0.5
+                        maskSpreadAtMin: 1.0
+                    }
                     transformOrigin: Item.Center
                     scale: slider.hovered || slider.pressed ? 1.3 : 1.0
                     Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
