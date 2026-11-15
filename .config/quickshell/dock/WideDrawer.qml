@@ -934,7 +934,7 @@ PanelWindow {
                                 x: drawerWin.tabOrder.indexOf(drawerWin.currentTab) * seg + 3
                                 radius: 7
                                 color: drawerWin.theme.accent
-                                Behavior on x { Lib.SpringSmooth { epsilon: 0.25 } }
+                                Behavior on x { Lib.SpringSnappy { epsilon: 0.25 } }
                             }
 
                             Row {

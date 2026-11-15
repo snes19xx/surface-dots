@@ -358,8 +358,8 @@ PanelWindow {
                             GradientStop { position: 0.45; color: pal.hoverPillG1 }
                             GradientStop { position: 1.0; color: pal.hoverPillG2 }
                         }
-                        Behavior on x { Lib.SpringSmooth { epsilon: 0.25 } }
-                        Behavior on width { Lib.SpringSmooth { epsilon: 0.25 } }
+                        Behavior on x { Lib.SpringSnappy { epsilon: 0.25 } }
+                        Behavior on width { Lib.SpringSnappy { epsilon: 0.25 } }
                     }
                 }
 
@@ -379,8 +379,8 @@ PanelWindow {
                         radius: 13
                         color: Qt.rgba(pal.textPrimary.r, pal.textPrimary.g, pal.textPrimary.b, 1)
                         opacity: 0.10
-                        Behavior on x { Lib.SpringSmooth { epsilon: 0.25 } }
-                        Behavior on width { Lib.SpringSmooth { epsilon: 0.25 } }
+                        Behavior on x { Lib.SpringSnappy { epsilon: 0.25 } }
+                        Behavior on width { Lib.SpringSnappy { epsilon: 0.25 } }
                     }
                 }
 
