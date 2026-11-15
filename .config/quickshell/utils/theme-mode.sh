@@ -312,6 +312,7 @@ fi
         --transition-pos center \
         --transition-step 90 \
         --transition-duration 1.2
+    mkdir -p "$HOME/.cache/quickshell" && touch "$HOME/.cache/quickshell/wallpaper_changed"
   fi
   
   # ---------------------------------------------------------------------------

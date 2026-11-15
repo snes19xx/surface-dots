@@ -184,6 +184,9 @@ Item {
                                 root.appliedFileName  = model.file_name
                                 backend.write("apply:" + model.full_path + "\n")
                                 backend.flush()
+                                // tells PaletteService to look again, the sleep gives awww time to switch
+                                Quickshell.execDetached(["bash", "-c",
+                                    "sleep 0.5; mkdir -p \"$HOME/.cache/quickshell\"; touch \"$HOME/.cache/quickshell/wallpaper_changed\""])
                                 root.triggerToast("wallpaper applied")
                                 paletteCanvas.extractFrom(model.thumb_path)
                             }
