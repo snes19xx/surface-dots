@@ -276,8 +276,8 @@ PanelWindow {
                 anchors.fill: shadowSrc
                 shadowEnabled: true
                 shadowColor: "#70000000"
-                shadowBlur: Math.min(1, 26 / 32)
-                blurMax: 32
+                shadowBlur: Math.min(1, 26 * 1.7 / 64)
+                blurMax: 64
                 shadowHorizontalOffset: 0
                 // ~ half the radius
                 shadowVerticalOffset: 12
