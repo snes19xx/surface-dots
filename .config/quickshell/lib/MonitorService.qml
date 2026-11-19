@@ -10,7 +10,8 @@ Scope {
 
     // STATE
     readonly property string laptopOutput: "eDP-1"
-    property var monitors: []              // parsed hyprctl monitors -j
+    property var monitors: []              // enabled only
+    property var allMonitors: []           // plus switched-off ones
     property var pending: null             // guest waiting for a choice
     property string appliedLayout: ""      // layout awaiting confirm
     property var revertSnapshot: null
@@ -72,11 +73,13 @@ Scope {
 
     Process {
         id: query
-        command: ["hyprctl", "monitors", "-j"]
+        command: ["hyprctl", "monitors", "all", "-j"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var list = []
                 try { list = JSON.parse(this.text || "[]") } catch (e) { return }
+                root.allMonitors = list
+                list = list.filter(function (m) { return !m.disabled })
                 root.monitors = list
 
                 var ext = root.externals()

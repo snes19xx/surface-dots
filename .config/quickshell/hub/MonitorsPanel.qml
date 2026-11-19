@@ -12,7 +12,7 @@ Item {
 
     implicitHeight: content.implicitHeight
 
-    readonly property var monitors: Lib.MonitorService.monitors
+    readonly property var monitors: Lib.MonitorService.allMonitors
     property string selected: ""
 
     function monFor(name) {
