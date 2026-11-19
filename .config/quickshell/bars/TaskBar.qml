@@ -741,10 +741,12 @@ PanelWindow {
                                 source: "../lib/arch.svg"
                                 visible: false
                                 layer.enabled: true
+                                // 2x texture for the hover zoom
+                                layer.smooth: true
+                                layer.textureSize: Qt.size(width * 2, height * 2)
                                 anchors.fill: parent
                                 fillMode: Image.PreserveAspectFit
                                 sourceSize: Qt.size(44, 44)
-                                smooth: false
                             }
                             // colorization would dim the blue
                             Rectangle {
@@ -981,6 +983,7 @@ PanelWindow {
                                                     layer.enabled: true
                                                     layer.smooth: true
                                                     layer.mipmap: true
+                                                    layer.textureSize: Qt.size(Math.ceil(width) * 2, Math.ceil(height) * 2)
                                                     Behavior on color { enabled: !modelData.urgent; ColorAnimation { duration: 140 } }
                                                     scale: (wsDelegate.isActive && wsHover.hovered) ? 1.25 : 1.0
                                                     Behavior on scale { Lib.SpringSnappy {} }
@@ -1133,6 +1136,8 @@ PanelWindow {
                                         fillMode: Image.PreserveAspectFit
                                         visible: false
                                         layer.enabled: true
+                                        layer.smooth: true
+                                        layer.textureSize: Qt.size(width * 2, height * 2)
                                     }
                                     // tray icons vary in colour
                                     Rectangle {

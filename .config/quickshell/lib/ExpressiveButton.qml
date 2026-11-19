@@ -68,9 +68,12 @@ Item {
                 Image {
                     id: iconImg
                     source: root.icon
-                    sourceSize: Qt.size(width, height)
+                    // 2x texture for the hover zoom
+                    sourceSize: Qt.size(width * 2, height * 2)
                     anchors.fill: parent
                     layer.enabled: true
+                    layer.smooth: true
+                    layer.textureSize: Qt.size(width * 2, height * 2)
                     visible: false
                 }
 

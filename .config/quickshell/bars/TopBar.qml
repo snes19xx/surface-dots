@@ -281,11 +281,13 @@ PanelWindow {
                         source: "../lib/arch.svg"
                         visible: false
                         layer.enabled: true
+                        // 2x texture for the hover zoom
+                        layer.smooth: true
+                        layer.textureSize: Qt.size(width * 2, height * 2)
                         anchors.fill: parent
                         fillMode: Image.PreserveAspectFit
                         // Rasterize at 2x (44px) relative to container (22px)
                         sourceSize: Qt.size(44, 44)
-                        smooth: false
                     }
                     // colorization would dim the blue
                     Rectangle {
@@ -465,6 +467,7 @@ PanelWindow {
                                             layer.enabled: true
                                             layer.smooth: true
                                             layer.mipmap: true
+                                            layer.textureSize: Qt.size(Math.ceil(width) * 2, Math.ceil(height) * 2)
                                             Behavior on color { enabled: !modelData.urgent; ColorAnimation { duration: 140 } }
                                             scale: (wsDelegate.isActive && wsHover.hovered) ? 1.25 : 1.0
                                             Behavior on scale { Lib.SpringSnappy {} }
@@ -589,7 +592,7 @@ PanelWindow {
                                 Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
                             }
 
-                            Image { id: trayImg; anchors.centerIn: parent; width: 16; height: 16; source: modelData.icon; sourceSize: Qt.size(32, 32); fillMode: Image.PreserveAspectFit; visible: false; layer.enabled: true }
+                            Image { id: trayImg; anchors.centerIn: parent; width: 16; height: 16; source: modelData.icon; sourceSize: Qt.size(32, 32); fillMode: Image.PreserveAspectFit; visible: false; layer.enabled: true; layer.smooth: true; layer.textureSize: Qt.size(32, 32) }
                             // tray icons vary in colour
                             Rectangle {
                                 anchors.fill: trayImg

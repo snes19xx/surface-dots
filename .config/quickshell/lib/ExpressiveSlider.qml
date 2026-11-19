@@ -86,9 +86,11 @@ Item {
                 Image {
                     id: iconImg
                     source: root.icon
-                    sourceSize: Qt.size(width, height)
+                    sourceSize: Qt.size(width * 2, height * 2)
                     anchors.fill: parent
                     layer.enabled: true
+                    layer.smooth: true
+                    layer.textureSize: Qt.size(width * 2, height * 2)
                     visible: false
                     smooth: true
                     mipmap: true

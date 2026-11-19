@@ -45,6 +45,8 @@ Item {
         radius: 17
         visible: false
         layer.enabled: true
+        layer.smooth: true
+        layer.textureSize: Qt.size(Math.ceil(width) * 2, Math.ceil(height) * 2)
         antialiasing: true
     }
 
@@ -53,6 +55,7 @@ Item {
         anchors.fill: parent
         layer.enabled: true
         layer.smooth: true
+        layer.textureSize: Qt.size(Math.ceil(width) * 2, Math.ceil(height) * 2)
         layer.effect: MultiEffect { maskEnabled: true; maskSource: mask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
 
         Rectangle {
