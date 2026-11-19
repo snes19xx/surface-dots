@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import "MonitorLayout.js" as Layout
 
 Scope {
     id: root
@@ -14,7 +15,11 @@ Scope {
     property string appliedLayout: ""      // layout awaiting confirm
     property var revertSnapshot: null
     property int revertSeconds: 0
+    property var order: []                 // externals, left to right
+    property var pendingPair: null         // awaiting a pair choice
+    property bool _placeAfter: false
 
+    signal pairConnected(var mons)
     signal guestConnected(var mon)
     signal monitorGone(string name)
     signal knownConnected(var mon)
@@ -54,6 +59,13 @@ Scope {
         return null
     }
 
+    function externals() {
+        var out = []
+        for (var i = 0; i < root.monitors.length; i++)
+            if (root.monitors[i].name !== root.laptopOutput) out.push(root.monitors[i])
+        return out
+    }
+
     // DETECTION
     property var _seen: ({})
     property bool _primed: false
@@ -67,13 +79,21 @@ Scope {
                 try { list = JSON.parse(this.text || "[]") } catch (e) { return }
                 root.monitors = list
 
+                var ext = root.externals()
+                var names = []
+                for (var k = 0; k < ext.length; k++) names.push(ext[k].name)
+                root.order = Layout.reconcileOrder(root.order, names)
+
                 var fresh = {}
+                var arrived = []
                 for (var i = 0; i < list.length; i++) {
                     var m = list[i]
                     fresh[m.name] = m.description
                     if (!root._primed) continue
                     if (root._seen[m.name] === m.description) continue
                     if (m.name === root.laptopOutput) continue
+
+                    if (ext.length >= 2) { arrived.push(m); continue }
 
                     var key = root.keyFor(m)
                     if (root.isKnown(m.description)) {
@@ -86,11 +106,30 @@ Scope {
                         root.guestConnected(m)
                     }
                 }
+                var changed = false
                 for (var name in root._seen)
-                    if (fresh[name] === undefined) root.monitorGone(name)
+                    if (fresh[name] === undefined) { root.monitorGone(name); changed = true }
+                for (var n2 in fresh)
+                    if (root._seen[n2] === undefined) changed = true
 
+                var wasPrimed = root._primed
                 root._seen = fresh
                 root._primed = true
+
+                if (ext.length >= 2 && (arrived.length > 0 || !wasPrimed)) {
+                    var pkey = Layout.pairKey(ext.map(function (e) { return root.keyFor(e) }))
+                    var saved = root.remembered[pkey]
+                    if (saved || !wasPrimed) {
+                        root.applyAll(saved || "externals", false)
+                        if (saved && wasPrimed) root.toast("Displays set to " + saved)
+                    } else {
+                        root.pendingPair = ext
+                        root.pairConnected(ext)
+                    }
+                } else if (root._placeAfter || (changed && ext.length >= 1)) {
+                    root._placeAfter = false
+                    root.placeAll()
+                }
             }
         }
     }
@@ -130,6 +169,7 @@ Scope {
         if (spec.position  !== undefined) parts.push('position = "' + spec.position + '"')
         if (spec.scale     !== undefined) parts.push("scale = " + spec.scale)
         if (spec.mirror    !== undefined) parts.push('mirror = "' + spec.mirror + '"')
+        if (spec.transform !== undefined) parts.push("transform = " + spec.transform)
         if (spec.disabled  !== undefined) parts.push("disabled = " + (spec.disabled ? "true" : "false"))
         Quickshell.execDetached(["hyprctl", "eval", "hl.monitor({ " + parts.join(", ") + " })"])
     }
@@ -141,9 +181,13 @@ Scope {
 
     function _snapshot() {
         var laptop = root.monitorFor(root.laptopOutput)
+        var on = []
+        var ext = root.externals()
+        for (var i = 0; i < ext.length; i++) on.push(ext[i].name)
         return {
             laptopDisabled: laptop === null,
-            guest: root.pending ? root.pending.name : ""
+            guest: root.pending ? root.pending.name : "",
+            extOn: on
         }
     }
 
@@ -178,8 +222,90 @@ Scope {
         }
 
         root.appliedLayout = layout
+        root._placeAfter = true
         settle.restart()
         if (needsConfirm) root.confirmNeeded(mon, layout)
+    }
+
+    // unmirrored screens, laptop first
+    function _row() {
+        var list = []
+        var laptop = root.monitorFor(root.laptopOutput)
+        if (laptop && laptop.mirrorOf === "none") list.push(laptop)
+        for (var i = 0; i < root.order.length; i++) {
+            var m = root.monitorFor(root.order[i])
+            if (m && m.mirrorOf === "none") list.push(m)
+        }
+        return list
+    }
+
+    function placeAll() {
+        var list = root._row()
+        var spots = Layout.place(list, 0)
+        for (var i = 0; i < list.length; i++) {
+            var m = list[i]
+            _mon({
+                output:    m.name,
+                mode:      m.width + "x" + m.height + "@" + Number(m.refreshRate).toFixed(2),
+                position:  spots[i].x + "x" + spots[i].y,
+                scale:     m.scale,
+                transform: m.transform
+            })
+        }
+        refreshSoon()
+    }
+
+    // two or more externals
+    function applyAll(layout, needsConfirm) {
+        var ext = root.externals()
+        if (ext.length === 0) return
+        if (needsConfirm === undefined) needsConfirm = true
+        root.revertSnapshot = root._snapshot()
+
+        switch (layout) {
+        case "externals":
+            _off(root.laptopOutput)
+            break
+        case "extend":
+            _on(root.laptopOutput)
+            break
+        case "duplicate":
+            _off(root.laptopOutput)
+            for (var i = 1; i < ext.length; i++)
+                _mon({ output: ext[i].name, mode: "preferred", position: "auto", scale: 1, mirror: ext[0].name })
+            break
+        case "laptop":
+            _on(root.laptopOutput)
+            for (var j = 0; j < ext.length; j++) _off(ext[j].name)
+            break
+        default:
+            return
+        }
+
+        root.appliedLayout = layout
+        root.pendingPair = null
+        root._placeAfter = true
+        settle.restart()
+        if (needsConfirm) root.confirmNeeded(ext[0], layout)
+    }
+
+    function setTransform(name, transform) {
+        var m = root.monitorFor(name)
+        if (!m) return
+        _mon({
+            output:    name,
+            mode:      m.width + "x" + m.height + "@" + Number(m.refreshRate).toFixed(2),
+            position:  m.x + "x" + m.y,
+            scale:     m.scale,
+            transform: transform
+        })
+        root._placeAfter = true
+        settle.restart()
+    }
+
+    function move(name, dir) {
+        root.order = Layout.move(root.order, name, dir)
+        root.placeAll()
     }
 
     function remember(desc, layout) {
@@ -197,13 +323,17 @@ Scope {
         save()
     }
 
-    // Put the guest back the way it was found and wake the laptop panel
+    // Put the screens back the way they were found and wake the laptop panel
     function revert() {
         var snap = root.revertSnapshot
         if (!snap) return
         if (snap.guest) _off(snap.guest)
+        var ext = root.externals()
+        for (var i = 0; i < ext.length; i++)
+            if (snap.extOn.indexOf(ext[i].name) === -1) _off(ext[i].name)
         if (!snap.laptopDisabled) _on(root.laptopOutput)
         root.appliedLayout = ""
+        root._placeAfter = true
         settle.restart()
     }
 
