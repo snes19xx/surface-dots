@@ -16,7 +16,10 @@ PanelWindow {
     height: 50
     margins { bottom: -14 }
     color: "transparent"    
-    WlrLayershell.exclusiveZone: Lib.Configuration.taskbarExclusiveZone
+    WlrLayershell.exclusiveZone: autoHide ? 0 : Lib.Configuration.taskbarExclusiveZone
+    mask: revealed ? null : triggerRegion
+
+    Region { id: triggerRegion; item: triggerStrip }
 
 
     // -----------------------------------------------
@@ -32,6 +35,14 @@ PanelWindow {
 
         property bool drawerOpen: false
         property double lastLauncherPress: 0
+
+        readonly property bool autoHide: Lib.Configuration.taskbarAutoHide
+        // Stops brush-past flicker
+        property bool hoverHeld: false
+        readonly property bool revealed: !autoHide || hoverHeld || barHover.hovered || drawerOpen
+        readonly property int slideDistance: 40
+        property real hiddenPx: revealed ? 0 : slideDistance
+        Behavior on hiddenPx { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
         property rect launcherRect: Qt.rect(0, 0, 0, 0)
         property rect clockRect: Qt.rect(0, 0, 0, 0)
         property bool hitRectsPending: false
@@ -358,12 +369,42 @@ PanelWindow {
 
         return ""
     }
-    
-    // ----------------------------------------------- 
+
+    // Static, so hover survives sliding
+    Item {
+        id: revealRoot
+        anchors.fill: parent
+
+        HoverHandler {
+            id: barHover
+            onHoveredChanged: {
+                if (hovered) { hideDelay.stop(); taskbar.hoverHeld = true }
+                else hideDelay.restart()
+            }
+        }
+
+        Item {
+            id: triggerStrip
+            anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+            // Window extends 14 px offscreen
+            anchors.bottomMargin: -taskbar.margins.bottom
+            height: 3
+        }
+    }
+
+    Timer {
+        id: hideDelay
+        interval: 450
+        onTriggered: taskbar.hoverHeld = false
+    }
+
+    // -----------------------------------------------
     // MAIN CONTAINER
-    // ----------------------------------------------- 
+    // -----------------------------------------------
     Item {
         id: container
+        parent: revealRoot
+        transform: Translate { y: taskbar.hiddenPx }
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 10

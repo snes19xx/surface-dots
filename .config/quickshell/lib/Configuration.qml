@@ -92,6 +92,7 @@ Scope {
     property int    taskbarExclusiveZone:      53
     property bool   taskbarForceDockMode:      false
     property bool   taskbarForceWorkspaceMode: false
+    property bool   taskbarAutoHide:           false
     property bool   taskbarCustomBg:           false
     property color  taskbarCustomBgColor:      "#141719"
     property color  taskbarAccent:             "#759b61"
@@ -212,6 +213,7 @@ Scope {
             taskbarExclusiveZone:     root.taskbarExclusiveZone,
             taskbarForceDockMode:     root.taskbarForceDockMode,
             taskbarForceWorkspaceMode:root.taskbarForceWorkspaceMode,
+            taskbarAutoHide:          root.taskbarAutoHide,
             taskbarCustomBg:          root.taskbarCustomBg,
             taskbarCustomBgColor:     String(root.taskbarCustomBgColor),
             taskbarAccent:            String(root.taskbarAccent),
@@ -272,6 +274,7 @@ Scope {
             if (d.taskbarExclusiveZone     !== undefined) root.taskbarExclusiveZone     = d.taskbarExclusiveZone
             if (d.taskbarForceDockMode     !== undefined) root.taskbarForceDockMode     = d.taskbarForceDockMode
             if (d.taskbarForceWorkspaceMode!== undefined) root.taskbarForceWorkspaceMode= d.taskbarForceWorkspaceMode
+            if (d.taskbarAutoHide          !== undefined) root.taskbarAutoHide          = d.taskbarAutoHide
             if (d.taskbarCustomBg          !== undefined) root.taskbarCustomBg          = d.taskbarCustomBg
             if (d.taskbarCustomBgColor     !== undefined) root.taskbarCustomBgColor     = d.taskbarCustomBgColor
             if (d.taskbarAccent            !== undefined) root.taskbarAccent            = d.taskbarAccent
