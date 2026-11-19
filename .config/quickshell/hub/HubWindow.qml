@@ -25,6 +25,7 @@ PanelWindow {
             win.monitorsMode = false
             win.wifiMode = false
             win.bluetoothMode = false
+            win.soundMode = false
         }
 
         // Single entry points for outside callers
@@ -32,6 +33,7 @@ PanelWindow {
         function showWifi()      { win.clearPanels(); win.wifiMode = true }
         function showBluetooth() { win.clearPanels(); win.bluetoothMode = true }
         function showPalette()   { win.clearPanels(); win.paletteMode = true }
+        function showSound()     { win.clearPanels(); win.soundMode = true }
 
         function closeAll() {
             win.clearPanels()
@@ -128,6 +130,9 @@ PanelWindow {
     property bool bluetoothMode: false
     property bool _btEverOpened: false
     onBluetoothModeChanged: if (win.bluetoothMode) win._btEverOpened = true
+    property bool soundMode: false
+    property bool _soundEverOpened: false
+    onSoundModeChanged: if (win.soundMode) win._soundEverOpened = true
     property QtObject hubTheme: theme
     // Top style drops the panel from under the bar; task style rises from the dock
     readonly property bool topAnchored: Lib.Configuration.barStyle === "top"
@@ -140,13 +145,15 @@ PanelWindow {
         : win.settingsPanelOpen ? "settings"
         : win.monitorsMode ? "monitors"
         : win.wifiMode ? "wifi"
-        : win.bluetoothMode ? "bluetooth" : "cards"
+        : win.bluetoothMode ? "bluetooth"
+        : win.soundMode ? "sound" : "cards"
     property int panelW: win.contentMode === "wallpaper" ? 540
         : win.contentMode === "palette" ? 560
         : win.contentMode === "settings" ? 620
         : win.contentMode === "monitors" ? 560
         : win.contentMode === "wifi" ? 460
         : win.contentMode === "bluetooth" ? 460
+        : win.contentMode === "sound" ? 460
         : win.topAnchored ? 320 : 520
 // ---------------------------------------------------------------------------------------------------------------------------
         Item {
@@ -190,6 +197,13 @@ PanelWindow {
                     var wasBt = win.bluetoothMode
                     win.clearPanels()
                     win.bluetoothMode = !wasBt
+                    event.accepted = true
+                }
+                // Press 'A' to toggle the sound output panel
+                else if (event.key === Qt.Key_A) {
+                    var wasSound = win.soundMode
+                    win.clearPanels()
+                    win.soundMode = !wasSound
                     event.accepted = true
                 }
                 // Press 'B' to toggle battery/system stats card
@@ -447,7 +461,8 @@ PanelWindow {
                         "settings":  settingsLoader,
                         "monitors":  monitorsLoader,
                         "wifi":      wifiLoader,
-                        "bluetooth": btLoader
+                        "bluetooth": btLoader,
+                        "sound":     soundLoader
                     })[win.contentMode] || null
                     implicitHeight: (activeLoader && activeLoader.height > 0)
                         ? activeLoader.height
@@ -650,6 +665,27 @@ PanelWindow {
                             live: win.visible && win.contentMode === "bluetooth"
                             onCloseRequested: win.bluetoothMode = false
                             onToastRequested: (msg) => panel.triggerToast(msg)
+                        }
+                    }
+
+                    Loader {
+                        id: soundLoader
+                        active: win._soundEverOpened
+                        width: parent.width
+                        height: Math.min(item ? item.implicitHeight : 0, contentArea.maxContentH)
+                        opacity: win.contentMode === "sound" ? 1 : 0
+                        visible: opacity > 0.01
+                        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+                        sourceComponent: soundPanelComponent
+                    }
+
+                    Component {
+                        id: soundPanelComponent
+                        SoundPanel {
+                            theme: win.hubTheme
+                            width: soundLoader.width
+                            height: soundLoader.height
+                            onCloseRequested: win.soundMode = false
                         }
                     }
                 } // close content area Item
