@@ -5,7 +5,7 @@ const path = require("node:path")
 
 const src = fs.readFileSync(path.join(__dirname, "../lib/MonitorLayout.js"), "utf8")
     .replace(/^\.pragma library\s*$/m, "")
-const L = new Function(src + "; return { logicalSize, place, reconcileOrder, move, pairKey }")()
+const L = new Function(src + "; return { logicalSize, place, reconcileOrder, move, moveTo, pairKey }")()
 
 const mon = (name, width, height, scale, transform) => ({ name, width, height, scale, transform })
 
@@ -56,6 +56,21 @@ test("move does not mutate its input", () => {
     const o = ["a", "b"]
     L.move(o, "a", 1)
     assert.deepStrictEqual(o, ["a", "b"])
+})
+
+test("moveTo puts a screen in the left, center or right slot", () => {
+    assert.deepStrictEqual(L.moveTo(["a", "b", "c"], "c", 0), ["c", "a", "b"])
+    assert.deepStrictEqual(L.moveTo(["a", "b", "c"], "a", 1), ["b", "a", "c"])
+    assert.deepStrictEqual(L.moveTo(["a", "b", "c"], "a", 2), ["b", "c", "a"])
+    assert.deepStrictEqual(L.moveTo(["a", "b"], "a", 1), ["b", "a"])
+})
+
+test("moveTo clamps the slot, ignores unknown names and does not mutate", () => {
+    const o = ["a", "b", "c"]
+    assert.deepStrictEqual(L.moveTo(o, "a", 9), ["b", "c", "a"])
+    assert.deepStrictEqual(L.moveTo(o, "a", -4), ["a", "b", "c"])
+    assert.deepStrictEqual(L.moveTo(o, "zzz", 0), ["a", "b", "c"])
+    assert.deepStrictEqual(o, ["a", "b", "c"])
 })
 
 test("pairKey is order independent", () => {

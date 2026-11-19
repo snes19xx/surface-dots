@@ -16,7 +16,7 @@ Scope {
     property string appliedLayout: ""      // layout awaiting confirm
     property var revertSnapshot: null
     property int revertSeconds: 0
-    property var order: []                 // externals, left to right
+    property var order: []                 // screens, left to right
     property var pendingPair: null         // awaiting a pair choice
     property bool _placeAfter: false
     property var _lastGood: ({})           // last mode seen per output
@@ -86,8 +86,12 @@ Scope {
 
                 var ext = root.externals()
                 var names = []
-                for (var k = 0; k < ext.length; k++) names.push(ext[k].name)
-                root.order = Layout.reconcileOrder(root.order, names)
+                for (var k = 0; k < list.length; k++) names.push(list[k].name)
+                var prev = root.order
+                // returning laptop goes leftmost
+                if (names.indexOf(root.laptopOutput) !== -1 && prev.indexOf(root.laptopOutput) === -1)
+                    prev = [root.laptopOutput].concat(prev)
+                root.order = Layout.reconcileOrder(prev, names)
                 if (ext.length < 2) root.pendingPair = null
 
                 var good = root._lastGood
@@ -269,11 +273,9 @@ Scope {
         if (needsConfirm) root.confirmNeeded(mon, layout)
     }
 
-    // unmirrored screens, laptop first
+    // unmirrored screens, in order
     function _row() {
         var list = []
-        var laptop = root.monitorFor(root.laptopOutput)
-        if (laptop && laptop.mirrorOf === "none") list.push(laptop)
         for (var i = 0; i < root.order.length; i++) {
             var m = root.monitorFor(root.order[i])
             if (m && m.mirrorOf === "none") list.push(m)
@@ -356,8 +358,8 @@ Scope {
         settle.restart()
     }
 
-    function move(name, dir) {
-        root.order = Layout.move(root.order, name, dir)
+    function moveTo(name, slot) {
+        root.order = Layout.moveTo(root.order, name, slot)
         root.placeAll()
     }
 

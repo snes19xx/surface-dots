@@ -38,6 +38,16 @@ function move(order, name, dir) {
     return out
 }
 
+// others keep their order
+function moveTo(order, name, index) {
+    var out = order.slice()
+    var i = out.indexOf(name)
+    if (i === -1) return out
+    out.splice(i, 1)
+    out.splice(Math.max(0, Math.min(index, out.length)), 0, name)
+    return out
+}
+
 function pairKey(descs) {
     return descs.slice().sort().join(" + ")
 }
