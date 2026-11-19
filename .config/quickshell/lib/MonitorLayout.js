@@ -18,12 +18,21 @@ function place(list, startX) {
     return out
 }
 
-function reconcileOrder(order, names) {
+// connector names swap between boots
+function reconcileOrder(order, names, rank) {
+    rank = rank || function () { return Infinity }
     var out = []
     for (var i = 0; i < order.length; i++)
         if (names.indexOf(order[i]) !== -1) out.push(order[i])
-    for (var j = 0; j < names.length; j++)
-        if (out.indexOf(names[j]) === -1) out.push(names[j])
+    var fresh = names.filter(function (n) { return out.indexOf(n) === -1 })
+        .map(function (n, k) { return { n: n, r: rank(n), k: k } })
+        .sort(function (a, b) { return a.r === b.r ? a.k - b.k : (a.r < b.r ? -1 : 1) })
+    for (var j = 0; j < fresh.length; j++) {
+        var at = out.length
+        for (var p = 0; p < out.length; p++)
+            if (rank(out[p]) > fresh[j].r) { at = p; break }
+        out.splice(at, 0, fresh[j].n)
+    }
     return out
 }
 
@@ -50,4 +59,24 @@ function moveTo(order, name, index) {
 
 function pairKey(descs) {
     return descs.slice().sort().join(" + ")
+}
+
+// null for "preferred" and such
+function parseMode(mode) {
+    var p = /^(\d+)x(\d+)@(\d+(?:\.\d+)?)$/.exec(String(mode || ""))
+    return p ? { width: Number(p[1]), height: Number(p[2]), hz: Number(p[3]) } : null
+}
+
+// saved values over live ones
+function target(m, saved, transform) {
+    var t = {
+        name: m.name, width: m.width, height: m.height,
+        mode: m.width + "x" + m.height + "@" + Number(m.refreshRate).toFixed(2),
+        scale: m.scale, transform: m.transform
+    }
+    var p = saved ? parseMode(saved.mode) : null
+    if (p) { t.width = p.width; t.height = p.height; t.mode = saved.mode }
+    if (saved && saved.scale > 0) t.scale = saved.scale
+    if (transform !== undefined) t.transform = transform
+    return t
 }

@@ -32,6 +32,10 @@ Scope {
     // Descriptions treated as configured screens. 
     property var knownPatterns: []
     property var remembered: ({})          // description -> layout
+    property var screens: ({})             // description -> mode, scale
+    property var setups: ({})              // setup key -> order, transforms
+    // Description substrings, left to right
+    property var leftToRight: []
 
     // Where the prompt shows. The laptop panel normally, but it is switched off
     // while the monitor is docked, so fall back to whatever screen is focused.
@@ -54,6 +58,28 @@ Scope {
         for (var i = 0; i < root.knownPatterns.length; i++)
             if (d.indexOf(root.knownPatterns[i]) !== -1) return true
         return false
+    }
+
+    function _slotRank(name) {
+        if (name === root.laptopOutput) return -1
+        var m = root.monitorFor(name)
+        var d = m ? (m.description || "") : ""
+        for (var i = 0; i < root.leftToRight.length; i++)
+            if (d.indexOf(root.leftToRight[i]) !== -1) return i
+        return Infinity
+    }
+
+    // one key per desk setup
+    function _setupKey(list) {
+        return Layout.pairKey((list || root.monitors).map(function (m) { return root.keyFor(m) }))
+    }
+
+    function _namesFor(descs, list) {
+        var out = []
+        for (var i = 0; i < descs.length; i++)
+            for (var j = 0; j < list.length; j++)
+                if (root.keyFor(list[j]) === descs[i]) { out.push(list[j].name); break }
+        return out
     }
 
     function monitorFor(name) {
@@ -87,11 +113,17 @@ Scope {
                 var ext = root.externals()
                 var names = []
                 for (var k = 0; k < list.length; k++) names.push(list[k].name)
+                var setChanged = !root._primed || names.length !== Object.keys(root._seen).length
+                for (var s = 0; s < list.length; s++)
+                    if (root._seen[list[s].name] !== list[s].description) setChanged = true
                 var prev = root.order
                 // returning laptop goes leftmost
                 if (names.indexOf(root.laptopOutput) !== -1 && prev.indexOf(root.laptopOutput) === -1)
                     prev = [root.laptopOutput].concat(prev)
-                root.order = Layout.reconcileOrder(prev, names)
+                // saved order beats leftToRight
+                var setup = root.setups[root._setupKey(list)]
+                if (setChanged && setup && setup.order) prev = root._namesFor(setup.order, list)
+                root.order = Layout.reconcileOrder(prev, names, root._slotRank)
                 if (ext.length < 2) root.pendingPair = null
 
                 var good = root._lastGood
@@ -149,7 +181,8 @@ Scope {
                         root.pendingPair = ext
                         root.pairConnected(ext)
                     }
-                } else if (root._placeAfter || (changed && ext.length >= 1)) {
+                } else if (root._placeAfter || changed) {
+                    // hotplug re-applies the laptop rule
                     root._placeAfter = false
                     root.placeAll()
                 }
@@ -167,6 +200,11 @@ Scope {
             if (ev.name === "monitoradded" || ev.name === "monitorremoved"
                 || ev.name === "monitoraddedv2")
                 settle.restart()
+            // reload resets every screen
+            if (ev.name === "configreloaded") {
+                root._placeAfter = true
+                settle.restart()
+            }
         }
     }
 
@@ -178,7 +216,8 @@ Scope {
         onTriggered: root.refresh()
     }
 
-    Component.onCompleted: root.refresh()
+    // Hyprland re-applies rules 500ms after login
+    Component.onCompleted: root.refreshSoon()
 
     // APPLY
     function _shortName(m) {
@@ -284,17 +323,21 @@ Scope {
     }
 
     function placeAll() {
-        var list = root._row()
+        var turns = (root.setups[root._setupKey()] || {}).transforms || {}
+        var list = root._row().map(function (m) {
+            var key = root.keyFor(m)
+            return Layout.target(m, root.screens[key], turns[key])
+        })
         var spots = Layout.place(list, 0)
         var specs = []
         for (var i = 0; i < list.length; i++) {
-            var m = list[i]
+            var t = list[i]
             specs.push({
-                output:    m.name,
-                mode:      m.width + "x" + m.height + "@" + Number(m.refreshRate).toFixed(2),
+                output:    t.name,
+                mode:      t.mode,
                 position:  spots[i].x + "x" + spots[i].y,
-                scale:     m.scale,
-                transform: m.transform
+                scale:     t.scale,
+                transform: t.transform
             })
         }
         _monBatch(specs)
@@ -360,7 +403,35 @@ Scope {
 
     function moveTo(name, slot) {
         root.order = Layout.moveTo(root.order, name, slot)
+        var descs = []
+        for (var i = 0; i < root.order.length; i++) {
+            var m = root.monitorFor(root.order[i])
+            if (m) descs.push(root.keyFor(m))
+        }
+        root._editSetup(function (s) { s.order = descs })
         root.placeAll()
+    }
+
+    // rotation is per setup, not per screen
+    function saveScreen(m, mode, scale, transform) {
+        var key = root.keyFor(m)
+        var next = JSON.parse(JSON.stringify(root.screens))
+        next[key] = { mode: mode, scale: scale }
+        root.screens = next
+        root._editSetup(function (s) {
+            s.transforms = s.transforms || {}
+            s.transforms[key] = transform
+        })
+    }
+
+    function _editSetup(fn) {
+        var next = JSON.parse(JSON.stringify(root.setups))
+        var key = root._setupKey()
+        var s = next[key] || {}
+        fn(s)
+        next[key] = s
+        root.setups = next
+        save()
     }
 
     function remember(desc, layout) {
@@ -413,7 +484,9 @@ Scope {
         interval: 60
         onTriggered: stateFile.setText(JSON.stringify({
             knownPatterns: root.knownPatterns,
-            remembered:    root.remembered
+            remembered:    root.remembered,
+            screens:       root.screens,
+            setups:        root.setups
         }, null, 2))
     }
 
@@ -426,6 +499,8 @@ Scope {
                 var j = JSON.parse(text() || "{}")
                 if (j.knownPatterns) root.knownPatterns = j.knownPatterns
                 if (j.remembered)    root.remembered    = j.remembered
+                if (j.screens)       root.screens       = j.screens
+                if (j.setups)        root.setups        = j.setups
             } catch (e) { }
         }
     }

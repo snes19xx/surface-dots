@@ -5,7 +5,7 @@ const path = require("node:path")
 
 const src = fs.readFileSync(path.join(__dirname, "../lib/MonitorLayout.js"), "utf8")
     .replace(/^\.pragma library\s*$/m, "")
-const L = new Function(src + "; return { logicalSize, place, reconcileOrder, move, moveTo, pairKey }")()
+const L = new Function(src + "; return { logicalSize, place, reconcileOrder, move, moveTo, pairKey, parseMode, target }")()
 
 const mon = (name, width, height, scale, transform) => ({ name, width, height, scale, transform })
 
@@ -44,6 +44,16 @@ test("reconcileOrder drops gone names and appends new ones", () => {
     assert.deepStrictEqual(L.reconcileOrder(["a"], []), [])
 })
 
+test("reconcileOrder places new names by rank, whatever the connector order", () => {
+    const rank = n => ({ left: 0, right: 1 })[n] ?? Infinity
+    assert.deepStrictEqual(L.reconcileOrder([], ["right", "left"], rank), ["left", "right"])
+    // replugged left goes back first
+    assert.deepStrictEqual(L.reconcileOrder(["right"], ["right", "left"], rank), ["left", "right"])
+    // unranked last, picked slots kept
+    assert.deepStrictEqual(L.reconcileOrder([], ["tv", "right", "left"], rank), ["left", "right", "tv"])
+    assert.deepStrictEqual(L.reconcileOrder(["right", "left"], ["right", "left"], rank), ["right", "left"])
+})
+
 test("move swaps with the neighbour and stops at the ends", () => {
     assert.deepStrictEqual(L.move(["a", "b", "c"], "b", -1), ["b", "a", "c"])
     assert.deepStrictEqual(L.move(["a", "b", "c"], "b", 1), ["a", "c", "b"])
@@ -76,4 +86,37 @@ test("moveTo clamps the slot, ignores unknown names and does not mutate", () => 
 test("pairKey is order independent", () => {
     assert.strictEqual(L.pairKey(["Z", "A"]), "A + Z")
     assert.strictEqual(L.pairKey(["A", "Z"]), "A + Z")
+})
+
+test("parseMode reads size and rate, and rejects anything else", () => {
+    assert.deepStrictEqual(L.parseMode("1920x1200@120"), { width: 1920, height: 1200, hz: 120 })
+    assert.deepStrictEqual(L.parseMode("1920x1080@143.85"), { width: 1920, height: 1080, hz: 143.85 })
+    assert.strictEqual(L.parseMode("preferred"), null)
+    assert.strictEqual(L.parseMode(undefined), null)
+})
+
+const live = { name: "eDP-1", width: 1920, height: 1200, refreshRate: 60.001, scale: 1, transform: 0 }
+
+test("target keeps the live mode when nothing is saved", () => {
+    assert.deepStrictEqual(L.target(live, undefined, undefined), {
+        name: "eDP-1", width: 1920, height: 1200, mode: "1920x1200@60.00", scale: 1, transform: 0,
+    })
+})
+
+test("target lays the saved mode, scale and rotation over the live screen", () => {
+    assert.deepStrictEqual(L.target(live, { mode: "2560x1600@120", scale: 1.5 }, 3), {
+        name: "eDP-1", width: 2560, height: 1600, mode: "2560x1600@120", scale: 1.5, transform: 3,
+    })
+})
+
+test("target ignores a broken saved mode and a missing scale", () => {
+    const t = L.target(live, { mode: "garbage" }, undefined)
+    assert.strictEqual(t.mode, "1920x1200@60.00")
+    assert.strictEqual(t.scale, 1)
+})
+
+test("place uses the target size, so a saved rotation moves the next screen", () => {
+    const a = L.target({ name: "a", width: 1920, height: 1080, refreshRate: 60, scale: 1, transform: 0 }, undefined, 1)
+    const b = L.target({ name: "b", width: 1920, height: 1080, refreshRate: 60, scale: 1, transform: 0 }, undefined, undefined)
+    assert.deepStrictEqual(L.place([a, b], 0), [{ name: "a", x: 0, y: 0 }, { name: "b", x: 1080, y: 0 }])
 })
