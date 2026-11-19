@@ -167,7 +167,7 @@ PanelWindow {
     function toggleTab() { cycleTab(1) }
 
     function focusGrid() {
-        var g = (currentTab === "apps") ? appGrid : (currentTab === "shaders") ? shaderGrid : clipList
+        var g = (currentTab === "apps") ? appGrid : (currentTab === "shaders") ? shaderGrid : clipActive
         if (g.count > 0) {
             if (g.currentIndex < 0) g.currentIndex = 0
             g.forceActiveFocus()
@@ -316,19 +316,31 @@ PanelWindow {
                  label: e.label, detail: e.detail, host: e.host, rest: e.rest, swatch: e.swatch }
     }
 
+    // "all" or an entry kind
+    property string clipKind: "all"
+    readonly property var clipActive: clipKind === "image" ? clipGrid : clipList
+    property var clipCounts: ({ all: 0 })
+
     // edits the model in place, clearing it would kill the remove animation and lose the selection
     function rebuildClip() {
-        if (!searchField || !clipList) return
+        if (!searchField || !clipList || !clipGrid) return
         var query = searchField.text.toLowerCase().trim()
         var all = Lib.Clipboard.entries
         var want = []
         var wantIds = ({})
+        var counts = ({ all: 0 })
         for (var c = 0; c < all.length; c++) {
             if (query === "" || all[c].preview.toLowerCase().includes(query)) {
+                counts.all++
+                counts[all[c].kind] = (counts[all[c].kind] || 0) + 1
+                if (clipKind !== "all" && all[c].kind !== clipKind) continue
                 want.push(all[c])
                 wantIds[all[c].id] = true
             }
         }
+        clipCounts = counts
+        // Empty group resets to all
+        if (clipKind !== "all" && !counts[clipKind]) { clipKind = "all"; rebuildClip(); return }
         for (var r = filteredClipModel.count - 1; r >= 0; r--)
             if (!wantIds[filteredClipModel.get(r).cid]) filteredClipModel.remove(r)
         for (var i = 0; i < want.length; i++) {
@@ -342,7 +354,10 @@ PanelWindow {
             }
             if (filteredClipModel.get(i).thumb !== e.thumb) filteredClipModel.setProperty(i, "thumb", e.thumb)
         }
-        if (filteredClipModel.count > 0 && clipList.currentIndex < 0) clipList.currentIndex = 0
+        if (filteredClipModel.count > 0) {
+            if (clipList.currentIndex < 0) clipList.currentIndex = 0
+            if (clipGrid.currentIndex < 0) clipGrid.currentIndex = 0
+        }
     }
 
     // flash the copied row for a sec before closing
@@ -464,12 +479,14 @@ PanelWindow {
         }
 
         if (clipList) clipList.currentIndex = 0   // a new query restarts the selection
+        if (clipGrid) clipGrid.currentIndex = 0
         rebuildClip()
 
         Qt.callLater(function() {
             if (appGrid) appGrid.positionViewAtBeginning()
             if (shaderGrid) shaderGrid.positionViewAtBeginning()
             if (clipList) clipList.positionViewAtBeginning()
+            if (clipGrid) clipGrid.positionViewAtBeginning()
        })
     }
 
@@ -491,46 +508,52 @@ PanelWindow {
         z: 1
 
         property real activeHeight: drawerWin.isOpen ? height : 0
-        Behavior on activeHeight { Lib.SpringGentle { epsilon: 0.25 } }
+        // Spring crawled the last pixels
+        Behavior on activeHeight { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
 
         opacity: drawerWin.isOpen ? 1.0 : 0.0
         Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutQuart } }
 
-        // Starts at the drawer's top edge and clips, so the blur only
-        // escapes on the left, right and bottom.
         Item {
             id: shellShadow
             z: -1
             visible: shell.activeHeight > 0
 
-            property int spread: 34
+            property int spread: 30
+            // Capped, the spring overshoots
+            readonly property real revealed: Math.min(clipped.height, panel.height)
 
             anchors.left: clipped.left
             anchors.leftMargin: -spread
             anchors.bottom: clipped.bottom
             anchors.bottomMargin: -spread
             width: clipped.width + spread * 2
-            height: clipped.height + spread
-            clip: true
+            height: revealed + spread * 2
 
             Item {
+                id: shadowSrc
                 x: shellShadow.spread
-                y: 0
+                y: shellShadow.spread
                 width: clipped.width
-                height: clipped.height
-
+                height: shellShadow.revealed
+                visible: false
                 layer.enabled: true
-                layer.effect: MultiEffect {
-                    shadowEnabled: true
-                    shadowColor: "#70000000"
-                    // 1.7x matches old DropShadow
-                    shadowBlur: Math.min(1, 26 * 1.7 / 64)
-                    blurMax: 64
-                    shadowHorizontalOffset: 0
-                    shadowVerticalOffset: 6
-                    autoPaddingEnabled: true
-                }
-                Rectangle { anchors.fill: parent; radius: 16; color: "black" }
+
+                Rectangle { anchors.fill: parent; radius: panel.radius; color: "black" }
+            }
+
+            MultiEffect {
+                source: shadowSrc
+                anchors.fill: shadowSrc
+                shadowEnabled: true
+                shadowColor: "#70000000"
+                // 1.7x matches old DropShadow
+                shadowBlur: Math.min(1, 26 * 1.7 / 64)
+                blurMax: 64
+                shadowHorizontalOffset: 0
+                // Blur fades before the top
+                shadowVerticalOffset: 12
+                autoPaddingEnabled: true
             }
         }
 
@@ -539,7 +562,7 @@ PanelWindow {
             anchors.left: parent.left
             anchors.bottom: parent.bottom
             width: parent.width
-            height: parent.activeHeight
+            height: Math.round(parent.activeHeight)
             clip: true
 
             Rectangle {
@@ -778,10 +801,91 @@ PanelWindow {
                                     }
                                 }
 
+                                // One chip per non-empty kind
+                                Row {
+                                    Layout.fillWidth: true
+                                    Layout.leftMargin: 6
+                                    Layout.rightMargin: 6
+                                    Layout.preferredHeight: 34
+                                    spacing: 6
+                                    visible: clipView.total > 0
+
+                                    Repeater {
+                                        model: [
+                                            { k: "all",   l: "All",     g: "" },
+                                            { k: "image", l: "Images",  g: "" },
+                                            { k: "link",  l: "Links",   g: "" },
+                                            { k: "path",  l: "Paths",   g: "" },
+                                            { k: "code",  l: "Code",    g: "" },
+                                            { k: "color", l: "Colours" },
+                                            { k: "text",  l: "Text",    g: "" }
+                                        ]
+                                        delegate: Rectangle {
+                                            id: chip
+                                            required property var modelData
+                                            readonly property int n: drawerWin.clipCounts[modelData.k] || 0
+                                            readonly property bool on: drawerWin.clipKind === modelData.k
+                                            visible: n > 0
+                                            width: chipRow.implicitWidth + 28
+                                            height: 34
+                                            radius: 8
+                                            color: on ? Qt.alpha(drawerWin.theme.accent, 0.14)
+                                                : chipMa.containsMouse ? drawerWin.theme.subtleFillHover
+                                                : drawerWin.theme.subtleFill
+                                            border.width: 1
+                                            border.color: on ? Qt.alpha(drawerWin.theme.accent, 0.7) : drawerWin.theme.outline
+                                            scale: chipMa.pressed ? 0.95 : 1.0
+                                            Behavior on color { ColorAnimation { duration: 160 } }
+                                            Behavior on border.color { ColorAnimation { duration: 160 } }
+                                            Behavior on scale { NumberAnimation { duration: 90 } }
+
+                                            Row {
+                                                id: chipRow
+                                                anchors.centerIn: parent
+                                                spacing: 6
+                                                Text {
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    text: chip.modelData.l
+                                                    font.family: clipView.fontText
+                                                    font.pixelSize: 16
+                                                    font.weight: clipView.titleWeight
+                                                    font.letterSpacing: clipView.titleSpacing
+                                                    color: chip.on ? drawerWin.theme.accent : drawerWin.theme.textSecondary
+                                                }
+                                                Text {
+                                                    anchors.verticalCenter: parent.verticalCenter
+                                                    text: chip.n
+                                                    font.family: clipView.fontText
+                                                    font.pixelSize: 14
+                                                    font.weight: clipView.metaWeight
+                                                    color: chip.on ? drawerWin.theme.accent : drawerWin.theme.textSecondary
+                                                    opacity: 0.8
+                                                }
+                                            }
+                                            MouseArea {
+                                                id: chipMa
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: { drawerWin.clipKind = chip.modelData.k; drawerWin.rebuildClip() }
+                                            }
+                                        }
+                                    }
+                                }
+
                                 ClipList {
                                     id: clipList
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
+                                    visible: drawerWin.clipKind !== "image"
+                                    model: filteredClipModel
+                                }
+
+                                ClipImageGrid {
+                                    id: clipGrid
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    visible: drawerWin.clipKind === "image"
                                     model: filteredClipModel
                                 }
 
@@ -1199,7 +1303,7 @@ PanelWindow {
                 var maxY = Math.max(-ag.topMargin, ag.contentHeight - ag.height + ag.bottomMargin)
                 var base = agAnim.running ? agAnim.to : ag.contentY
                 var step = Math.abs(e.angleDelta.y) * 1.1 + 24
-                var ny = Math.max(-ag.topMargin, Math.min(base + (e.angleDelta.y > 0 ? -step : step), maxY))
+                var ny = Math.max(-ag.topMargin, Math.min(base + (e.angleDelta.y > 0 ? -step : (e.angleDelta.y < 0 ? step : 0)), maxY))
                 agAnim.to = ny; agAnim.restart(); e.accepted = true
             }
         }
@@ -1563,6 +1667,173 @@ PanelWindow {
                                     onClicked: Lib.Clipboard.remove(model.cid)
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Image grid over ClipList's model
+    component ClipImageGrid: GridView {
+        id: cg
+        clip: true
+        topMargin: 4
+        bottomMargin: 4
+        boundsBehavior: Flickable.StopAtBounds
+        keyNavigationEnabled: true
+
+        readonly property int columns: Math.max(2, Math.floor(width / 190))
+        cellWidth: Math.floor(width / columns)
+        cellHeight: Math.round(cellWidth * 0.68)
+
+        function activateCurrent() {
+            var m = filteredClipModel.get(cg.currentIndex)
+            if (m) drawerWin.copyClip(m.cid)
+        }
+        function removeCurrent() {
+            var m = filteredClipModel.get(cg.currentIndex)
+            if (m) Lib.Clipboard.remove(m.cid)
+        }
+        Keys.onPressed: (e) => drawerWin.typeToSearch(e)
+        Keys.onReturnPressed: cg.activateCurrent()
+        Keys.onEnterPressed:  cg.activateCurrent()
+        Keys.onDeletePressed: cg.removeCurrent()
+        Keys.onEscapePressed: drawerWin.close()
+        Keys.onTabPressed: { drawerWin.toggleTab(); drawerWin.focusGrid() }
+        Keys.onBacktabPressed: { drawerWin.cycleTab(-1); drawerWin.focusGrid() }
+        Keys.onDownPressed: (e) => {
+            if (cg.currentIndex + cg.columns >= cg.count) {
+                searchField.forceActiveFocus()
+                e.accepted = true
+            } else e.accepted = false
+        }
+
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+            contentItem: Rectangle {
+                implicitWidth: 5; radius: 3
+                color: drawerWin.theme.textSecondary
+                opacity: parent.active ? 0.5 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 150 } }
+            }
+        }
+
+        delegate: Item {
+            id: tile
+            width: cg.cellWidth
+            height: cg.cellHeight
+            readonly property bool selected: cg.activeFocus && cg.currentIndex === index
+            readonly property bool hot: tm.containsMouse || selected
+
+            MouseArea {
+                id: tm
+                anchors.fill: parent
+                anchors.margins: 5
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: drawerWin.copyClip(model.cid)
+
+                Item {
+                    anchors.fill: parent
+                    scale: tm.pressed ? 0.98 : 1.0
+                    Behavior on scale { Lib.SpringSnappy {} }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 10
+                        color: drawerWin.theme.subtleFill
+                        Text {
+                            anchors.centerIn: parent
+                            visible: timg.status !== Image.Ready
+                            text: ""
+                            font.family: clipView.fontMono
+                            font.pixelSize: 26
+                            color: drawerWin.theme.textSecondary
+                            opacity: 0.5
+                        }
+                    }
+                    Image {
+                        id: timg
+                        anchors.fill: parent
+                        source: model.thumb
+                        fillMode: Image.PreserveAspectCrop
+                        sourceSize: Qt.size(400, 280)
+                        asynchronous: true
+                        smooth: true
+                        visible: false
+                    }
+                    Rectangle { id: tmask; anchors.fill: parent; radius: 10; visible: false; layer.enabled: true }
+                    MultiEffect {
+                        anchors.fill: parent
+                        source: timg
+                        maskEnabled: true
+                        maskSource: tmask
+                        maskThresholdMin: 0.5
+                        maskSpreadAtMin: 1.0
+                        visible: timg.status === Image.Ready
+                    }
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 10
+                        color: drawerWin.theme.accent
+                        opacity: drawerWin.flashId === model.cid ? 0.4 : (tile.hot ? 0.12 : 0)
+                        Behavior on opacity { NumberAnimation { duration: 120 } }
+                    }
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 10
+                        color: "transparent"
+                        border.width: tile.selected ? 2 : 1
+                        border.color: tile.selected ? drawerWin.theme.accent : drawerWin.theme.outline
+                    }
+
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.bottom: parent.bottom
+                        anchors.margins: 6
+                        radius: 6
+                        width: cap.implicitWidth + 14
+                        height: cap.implicitHeight + 8
+                        color: Qt.rgba(0, 0, 0, 0.62)
+                        opacity: tile.hot ? 1 : 0
+                        Behavior on opacity { NumberAnimation { duration: 140 } }
+                        Text {
+                            id: cap
+                            anchors.centerIn: parent
+                            text: model.label + (model.detail !== "" ? "  " + model.detail : "")
+                            textFormat: Text.PlainText
+                            font.family: clipView.fontText
+                            font.pixelSize: clipView.metaSize
+                            font.weight: clipView.metaWeight
+                            color: "white"
+                        }
+                    }
+
+                    Rectangle {
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.margins: 6
+                        width: 28; height: 28
+                        radius: 8
+                        color: tr.containsMouse ? Qt.rgba(0.85, 0.2, 0.2, 0.9) : Qt.rgba(0, 0, 0, 0.62)
+                        opacity: tile.hot ? 1 : 0
+                        Behavior on opacity { NumberAnimation { duration: 140 } }
+                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Text {
+                            anchors.centerIn: parent
+                            text: ""
+                            font.family: clipView.fontMono
+                            font.pixelSize: 14
+                            color: "white"
+                        }
+                        MouseArea {
+                            id: tr
+                            anchors.fill: parent
+                            enabled: parent.opacity > 0.3
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: Lib.Clipboard.remove(model.cid)
                         }
                     }
                 }
