@@ -11,6 +11,8 @@ Item {
 
     required property var theme
     required property int nid
+    // Count behind this card
+    required property int more
 
     // null once closed
     property var notif: null
@@ -36,7 +38,7 @@ Item {
 
     property real appear: 0
 
-    readonly property double born: Date.now()
+    property double born: Date.now()
     property string ageText: "now"
     function _age() {
         var m = Math.floor((Date.now() - born) / 60000)
@@ -66,6 +68,16 @@ Item {
 
     implicitHeight: card.height
     height: implicitHeight
+
+    // Newer one resets the timeout
+    property bool _ready: false
+    onNidChanged: {
+        if (!_ready) return
+        adopt(Notifs.find(nid))
+        born = Date.now()
+        ageText = "now"
+        timedOut = false
+    }
 
     function adopt(n) {
         notif = n
@@ -114,6 +126,7 @@ Item {
 
     Component.onCompleted: {
         adopt(Notifs.find(nid))
+        _ready = true
         enterAnim.start()
     }
 
@@ -208,14 +221,15 @@ Item {
                 width: parent.width
                 height: content.implicitHeight + PopupStyle.toastPadY * 2
                 radius: PopupStyle.radiusCard
-                color: PopupStyle.surface(toast.theme)
+                color: Qt.tint(
+                    toast.critical
+                        ? Qt.tint(PopupStyle.surface(toast.theme), Qt.alpha(toast.theme.accentRed, 0.22))
+                        : PopupStyle.surface(toast.theme),
+                    Qt.alpha(toast.accentColor, ma.pressed ? 0.34 : toast.hovered ? 0.16 : 0))
                 antialiasing: true
                 border.width: PopupStyle.hairline(toast.theme)
-                border.color: toast.hovered || ma.pressed
-                    ? PopupStyle.solid(toast.theme, toast.accentColor)
-                    : toast.critical ? PopupStyle.solid(toast.theme, toast.theme.accentRed)
-                    : toast.theme.outline
-                Behavior on border.color { ColorAnimation { duration: 140 } }
+                border.color: toast.theme.outline
+                Behavior on color { ColorAnimation { duration: 140 } }
 
                 HoverHandler {
                     id: hover
@@ -299,15 +313,38 @@ Item {
                         }
 
                         Text {
+                            id: appLabel
                             Layout.fillWidth: true
+                            Layout.maximumWidth: implicitWidth
                             text: (toast.appName !== "" ? toast.appName : "System").toUpperCase()
                             textFormat: Text.PlainText
-                            font: PopupStyle.label(toast.theme)
+                            font: PopupStyle.toastFont(PopupStyle.label(toast.theme))
                             renderType: Text.NativeRendering
                             color: PopupStyle.solid(toast.theme, toast.accentColor)
                             elide: Text.ElideRight
                             maximumLineCount: 1
                         }
+
+                        Rectangle {
+                            visible: toast.more > 0
+                            Layout.alignment: Qt.AlignVCenter
+                            implicitWidth: countLabel.implicitWidth + 20
+                            implicitHeight: countLabel.implicitHeight + 8
+                            radius: height / 2
+                            color: Qt.alpha(toast.accentColor, 0.24)
+
+                            Text {
+                                id: countLabel
+                                anchors.centerIn: parent
+                                text: (toast.more + 1) + " messages"
+                                textFormat: Text.PlainText
+                                font: Qt.font({ family: toast.theme.textFont, pixelSize: 16, weight: Font.DemiBold })
+                                renderType: Text.NativeRendering
+                                color: PopupStyle.solid(toast.theme, toast.accentColor)
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
 
                         // hover swaps age for close
                         Item {
@@ -319,7 +356,7 @@ Item {
                                 anchors.right: parent.right
                                 text: toast.ageText
                                 textFormat: Text.PlainText
-                                font: PopupStyle.detail(toast.theme)
+                                font: PopupStyle.toastFont(PopupStyle.detail(toast.theme))
                                 renderType: Text.NativeRendering
                                 color: Qt.alpha(toast.theme.textSecondary, PopupStyle.detailOpacity)
                                 opacity: toast.hovered ? 0 : 1
@@ -331,7 +368,7 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: ""
                                 font.family: toast.theme.iconFont
-                                font.pixelSize: PopupStyle.detail(toast.theme).pixelSize
+                                font.pixelSize: PopupStyle.toastFont(PopupStyle.detail(toast.theme)).pixelSize
                                 color: closeMa.containsMouse
                                     ? PopupStyle.solid(toast.theme, toast.accentColor)
                                     : toast.theme.textSecondary
@@ -365,7 +402,7 @@ Item {
                                 visible: toast.summary !== ""
                                 text: toast.summary
                                 textFormat: Text.PlainText
-                                font: PopupStyle.title
+                                font: Qt.font({ family: toast.theme.textFont, pixelSize: 21, weight: Font.Medium })
                                 renderType: Text.NativeRendering
                                 color: toast.theme.textPrimary
                                 wrapMode: Text.Wrap
@@ -379,11 +416,11 @@ Item {
                                 visible: toast.body !== ""
                                 text: toast.safeBody
                                 textFormat: Text.StyledText
-                                font: PopupStyle.body(toast.theme)
+                                font: PopupStyle.toastFont(PopupStyle.body(toast.theme))
                                 renderType: Text.NativeRendering
                                 lineHeight: PopupStyle.bodyLine
                                 lineHeightMode: Text.ProportionalHeight
-                                color: toast.theme.textSecondary
+                                color: toast.theme.textPrimary
                                 linkColor: PopupStyle.solid(toast.theme, toast.theme.accent)
                                 wrapMode: Text.Wrap
                                 maximumLineCount: 3
@@ -476,7 +513,7 @@ Item {
                                     anchors.centerIn: parent
                                     text: btn.modelData.text
                                     textFormat: Text.PlainText
-                                    font: PopupStyle.action(toast.theme)
+                                    font: PopupStyle.toastFont(PopupStyle.action(toast.theme))
                                     renderType: Text.NativeRendering
                                     color: btn.lit ? toast.theme.textOnAccent : toast.theme.textPrimary
                                 }

@@ -11,6 +11,8 @@ Item {
 
     required property var theme
     required property int nid
+    // Count behind this card
+    required property int more
 
     // null once closed
     property var notif: null
@@ -52,7 +54,7 @@ Item {
 
     property real appear: 0
 
-    readonly property double born: Date.now()
+    property double born: Date.now()
     property string ageText: "now"
     function _age() {
         var m = Math.floor((Date.now() - born) / 60000)
@@ -82,6 +84,16 @@ Item {
 
     implicitHeight: card.height
     height: implicitHeight
+
+    // Newer one resets the timeout
+    property bool _ready: false
+    onNidChanged: {
+        if (!_ready) return
+        adopt(Notifs.find(nid))
+        born = Date.now()
+        ageText = "now"
+        timedOut = false
+    }
 
     function adopt(n) {
         notif = n
@@ -130,6 +142,7 @@ Item {
 
     Component.onCompleted: {
         adopt(Notifs.find(nid))
+        _ready = true
         enterAnim.start()
     }
 
@@ -322,6 +335,7 @@ Item {
 
                             Text {
                                 Layout.fillWidth: true
+                                Layout.maximumWidth: implicitWidth
                                 text: (toast.appName !== "" ? toast.appName : "System").toUpperCase()
                                 textFormat: Text.PlainText
                                 font.family: toast.fontText
@@ -332,6 +346,28 @@ Item {
                                 elide: Text.ElideRight
                                 maximumLineCount: 1
                             }
+
+                            Rectangle {
+                                visible: toast.more > 0
+                                Layout.alignment: Qt.AlignVCenter
+                                implicitWidth: countLabel.implicitWidth + 20
+                                implicitHeight: countLabel.implicitHeight + 8
+                                radius: height / 2
+                                color: Qt.alpha(toast.accentColor, 0.24)
+
+                                Text {
+                                    id: countLabel
+                                    anchors.centerIn: parent
+                                    text: (toast.more + 1) + " messages"
+                                    textFormat: Text.PlainText
+                                    font.family: toast.fontText
+                                    font.pixelSize: 15
+                                    font.weight: Font.DemiBold
+                                    color: toast.accentColor
+                                }
+                            }
+
+                            Item { Layout.fillWidth: true }
 
                             // hover swaps age for close
                             Item {

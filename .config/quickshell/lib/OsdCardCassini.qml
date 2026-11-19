@@ -85,11 +85,11 @@ Item {
         width: parent.width
         height: row.implicitHeight + PopupStyle.osdPadY * 2
         radius: PopupStyle.radiusCard
-        color: osd.surface
+        color: Qt.tint(osd.surface, Qt.alpha(osd.accentColor, osd.hovered ? 0.16 : 0))
         antialiasing: true
         border.width: PopupStyle.hairline(osd.theme)
-        border.color: PopupStyle.frame(osd.theme, osd.hovered, osd.theme.accent)
-        Behavior on border.color { ColorAnimation { duration: 140 } }
+        border.color: osd.theme.outline
+        Behavior on color { ColorAnimation { duration: 140 } }
 
         HoverHandler {
             id: hover
@@ -210,7 +210,7 @@ Item {
                     Text {
                         text: osd.label.toUpperCase()
                         textFormat: Text.PlainText
-                        font: PopupStyle.label(osd.theme)
+                        font: PopupStyle.osdFont(PopupStyle.label(osd.theme))
                         renderType: Text.NativeRendering
                         color: PopupStyle.solid(osd.theme, osd.accentColor)
                         Behavior on color { ColorAnimation { duration: 200 } }
@@ -222,7 +222,7 @@ Item {
                         text: osd.secondary
                         textFormat: Text.PlainText
                         horizontalAlignment: Text.AlignRight
-                        font: PopupStyle.detail(osd.theme)
+                        font: PopupStyle.osdFont(PopupStyle.detail(osd.theme))
                         renderType: Text.NativeRendering
                         color: Qt.alpha(osd.theme.textSecondary, PopupStyle.detailOpacity)
                         elide: Text.ElideRight
@@ -233,7 +233,7 @@ Item {
                 Item {
                     id: valueRow
                     Layout.fillWidth: true
-                    Layout.topMargin: 2
+                    Layout.topMargin: 8
                     // fixed height, words don't resize
                     Layout.preferredHeight: sizer.implicitHeight
 
@@ -268,7 +268,7 @@ Item {
                 Item {
                     id: ruler
                     Layout.fillWidth: true
-                    Layout.topMargin: 4
+                    Layout.topMargin: 10
                     Layout.preferredHeight: PopupStyle.osdRulerHeight
                     visible: osd.showLevel
 
@@ -336,7 +336,7 @@ Item {
 
                     Text {
                         x: 0
-                        y: ruler.baseY + 5
+                        y: ruler.baseY + 9
                         text: "0"
                         font: PopupStyle.osdNumeral(osd.theme)
                         renderType: Text.NativeRendering
@@ -344,7 +344,7 @@ Item {
                     }
                     Text {
                         x: Math.round(ruler.span / 2 - width / 2)
-                        y: ruler.baseY + 5
+                        y: ruler.baseY + 9
                         text: "50"
                         font: PopupStyle.osdNumeral(osd.theme)
                         renderType: Text.NativeRendering
@@ -352,7 +352,7 @@ Item {
                     }
                     Text {
                         x: ruler.span + 1 - width
-                        y: ruler.baseY + 5
+                        y: ruler.baseY + 9
                         text: "100"
                         font: PopupStyle.osdNumeral(osd.theme)
                         renderType: Text.NativeRendering
@@ -373,7 +373,7 @@ Item {
                             if (pressed) osd.levelMoved(frac(mouse.x))
                         }
                         onReleased: osd.levelReleased()
-                        onWheel: wheel => osd.levelWheeled(wheel.angleDelta.y > 0 ? 5 : -5)
+                        onWheel: wheel => osd.levelWheeled(wheel.angleDelta.y > 0 ? 5 : (wheel.angleDelta.y < 0 ? -5 : 0))
                     }
                 }
             }
