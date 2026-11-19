@@ -21,6 +21,7 @@ Scope {
     property bool _placeAfter: false
     property var _lastGood: ({})           // last mode seen per output
     property double _quietUntil: 0         // ignore our own toggles
+    property var _shellOff: ({})           // externals we switched off
 
     signal pairConnected(var mons)
     signal guestConnected(var mon)
@@ -107,6 +108,7 @@ Scope {
                 var list = []
                 try { list = JSON.parse(this.text || "[]") } catch (e) { return }
                 root.allMonitors = list
+                root._clearStaleOff(list)
                 list = list.filter(function (m) { return !m.disabled })
                 root.monitors = list
 
@@ -198,7 +200,7 @@ Scope {
         function onRawEvent(ev) {
             if (!ev || !ev.name) return
             if (ev.name === "monitoradded" || ev.name === "monitorremoved"
-                || ev.name === "monitoraddedv2")
+                || ev.name === "monitoraddedv2" || ev.name === "monitorremovedv2")
                 settle.restart()
             // reload resets every screen
             if (ev.name === "configreloaded") {
@@ -213,6 +215,14 @@ Scope {
     Timer {
         id: settle
         interval: 600
+        onTriggered: root.refresh()
+    }
+
+    // unplugging an off screen sends nothing
+    Timer {
+        interval: 3000
+        repeat: true
+        running: Object.keys(root._shellOff).length > 0
         onTriggered: root.refresh()
     }
 
@@ -237,13 +247,40 @@ Scope {
     }
 
     function _mon(spec) {
+        root._track(spec)
         Quickshell.execDetached(["hyprctl", "eval", root._spec(spec)])
     }
 
     // one eval, no overlap mid-swap
     function _monBatch(specs) {
         if (!specs.length) return
+        specs.forEach(root._track)
         Quickshell.execDetached(["hyprctl", "eval", specs.map(root._spec).join("; ")])
+    }
+
+    // the laptop rule is the user's
+    function _track(spec) {
+        if (spec.output === root.laptopOutput || spec.disabled === undefined) return
+        var next = Object.assign({}, root._shellOff)
+        if (spec.disabled) next[spec.output] = Date.now()
+        else delete next[spec.output]
+        root._shellOff = next
+    }
+
+    // disable rules outlive the screen
+    function _clearStaleOff(list) {
+        var held = root._shellOff
+        var now = Date.now()
+        for (var name in held) {
+            var m = null
+            for (var i = 0; i < list.length; i++) if (list[i].name === name) m = list[i]
+            if (!m) root._mon({ output: name, disabled: false })
+            else if (!m.disabled && now - held[name] > 3000) root._track({ output: name, disabled: false })
+        }
+        // off before a shell restart
+        if (!root._primed)
+            for (var j = 0; j < list.length; j++)
+                if (list[j].disabled) root._track({ output: list[j].name, disabled: true })
     }
 
     // preferred may exceed the cable
