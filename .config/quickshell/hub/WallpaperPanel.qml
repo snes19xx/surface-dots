@@ -149,6 +149,14 @@ Item {
                 flickDeceleration: 200; maximumFlickVelocity: 2000
                 boundsBehavior: Flickable.StopAtBounds
 
+                // Not unloaded between visits
+                Connections {
+                    target: root
+                    function onVisibleChanged() {
+                        if (root.visible) { gAnim.stop(); gridFlick.contentY = 0 }
+                    }
+                }
+
                 WheelHandler {
                     acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
                     onWheel: (ev) => {
@@ -323,19 +331,19 @@ Item {
         z: 99
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: 8
-        height: 26; radius: 7
-        width: toastLabel.implicitWidth + 22
-        color: Qt.rgba(root.rBg.r, root.rBg.g, root.rBg.b, 0.94)
-        border.width: 1; border.color: root.rAccent
+        anchors.topMargin: -40
+        height: 32; radius: 8
+        width: toastLabel.implicitWidth + 32
+        color: Qt.rgba(root.rBg.r, root.rBg.g, root.rBg.b, 0.96)
+        border.width: 1; border.color: root.rOutline
         opacity: root.showToast ? 1.0 : 0.0
         Behavior on opacity { NumberAnimation { duration: 180 } }
         Text {
             id: toastLabel
             anchors.centerIn: parent
             text: root.toastText
-            color: root.rAccent
-            font.family: "DM Mono"; font.pixelSize: 11
+            color: root.rText
+            font.family: root.rFont; font.pixelSize: 14; font.weight: Font.Medium
         }
     }
 

@@ -55,6 +55,14 @@ Item {
         contentWidth: width
         clip: true
         flickDeceleration: 160; maximumFlickVelocity: 1800; boundsBehavior: Flickable.StopAtBounds
+
+        // Not unloaded between visits
+        Connections {
+            target: root
+            function onVisibleChanged() {
+                if (root.visible) { wAnim.stop(); flickable.contentY = 0 }
+            }
+        }
         WheelHandler {
             acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
             onWheel: (ev) => {
@@ -259,21 +267,19 @@ Item {
                         }
                     }
                     SDivider {}
-                    RowLayout {
-                        Layout.fillWidth: true; spacing: 8
-                        Text {
-                            Layout.fillWidth: true
-                            text: root.overrideCount > 0
-                                ? root.overrideCount + " override" + (root.overrideCount === 1 ? "" : "s") + ", kept across wallpapers"
-                                : "Edits are saved per light and dark mode."
-                            color: root.rMuted; font.family: root.rFont; font.pixelSize: 12; opacity: 0.7
-                        }
-                        SBtn {
-                            label: "Reset overrides"
-                            enabled: root.overrideCount > 0
-                            opacity: enabled ? 1 : 0.4
-                            onTriggered: { Lib.Configuration.clearPaletteOverrides(); root.triggerToast("overrides cleared") }
-                        }
+                    Text {
+                        Layout.fillWidth: true
+                        text: root.overrideCount > 0
+                            ? root.overrideCount + " override" + (root.overrideCount === 1 ? "" : "s") + ", kept across wallpapers"
+                            : "Edits are saved per light and dark mode."
+                        color: root.rMuted; font.family: root.rFont; font.pixelSize: 12; opacity: 0.7
+                    }
+
+                    headerItems: SBtn {
+                        label: "Reset overrides"
+                        enabled: root.overrideCount > 0
+                        opacity: enabled ? 1 : 0.4
+                        onTriggered: { Lib.Configuration.clearPaletteOverrides(); root.triggerToast("overrides cleared") }
                     }
                 }
             }
@@ -287,19 +293,19 @@ Item {
         z: 99
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: 8
-        height: 26; radius: 7
-        width: toastLabel.implicitWidth + 22
-        color: Qt.rgba(root.rBg.r, root.rBg.g, root.rBg.b, 0.94)
-        border.width: 1; border.color: root.rAccent
+        anchors.topMargin: -40
+        height: 32; radius: 8
+        width: toastLabel.implicitWidth + 32
+        color: Qt.rgba(root.rBg.r, root.rBg.g, root.rBg.b, 0.96)
+        border.width: 1; border.color: root.rOutline
         opacity: root.showToast ? 1.0 : 0.0
         Behavior on opacity { NumberAnimation { duration: 180 } }
         Text {
             id: toastLabel
             anchors.centerIn: parent
             text: root.toastText
-            color: root.rAccent
-            font.family: "DM Mono"; font.pixelSize: 11
+            color: root.rText
+            font.family: root.rFont; font.pixelSize: 14; font.weight: Font.Medium
         }
     }
 
@@ -308,6 +314,7 @@ Item {
     component SCard: Rectangle {
         id: sc
         default property alias items: scCol.data
+        property alias headerItems: headerSlot.data
         property string label: ""
         Layout.fillWidth: true
         color: root.rBg
@@ -332,6 +339,13 @@ Item {
                 color: root.rAccent; opacity: 0.8
                 Layout.bottomMargin: 2
             }
+        }
+
+        Item {
+            id: headerSlot
+            anchors { top: parent.top; right: parent.right; topMargin: 5; rightMargin: 10 }
+            width: childrenRect.width
+            height: childrenRect.height
         }
     }
 
