@@ -38,6 +38,7 @@ ShellRoot {
                 screen: v.modelData
                 visible: !v.topStyle
                 theme: screenTheme
+                bottomSlide: v.taskBar ? v.taskBar.hiddenPx : 0
             }
 
             // Held until the settings load

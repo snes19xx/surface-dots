@@ -19,6 +19,10 @@ PanelWindow {
     //  CONFIGURATION
     property int thickness:    Lib.Configuration.borderThickness
     property int bottomHeight: 40
+    property real bottomSlide: 0
+    // Frame keeps its own thickness
+    readonly property real bottomInset: Math.max(bottomHeight - bottomSlide,
+                                                 borderOpacity > 0 ? thickness : 0)
     property int radius: 10
 
     // Controls for border visibility
@@ -56,7 +60,8 @@ PanelWindow {
     
     // 2. Bottom Bar (TASKBAR)
     Rectangle {
-        height: win.bottomHeight
+        height: win.bottomInset
+        visible: height > 0
         anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
         color: Lib.Configuration.taskbarCustomBg
             ? Lib.Configuration.taskbarCustomBgColor
@@ -68,7 +73,7 @@ PanelWindow {
     Rectangle {
         width: win.thickness
         anchors { top: parent.top; bottom: parent.bottom; left: parent.left }
-        anchors.topMargin: win.thickness; anchors.bottomMargin: win.bottomHeight
+        anchors.topMargin: win.thickness; anchors.bottomMargin: win.bottomInset
         color: win.frameColor
         opacity: win.borderOpacity
         visible: opacity > 0
@@ -81,7 +86,7 @@ PanelWindow {
     Rectangle {
         width: win.thickness
         anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
-        anchors.topMargin: win.thickness; anchors.bottomMargin: win.bottomHeight
+        anchors.topMargin: win.thickness; anchors.bottomMargin: win.bottomInset
         color: win.frameColor
         opacity: win.borderOpacity
         visible: opacity > 0
@@ -134,7 +139,7 @@ PanelWindow {
     Canvas {
         width: win.radius; height: win.radius
         anchors { bottom: parent.bottom; left: parent.left }
-        anchors.bottomMargin: win.bottomHeight; anchors.leftMargin: win.thickness
+        anchors.bottomMargin: win.bottomInset; anchors.leftMargin: win.thickness
         opacity: win.borderOpacity
         visible: opacity > 0
         
@@ -153,7 +158,7 @@ PanelWindow {
     Canvas {
         width: win.radius; height: win.radius
         anchors { bottom: parent.bottom; right: parent.right }
-        anchors.bottomMargin: win.bottomHeight; anchors.rightMargin: win.thickness
+        anchors.bottomMargin: win.bottomInset; anchors.rightMargin: win.thickness
         opacity: win.borderOpacity
         visible: opacity > 0
         

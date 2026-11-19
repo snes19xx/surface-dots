@@ -67,7 +67,12 @@ PanelWindow {
     }
     
 // ---------------------------------------------------------------------------------------------------------------------------
-    margins { top: barStrip }
+    margins {
+        top: barStrip
+        // Taskbar window hangs 14 px below
+        bottom: !topAnchored && Lib.Configuration.taskbarAutoHide
+            ? Lib.Configuration.taskbarExclusiveZone - 14 : 0
+    }
     aboveWindows: true
     WlrLayershell.layer: WlrLayer.Overlay
     focusable: visible

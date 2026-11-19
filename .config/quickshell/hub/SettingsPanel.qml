@@ -274,6 +274,8 @@ Item {
                     onToggled: (v)=>{Lib.Configuration.taskbarForceDockMode=v; Lib.Configuration.save()} }
                 SToggle { label: "Always workspace mode"; checked: Lib.Configuration.taskbarForceWorkspaceMode
                     onToggled: (v)=>{Lib.Configuration.taskbarForceWorkspaceMode=v; Lib.Configuration.save()} }
+                SToggle { label: "Auto-hide taskbar"; checked: Lib.Configuration.taskbarAutoHide
+                    onToggled: (v)=>{Lib.Configuration.taskbarAutoHide=v; Lib.Configuration.save()} }
                 SDivider {}
                 RowLayout {
                     Layout.fillWidth: true
