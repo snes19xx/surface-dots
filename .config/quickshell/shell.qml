@@ -98,10 +98,15 @@ ShellRoot {
                 function onKnownConnected(mon) {
                     if (monitorPromptLoader.item) monitorPromptLoader.item.notify(mon)
                 }
+                function onPairConnected(mons) {
+                    if (monitorPromptLoader.item) monitorPromptLoader.item.openPair(mons)
+                }
                 // Unplugged while the card was still up
                 function onMonitorGone(name) {
                     var item = monitorPromptLoader.item
-                    if (item && item.mon && item.mon.name === name) item.close()
+                    if (!item || item.phase === "confirm") return
+                    if (item.mon && item.mon.name === name) item.close()
+                    else if (item.pair && item.pairMons.some(function (m) { return m.name === name })) item.close()
                 }
             }
 
@@ -163,6 +168,11 @@ ShellRoot {
                 name: "monitorPicker"
                 description: "Display layout"
                 onPressed: {
+                    var pair = Lib.MonitorService.pendingPair
+                    if (pair && monitorPromptLoader.item) {
+                        monitorPromptLoader.item.openPair(pair)
+                        return
+                    }
                     var pending = Lib.MonitorService.pending
                     if (pending && monitorPromptLoader.item) {
                         monitorPromptLoader.item.open(pending)

@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import QtQuick.Effects
+import "MonitorLayout.js" as MonLayout
 
 PanelWindow {
     id: win
@@ -29,6 +30,26 @@ PanelWindow {
     property bool   rememberOn: false
     property int    countdown: 10
     property bool   shown: false
+    property bool   pair: false
+    property var    pairMons: []
+    property int    pairLeft: 15
+
+    readonly property var tiles: win.pair
+        ? [
+            { key: "externals", label: "Externals only", icon: "mon_external.svg" },
+            { key: "extend",    label: "Extend all",     icon: "mon_extend.svg" },
+            { key: "duplicate", label: "Mirror",         icon: "mon_duplicate.svg" },
+            { key: "laptop",    label: "Laptop only",    icon: "mon_laptop.svg" }
+        ]
+        : [
+            { key: "extend",    label: "Extend",   icon: "mon_extend.svg" },
+            { key: "duplicate", label: "Duplicate", icon: "mon_duplicate.svg" },
+            { key: "laptop",    label: "Laptop",   icon: "mon_laptop.svg" },
+            { key: "external",  label: "External", icon: "mon_external.svg" }
+        ]
+
+    readonly property string pairKey: MonLayout.pairKey(
+        win.pairMons.map(function (m) { return MonitorService.keyFor(m) }))
 
     readonly property string monTitle: mon ? (mon.description || mon.name) : ""
     readonly property string monSub: mon
@@ -36,6 +57,7 @@ PanelWindow {
         : ""
 
     function open(m) {
+        win.pair       = false
         win.mon        = m
         win.phase      = "pick"
         win.chosen     = ""
@@ -43,6 +65,23 @@ PanelWindow {
         win.visible    = true
         win.shown      = true
         toastTimer.stop()
+        pairTimer.stop()
+        root.forceActiveFocus()
+    }
+
+    // externals only if left alone
+    function openPair(mons) {
+        win.pair       = true
+        win.pairMons   = mons
+        win.mon        = null
+        win.phase      = "pick"
+        win.chosen     = ""
+        win.rememberOn = false
+        win.pairLeft   = 15
+        win.visible    = true
+        win.shown      = true
+        toastTimer.stop()
+        pairTimer.restart()
         root.forceActiveFocus()
     }
 
@@ -58,16 +97,24 @@ PanelWindow {
     }
 
     function close() {
+        pairTimer.stop()
         win.shown = false
         win.phase = "pick"
         hideTimer.restart()
     }
 
     function choose(layout) {
-        if (!win.mon) return
-        win.chosen = layout
-        if (win.rememberOn) MonitorService.remember(MonitorService.keyFor(win.mon), layout)
-        MonitorService.apply(layout, win.mon, true)
+        pairTimer.stop()
+        if (win.pair) {
+            win.chosen = layout
+            if (win.rememberOn) MonitorService.remember(win.pairKey, layout)
+            MonitorService.applyAll(layout, true)
+        } else {
+            if (!win.mon) return
+            win.chosen = layout
+            if (win.rememberOn) MonitorService.remember(MonitorService.keyFor(win.mon), layout)
+            MonitorService.apply(layout, win.mon, true)
+        }
         win.phase = "confirm"
         win.countdown = 10
         countdownTimer.restart()
@@ -81,7 +128,10 @@ PanelWindow {
 
     function revert() {
         countdownTimer.stop()
-        if (win.rememberOn && win.mon) MonitorService.forget(MonitorService.keyFor(win.mon))
+        if (win.rememberOn) {
+            if (win.pair) MonitorService.forget(win.pairKey)
+            else if (win.mon) MonitorService.forget(MonitorService.keyFor(win.mon))
+        }
         MonitorService.revert()
         win.phase = "pick"
     }
@@ -93,6 +143,19 @@ PanelWindow {
         onTriggered: {
             win.countdown -= 1
             if (win.countdown <= 0) win.revert()
+        }
+    }
+
+    Timer {
+        id: pairTimer
+        interval: 1000
+        repeat: true
+        onTriggered: {
+            win.pairLeft -= 1
+            if (win.pairLeft > 0) return
+            pairTimer.stop()
+            MonitorService.applyAll("externals", false)
+            win.close()
         }
     }
 
@@ -116,16 +179,14 @@ PanelWindow {
         Keys.onEscapePressed: win.phase === "pick" ? win.close() : win.revert()
         Keys.onPressed: (event) => {
             if (win.phase !== "pick") return
-            if      (event.key === Qt.Key_1) { win.choose("extend");    event.accepted = true }
-            else if (event.key === Qt.Key_2) { win.choose("duplicate"); event.accepted = true }
-            else if (event.key === Qt.Key_3) { win.choose("laptop");    event.accepted = true }
-            else if (event.key === Qt.Key_4) { win.choose("external");  event.accepted = true }
+            var n = event.key - Qt.Key_1
+            if (n >= 0 && n < win.tiles.length) { win.choose(win.tiles[n].key); event.accepted = true }
         }
 
         Rectangle {
             id: card
             width:  win.phase === "toast" ? 340 : 470
-            height: win.phase === "pick" ? 196 : (win.phase === "confirm" ? 150 : 64)
+            height: win.phase === "pick" ? (win.pair ? 212 : 196) : (win.phase === "confirm" ? 150 : 64)
             Behavior on width { SpringSmooth { epsilon: 0.25 } }
             radius: win.theme.radiusOuter
             color:  win.theme.bgCard
@@ -175,14 +236,16 @@ PanelWindow {
                     spacing: 2
 
                     Text {
-                        text: "New display connected"
+                        text: win.pair ? "Two displays connected" : "New display connected"
                         font.family:    win.theme.textFont
                         font.pixelSize: 15
                         font.weight:    Font.Bold
                         color:          win.theme.textPrimary
                     }
                     Text {
-                        text: win.monTitle
+                        text: win.pair
+                            ? "Externals only in " + win.pairLeft + "s, or pick"
+                            : win.monTitle
                         font.family:    win.theme.textFont
                         font.pixelSize: 12
                         color:          win.theme.textSecondary
@@ -196,12 +259,7 @@ PanelWindow {
                     spacing: 8
 
                     Repeater {
-                        model: [
-                            { key: "extend",    label: "Extend",   icon: "mon_extend.svg" },
-                            { key: "duplicate", label: "Duplicate", icon: "mon_duplicate.svg" },
-                            { key: "laptop",    label: "Laptop",   icon: "mon_laptop.svg" },
-                            { key: "external",  label: "External", icon: "mon_external.svg" }
-                        ]
+                        model: win.tiles
 
                         Rectangle {
                             required property var modelData
@@ -274,7 +332,7 @@ PanelWindow {
                     }
 
                     Text {
-                        text: "remember this screen"
+                        text: win.pair ? "remember this pair" : "remember this screen"
                         font.family:    win.theme.textFont
                         font.pixelSize: 11
                         color:          win.theme.textSecondary
