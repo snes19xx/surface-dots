@@ -69,7 +69,7 @@ PanelWindow {
 // ---------------------------------------------------------------------------------------------------------------------------
     margins {
         top: barStrip
-        // Taskbar window hangs 14 px below
+        // 14 px of taskbar is offscreen
         bottom: !topAnchored && Lib.Configuration.taskbarAutoHide
             ? Lib.Configuration.taskbarExclusiveZone - 14 : 0
     }

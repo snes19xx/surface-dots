@@ -20,7 +20,7 @@ PanelWindow {
     property int thickness:    Lib.Configuration.borderThickness
     property int bottomHeight: 40
     property real bottomSlide: 0
-    // Frame keeps its own thickness
+    // Never thinner than the frame
     readonly property real bottomInset: Math.max(bottomHeight - bottomSlide,
                                                  borderOpacity > 0 ? thickness : 0)
     property int radius: 10
