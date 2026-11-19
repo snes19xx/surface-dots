@@ -8,7 +8,7 @@ PanelWindow {
 
     required property var theme
 
-    readonly property int toastWidth: 380
+    readonly property int toastWidth: Math.round(380 * PopupStyle.toastScale)
     readonly property bool cassini: Configuration.popupStyle !== "rounded"
     // window clips the shadows otherwise
     readonly property int shadowPad: cassini ? PopupStyle.shadowPad : 44
@@ -45,15 +45,22 @@ PanelWindow {
         if (Quickshell.screens.length > 0) targetScreen = Quickshell.screens[0]
     }
 
+    // New app cards go last
     function reconcile() {
-        var ids = Notifs.popups.map(n => n.id)
+        var stacks = Notifs.stacks
+        var byKey = {}
+        for (var s = 0; s < stacks.length; s++) byKey[stacks[s].key] = stacks[s]
         for (var i = toastModel.count - 1; i >= 0; i--) {
-            if (ids.indexOf(toastModel.get(i).nid) < 0) toastModel.remove(i)
+            var row = toastModel.get(i)
+            var want = byKey[row.key]
+            if (!want) { toastModel.remove(i); continue }
+            if (row.nid !== want.nid) toastModel.setProperty(i, "nid", want.nid)
+            if (row.more !== want.more) toastModel.setProperty(i, "more", want.more)
+            delete byKey[row.key]
         }
-        if (toastModel.count === 0 && ids.length > 0) pickScreen()
-        for (var k = 0; k < ids.length; k++) {
-            if (k >= toastModel.count || toastModel.get(k).nid !== ids[k])
-                toastModel.insert(k, { nid: ids[k] })
+        if (toastModel.count === 0 && stacks.length > 0) pickScreen()
+        for (var k = stacks.length - 1; k >= 0; k--) {
+            if (byKey[stacks[k].key]) toastModel.append({ key: stacks[k].key, nid: stacks[k].nid, more: stacks[k].more })
         }
     }
 
@@ -99,8 +106,8 @@ PanelWindow {
         NotifToastCassini {
             width: list.width
             theme: win.theme
-            onCloseRequested: Notifs.dismissPopup(nid)
-            onExpired: Notifs.expirePopup(nid)
+            onCloseRequested: Notifs.dismissStack(nid)
+            onExpired: Notifs.expireStack(nid)
             ListView.onRemove: playExit()
         }
     }
@@ -109,8 +116,8 @@ PanelWindow {
         NotifToastRounded {
             width: list.width
             theme: win.theme
-            onCloseRequested: Notifs.dismissPopup(nid)
-            onExpired: Notifs.expirePopup(nid)
+            onCloseRequested: Notifs.dismissStack(nid)
+            onExpired: Notifs.expireStack(nid)
             ListView.onRemove: playExit()
         }
     }

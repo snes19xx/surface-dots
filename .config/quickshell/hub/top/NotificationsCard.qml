@@ -39,8 +39,8 @@ Lib.TopCard {
   // ---------- Main Data ----------
   readonly property ListModel notifModel: Lib.Notifs.history
 
-  function dismissOne(index, id) {
-    Lib.Notifs.dismiss(id)
+  function dismissOne(key) {
+    Lib.Notifs.dismissKey(key)
   }
 
   function triggerClearAll() {
@@ -254,7 +254,7 @@ Lib.TopCard {
           body: model.body !== undefined ? model.body : ""
           theme: root.engine
           
-          onClicked: root.dismissOne(index, model.nId)
+          onClicked: root.dismissOne(model.key)
         }
       }
 

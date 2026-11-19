@@ -38,8 +38,8 @@ Lib.Card {
   // ---------- Main Data ----------
   readonly property ListModel notifModel: Lib.Notifs.history
 
-  function dismissOne(index, id) {
-    Lib.Notifs.dismiss(id)
+  function dismissOne(key) {
+    Lib.Notifs.dismissKey(key)
   }
 
   function triggerClearAll() {
@@ -252,7 +252,7 @@ Lib.Card {
           body: model.body !== undefined ? model.body : ""
           theme: root.theme
           
-          onClicked: root.dismissOne(index, model.nId)
+          onClicked: root.dismissOne(model.key)
         }
       }
 
