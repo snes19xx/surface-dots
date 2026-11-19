@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import "../../lib" as Lib
+import ".." as Hub
 
 Lib.TopCard {
   id: root
@@ -41,6 +42,19 @@ Lib.TopCard {
 
   function dismissOne(key) {
     Lib.Notifs.dismissKey(key)
+  }
+
+  function rowHeight(i) {
+    return notifModel.get(i).body ? listWrapper.itemH + 16 : listWrapper.itemH
+  }
+
+  // Whole rows only
+  function rowsHeight(n) {
+    var _rev = Lib.Notifs.historyRevision
+    var shown = Math.min(n, notifModel.count)
+    var h = 0
+    for (var i = 0; i < shown; i++) h += rowHeight(i)
+    return h + Math.max(0, shown - 1) * listWrapper.spacing
   }
 
   function triggerClearAll() {
@@ -204,11 +218,10 @@ Lib.TopCard {
 
       property int itemH: 62
       property int spacing: 8
-      property int compactMaxH: itemH * 3 + spacing * 2
-      property int normalMaxH: 220
+      property int maxRows: 3
 
       property int viewHeight: (!root.compactMode || root.expanded)
-        ? Math.min(list.contentHeight, root.compactMode ? compactMaxH : normalMaxH)
+        ? root.rowsHeight(maxRows)
         : 0
 
       Layout.preferredHeight: viewHeight
@@ -244,7 +257,7 @@ Lib.TopCard {
           Lib.SpringSmooth { property: "x"; epsilon: 0.25 }
         }
 
-        delegate: NotifItem {
+        delegate: Hub.NotifItem {
           width: list.width
           height: model.body ? listWrapper.itemH + 16 : listWrapper.itemH
           
@@ -252,8 +265,11 @@ Lib.TopCard {
           app: model.app
           summary: model.summary
           body: model.body !== undefined ? model.body : ""
+          iconSource: model.iconSource
+          time: model.time
+          count: model.count
           theme: root.engine
-          
+
           onClicked: root.dismissOne(model.key)
         }
       }

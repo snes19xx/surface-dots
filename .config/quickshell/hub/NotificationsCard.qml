@@ -42,6 +42,19 @@ Lib.Card {
     Lib.Notifs.dismissKey(key)
   }
 
+  function rowHeight(i) {
+    return notifModel.get(i).body ? listWrapper.itemH + 16 : listWrapper.itemH
+  }
+
+  // Whole rows only
+  function rowsHeight(n) {
+    var _rev = Lib.Notifs.historyRevision
+    var shown = Math.min(n, notifModel.count)
+    var h = 0
+    for (var i = 0; i < shown; i++) h += rowHeight(i)
+    return h + Math.max(0, shown - 1) * listWrapper.spacing
+  }
+
   function triggerClearAll() {
     if (notifModel.count === 0) return
     wipeAnimation.start()
@@ -202,11 +215,10 @@ Lib.Card {
 
       property int itemH: 62
       property int spacing: 8
-      property int compactMaxH: itemH * 3 + spacing * 2
-      property int normalMaxH: 220
+      property int maxRows: 3
 
       property int viewHeight: ((!root.compactMode || root.expanded) && !root.overrideCollapse)
-        ? Math.min(list.contentHeight, root.compactMode ? compactMaxH : normalMaxH)
+        ? root.rowsHeight(maxRows)
         : 0
 
       Layout.preferredHeight: viewHeight
@@ -250,8 +262,11 @@ Lib.Card {
           app: model.app
           summary: model.summary
           body: model.body !== undefined ? model.body : ""
+          iconSource: model.iconSource
+          time: model.time
+          count: model.count
           theme: root.theme
-          
+
           onClicked: root.dismissOne(model.key)
         }
       }
