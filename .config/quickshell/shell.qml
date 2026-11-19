@@ -24,6 +24,10 @@ ShellRoot {
             property var modelData
 
             readonly property bool topStyle: Lib.Configuration.barStyle === "top"
+            // every screen binds the same shortcuts
+            readonly property bool focused: Hyprland.focusedMonitor
+                ? v.modelData && Hyprland.focusedMonitor.name === v.modelData.name
+                : v.modelData === Quickshell.screens[0]
 
             Lib.ThemeEngine {
                 id: screenTheme
@@ -125,12 +129,14 @@ ShellRoot {
 
             Dock.Drawer {
                 id: appDrawer
+                screen: v.modelData
                 isDarkMode: screenTheme.isDarkMode
                 launcherHole: v.launcherHole
             }
 
             Dock.WideDrawer {
                 id: wideDrawer
+                screen: v.modelData
                 theme: screenTheme
                 launcherHole: v.launcherHole
             }
@@ -149,7 +155,7 @@ ShellRoot {
             GlobalShortcut {
                 name: "hubToggle"
                 description: "Toggle hub"
-                onPressed: v.toggleHub()
+                onPressed: if (v.focused) v.toggleHub()
             }
 
             // rofi is the launcher in top style, so this only binds for the taskbar
@@ -157,6 +163,7 @@ ShellRoot {
                 name: "drawerToggle"
                 description: "Toggle app drawer"
                 onPressed: {
+                    if (!v.focused) return
                     if (v.topStyle) Quickshell.execDetached(["bash", "-c",
                         "pkill -x rofi || ~/.config/rofi/launcher.sh"])
                     else wideDrawer.toggle()
@@ -168,6 +175,7 @@ ShellRoot {
                 name: "monitorPicker"
                 description: "Display layout"
                 onPressed: {
+                    if (!v.focused) return
                     var pair = Lib.MonitorService.pendingPair
                     if (pair && monitorPromptLoader.item) {
                         monitorPromptLoader.item.openPair(pair)
