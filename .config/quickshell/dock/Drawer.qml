@@ -315,7 +315,7 @@ PanelWindow {
                             var base = wheelAnim.running ? wheelAnim.to : appGrid.contentY
                             var step = Math.abs(event.angleDelta.y) * 1.1 + 24
                             var newY = Math.max(-appGrid.topMargin, Math.min(
-                                base + (event.angleDelta.y > 0 ? -step : step),
+                                base + (event.angleDelta.y > 0 ? -step : (event.angleDelta.y < 0 ? step : 0)),
                                 Math.max(0, appGrid.contentHeight - appGrid.height)
                             ))
                             wheelAnim.to = newY

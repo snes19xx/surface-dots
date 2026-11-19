@@ -155,7 +155,7 @@ Item {
                         var base = gAnim.running ? gAnim.to : gridFlick.contentY
                         var step = Math.abs(ev.angleDelta.y) * 1.1 + 20
                         var newY = Math.max(0, Math.min(
-                            base + (ev.angleDelta.y > 0 ? -step : step),
+                            base + (ev.angleDelta.y > 0 ? -step : (ev.angleDelta.y < 0 ? step : 0)),
                             Math.max(0, gridFlick.contentHeight - gridFlick.height)))
                         gAnim.to = newY; gAnim.restart(); ev.accepted = true
                     }

@@ -36,7 +36,7 @@ Item {
             onWheel: (ev) => {
                 var base=wAnim.running?wAnim.to:flickable.contentY
                 var step=Math.abs(ev.angleDelta.y)*1.1+24
-                var newY=Math.max(0,Math.min(base+(ev.angleDelta.y>0?-step:step),Math.max(0,flickable.contentHeight-flickable.height)))
+                var newY=Math.max(0,Math.min(base+(ev.angleDelta.y>0?-step:(ev.angleDelta.y<0?step:0)),Math.max(0,flickable.contentHeight-flickable.height)))
                 wAnim.to=newY; wAnim.restart(); ev.accepted=true
             }
         }

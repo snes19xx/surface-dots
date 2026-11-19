@@ -325,7 +325,7 @@ Item {
                                 if (pressed) osd.levelMoved(frac(mouse.x))
                             }
                             onReleased: osd.levelReleased()
-                            onWheel: wheel => osd.levelWheeled(wheel.angleDelta.y > 0 ? 5 : -5)
+                            onWheel: wheel => osd.levelWheeled(wheel.angleDelta.y > 0 ? 5 : (wheel.angleDelta.y < 0 ? -5 : 0))
                         }
                     }
                 }

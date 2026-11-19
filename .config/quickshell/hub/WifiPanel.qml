@@ -873,7 +873,7 @@ Item {
                 var base = scrollAnim.running ? scrollAnim.to : flick.contentY
                 var step = Math.abs(ev.angleDelta.y) * 1.1 + 20
                 scrollAnim.to = Math.max(0, Math.min(
-                    base + (ev.angleDelta.y > 0 ? -step : step),
+                    base + (ev.angleDelta.y > 0 ? -step : (ev.angleDelta.y < 0 ? step : 0)),
                     Math.max(0, flick.contentHeight - flick.height)))
                 scrollAnim.restart()
                 ev.accepted = true
